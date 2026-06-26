@@ -1,0 +1,7 @@
+total 12
+drwxr-xr-x 1 DELL 197121 0 Jun 23 15:27 ./
+drwxr-xr-x 1 DELL 197121 0 Jun 26 11:28 ../
+drwxr-xr-x 1 DELL 197121 0 Jun 23 15:31 Http/
+drwxr-xr-x 1 DELL 197121 0 Jun 23 15:32 Models/
+drwxr-xr-x 1 DELL 197121 0 Jun 23 15:52 Providers/
+drwxr-xr-x 1 DELL 197121 0 Jun 23 15:27 Services/

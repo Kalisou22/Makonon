@@ -1,0 +1,9 @@
+total 13
+drwxr-xr-x 1 DELL 197121   0 Jun 23 15:33 ./
+drwxr-xr-x 1 DELL 197121   0 Jun 23 15:31 ../
+-rw-r--r-- 1 DELL 197121 355 Jun 23 15:33 AgenceRequest.php
+-rw-r--r-- 1 DELL 197121 386 Jun 23 15:33 CaisseRequest.php
+-rw-r--r-- 1 DELL 197121 410 Jun 23 15:33 ClientRequest.php
+-rw-r--r-- 1 DELL 197121 304 Jun 23 16:18 LoginRequest.php
+-rw-r--r-- 1 DELL 197121 627 Jun 23 15:33 TransfertRequest.php
+-rw-r--r-- 1 DELL 197121 547 Jun 23 15:33 UtilisateurRequest.php
