@@ -14,7 +14,8 @@ class AuthController extends Controller
     {
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        // Utiliser password_hash au lieu de password
+        if (!$user || !Hash::check($request->password, $user->password_hash)) {
             return response()->json([
                 'error' => 'Identifiants incorrects'
             ], 401);
@@ -32,7 +33,7 @@ class AuthController extends Controller
             'token' => $token,
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'nom' => $user->nom,
                 'email' => $user->email,
                 'role' => $user->role,
                 'agence_id' => $user->agence_id
