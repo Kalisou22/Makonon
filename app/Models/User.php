@@ -2,48 +2,66 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'agence_id',
+        'role',
+        'telephone',
+        'actif'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'actif' => 'boolean',
         ];
+    }
+
+    public function agence()
+    {
+        return $this->belongsTo(Agence::class);
+    }
+
+    public function transfertsEmis()
+    {
+        return $this->hasMany(Transfert::class, 'utilisateur_id');
+    }
+
+    public function ledgers()
+    {
+        return $this->hasMany(Ledger::class, 'utilisateur_id');
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['SUPERADMIN', 'ADMIN']);
+    }
+
+    public function isAgent(): bool
+    {
+        return $this->role === 'AGENT';
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
     }
 }
