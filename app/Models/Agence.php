@@ -20,7 +20,7 @@ class Agence extends Model
     // RELATIONS
     // ============================================================
     
-    public function users()
+    public function utilisateurs()
     {
         return $this->hasMany(User::class);
     }
