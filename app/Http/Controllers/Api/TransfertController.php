@@ -7,6 +7,7 @@ use App\Services\TransfertService;
 use App\Services\LedgerService;
 use App\Exceptions\TransfertException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TransfertController extends Controller
 {
@@ -46,11 +47,21 @@ class TransfertController extends Controller
                     'statut' => $transfert->statut,
                 ]
             ], 201);
-        } catch (\Exception $e) {
+        } catch (TransfertException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'code' => $e->getCode() ?: 422
             ], $e->getCode() ?: 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur création transfert', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            return response()->json([
+                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -70,11 +81,21 @@ class TransfertController extends Controller
                     'date_retrait' => $transfert->date_retrait,
                 ]
             ]);
-        } catch (\Exception $e) {
+        } catch (TransfertException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'code' => $e->getCode() ?: 422
             ], $e->getCode() ?: 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur retrait transfert', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            return response()->json([
+                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -94,11 +115,22 @@ class TransfertController extends Controller
                     'date_annulation' => $transfert->date_annulation,
                 ]
             ]);
-        } catch (\Exception $e) {
+        } catch (TransfertException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'code' => $e->getCode() ?: 422
             ], $e->getCode() ?: 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur annulation transfert', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $code
+            ]);
+            return response()->json([
+                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'code' => 500
+            ], 500);
         }
     }
 
