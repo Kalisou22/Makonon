@@ -151,6 +151,15 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
+            // 🔥 VÉRIFICATION DOUBLE ANNULATION
+            if ($transfert->statut === 'ANNULE') {
+                throw new TransfertException('Transfert déjà annulé', 400);
+            }
+
+            if ($transfert->statut === 'RETIRE') {
+                throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
+            }
+
             if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Transfert déjà traité', 400);
             }
@@ -193,7 +202,12 @@ class TransfertService
                 "Annulation transfert - Retrait"
             );
 
-            Log::info('Transfert annulé', ['transfert_id' => $transfert->id, 'code' => $code]);
+            Log::info('Transfert annulé', [
+                'transfert_id' => $transfert->id,
+                'code' => $code,
+                'motif' => $motif,
+                'user' => $user->id
+            ]);
 
             return $transfert;
         });
