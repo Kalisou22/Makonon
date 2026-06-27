@@ -10,12 +10,11 @@ return new class extends Migration
     {
         Schema::table('ledger', function (Blueprint $table) {
             if (!Schema::hasColumn('ledger', 'reference')) {
-                $table->string('reference', 100)->nullable()->after('utilisateur_id');
+                $table->string('reference', 100)->nullable();
                 $table->index('reference');
             }
-            
             if (!Schema::hasColumn('ledger', 'description')) {
-                $table->text('description')->nullable()->after('reference');
+                $table->text('description')->nullable();
             }
         });
     }
