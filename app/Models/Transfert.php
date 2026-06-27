@@ -79,6 +79,10 @@ class Transfert extends Model
     }
 
     public function utilisateurRetrait()
+    public function utilisateurAnnulation()
+    {
+        return $this->belongsTo(Utilisateur::class, "utilisateur_annulation_id");
+    }
     {
         return $this->belongsTo(User::class, 'utilisateur_retrait_id');
     }

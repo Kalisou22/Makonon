@@ -13,7 +13,7 @@ return new class extends Migration
                 $table->foreignId('utilisateur_annulation_id')
                     ->nullable()
                     ->constrained('utilisateurs')
-                    ->onDelete('set null');
+                    ->nullOnDelete();
             }
         });
     }
