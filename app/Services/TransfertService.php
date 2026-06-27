@@ -183,7 +183,6 @@ class TransfertService
         });
     }
 
-    // 🔥 MÉTHODE ANNULER AJOUTÉE
     public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
         return DB::transaction(function () use ($code, $user, $motif) {
@@ -274,85 +273,3 @@ class TransfertService
         return 5000;
     }
 }
-
-    public function annuler(string $code, User $user, ?string $motif = null): Transfert
-    {
-        return DB::transaction(function () use ($code, $user, $motif) {
-            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
-
-            if (!$transfert) {
-                throw new TransfertException('Transfert introuvable', 404);
-            }
-
-            if ($transfert->statut === 'ANNULE') {
-                throw new TransfertException('Transfert déjà annulé', 400);
-            }
-
-            if ($transfert->statut === 'RETIRE') {
-                throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
-            }
-
-            if ($transfert->statut !== 'ENVOYE') {
-                throw new TransfertException('Transfert déjà traité', 400);
-            }
-
-            $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
-            $agenceDestinataire = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
-
-            if (!$agenceEmettrice || !$agenceDestinataire) {
-                throw new TransfertException('Agence non trouvée', 404);
-            }
-
-            if ($user->agence_id !== $agenceEmettrice->id && $user->role !== 'SUPERADMIN') {
-                throw new TransfertException('Accès interdit', 403);
-            }
-
-            $soldeDestinataire = $this->ledgerService->getSoldeWithLock($agenceDestinataire->id);
-            if ($soldeDestinataire < $transfert->montant) {
-                throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
-            }
-
-            $transfert->update([
-                'statut' => 'ANNULE',
-                'date_annulation' => now(),
-                'utilisateur_annulation_id' => $user->id,
-                'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
-            ]);
-
-            $totalARembourser = $transfert->montant + $transfert->frais;
-
-            $this->ledgerService->credit(
-                $agenceEmettrice,
-                $totalARembourser,
-                'ANNULATION_TRANSFERT',
-                $transfert->id,
-                $user->id,
-                $code,
-                "Annulation transfert - Remboursement total"
-            );
-
-            $this->ledgerService->debit(
-                $agenceDestinataire,
-                $transfert->montant,
-                'ANNULATION_TRANSFERT',
-                $transfert->id,
-                $user->id,
-                $code,
-                "Annulation transfert - Retrait fonds"
-            );
-
-            $this->ledgerService->verifierDoubleEcriture($transfert->id);
-
-            Log::channel('audit')->info('transfert_annule', [
-                'transfert_id' => $transfert->id,
-                'code' => $code,
-                'montant' => $transfert->montant,
-                'frais' => $transfert->frais,
-                'total_rembourse' => $totalARembourser,
-                'motif' => $motif,
-                'user_id' => $user->id
-            ]);
-
-            return $transfert;
-        });
-    }
