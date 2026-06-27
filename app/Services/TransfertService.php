@@ -23,12 +23,8 @@ class TransfertService
 
     public function creer(array $data, User $user): Transfert
     {
-        try {
-            $agenceEmettrice = Agence::findOrFail($data['agence_envoi_id']);
-            $agenceDestinataire = Agence::findOrFail($data['agence_destinataire_id']);
-        } catch (\Exception $e) {
-            throw new TransfertException('Agence non trouvée', 404);
-        }
+        $agenceEmettrice = Agence::findOrFail($data['agence_envoi_id']);
+        $agenceDestinataire = Agence::findOrFail($data['agence_destinataire_id']);
 
         $expediteur = Client::firstOrCreate(
             ['telephone' => $data['telephone_expediteur']],
@@ -41,10 +37,18 @@ class TransfertService
         );
 
         return DB::transaction(function () use ($data, $user, $agenceEmettrice, $agenceDestinataire, $expediteur, $beneficiaire) {
-            $solde = $this->ledgerService->getSolde($agenceEmettrice->id);
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
 
+            // Vérification idempotence
+            if (!empty($data['idempotency_key'])) {
+                $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
+                if ($existing) {
+                    return $existing;
+                }
+            }
+
+            $solde = $this->ledgerService->getSoldeWithLock($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
             }
@@ -63,11 +67,12 @@ class TransfertService
                 'commission' => $frais * 0.75,
                 'statut' => 'ENVOYE',
                 'date_envoi' => now(),
+                'idempotency_key' => $data['idempotency_key'] ?? null,
             ]);
 
             $this->ledgerService->debit(
                 $agenceEmettrice,
-                $data['montant'],
+                $total,
                 'TRANSFERT_EMIS',
                 $transfert->id,
                 $user->id,
@@ -85,7 +90,27 @@ class TransfertService
                 "Transfert reçu de {$agenceEmettrice->nom}"
             );
 
-            Log::info('Transfert créé', ['transfert_id' => $transfert->id, 'code' => $code]);
+            $this->ledgerService->credit(
+                $agenceEmettrice,
+                $frais,
+                'FRAIS_TRANSFERT',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Frais transfert - Code: {$code}"
+            );
+
+            Log::channel('audit')->info('transfert_cree', [
+                'transfert_id' => $transfert->id,
+                'code' => $code,
+                'montant' => $data['montant'],
+                'frais' => $frais,
+                'total' => $total,
+                'user_id' => $user->id,
+                'agence_source' => $agenceEmettrice->id,
+                'agence_dest' => $agenceDestinataire->id,
+                'ip' => request()->ip()
+            ]);
 
             return $transfert;
         });
@@ -104,7 +129,6 @@ class TransfertService
             }
 
             $agence = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
-
             if (!$agence) {
                 throw new TransfertException('Agence de retrait non trouvée', 404);
             }
@@ -113,7 +137,7 @@ class TransfertService
                 throw new TransfertException('Accès interdit à ce transfert', 403);
             }
 
-            $solde = $this->ledgerService->getSolde($agence->id);
+            $solde = $this->ledgerService->getSoldeWithLock($agence->id);
             if ($solde < $transfert->montant) {
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
@@ -134,7 +158,13 @@ class TransfertService
                 "Retrait effectué - Code: {$code}"
             );
 
-            Log::info('Transfert retiré', ['transfert_id' => $transfert->id, 'code' => $code]);
+            Log::channel('audit')->info('transfert_retire', [
+                'transfert_id' => $transfert->id,
+                'code' => $code,
+                'user_id' => $user->id,
+                'agence' => $agence->id,
+                'ip' => request()->ip()
+            ]);
 
             return $transfert;
         });
@@ -151,7 +181,6 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 VÉRIFICATION DOUBLE ANNULATION
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
@@ -175,6 +204,12 @@ class TransfertService
                 throw new TransfertException('Accès interdit', 403);
             }
 
+            // Vérification critique: solde de l'agence destinataire
+            $soldeDestinataire = $this->ledgerService->getSoldeWithLock($agenceDestinataire->id);
+            if ($soldeDestinataire < $transfert->montant) {
+                throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
+            }
+
             $transfert->update([
                 'statut' => 'ANNULE',
                 'date_annulation' => now(),
@@ -182,14 +217,16 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
+            $totalARembourser = $transfert->montant + $transfert->frais;
+
             $this->ledgerService->credit(
                 $agenceEmettrice,
-                $transfert->montant,
+                $totalARembourser,
                 'ANNULATION_TRANSFERT',
                 $transfert->id,
                 $user->id,
                 $code,
-                "Annulation transfert - Remboursement"
+                "Annulation transfert - Remboursement total"
             );
 
             $this->ledgerService->debit(
@@ -199,14 +236,20 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Annulation transfert - Retrait"
+                "Annulation transfert - Retrait fonds"
             );
 
-            Log::info('Transfert annulé', [
+            Log::channel('audit')->info('transfert_annule', [
                 'transfert_id' => $transfert->id,
                 'code' => $code,
+                'montant' => $transfert->montant,
+                'frais' => $transfert->frais,
+                'total_rembourse' => $totalARembourser,
                 'motif' => $motif,
-                'user' => $user->id
+                'user_id' => $user->id,
+                'agence_source' => $agenceEmettrice->id,
+                'agence_dest' => $agenceDestinataire->id,
+                'ip' => request()->ip()
             ]);
 
             return $transfert;
