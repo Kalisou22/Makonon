@@ -56,6 +56,11 @@ class Transfert extends Model
         return $query->where('statut', $statut);
     }
 
+    public function scopeParIdempotencyKey($query, string $key)
+    {
+        return $query->where('idempotency_key', $key);
+    }
+
     public function expediteur()
     {
         return $this->belongsTo(Client::class, 'expediteur_id');
