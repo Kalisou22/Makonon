@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::table('ledger', function (Blueprint $table) {
+            if (!Schema::hasColumn('ledger', 'reference')) {
+                $table->string('reference', 100)->nullable()->after('utilisateur_id');
+                $table->index('reference');
+            }
+            
+            if (!Schema::hasColumn('ledger', 'description')) {
+                $table->text('description')->nullable()->after('reference');
+            }
+        });
+    }
+
+    public function down()
+    {
+        Schema::table('ledger', function (Blueprint $table) {
+            if (Schema::hasColumn('ledger', 'reference')) {
+                $table->dropColumn('reference');
+            }
+            if (Schema::hasColumn('ledger', 'description')) {
+                $table->dropColumn('description');
+            }
+        });
+    }
+};
