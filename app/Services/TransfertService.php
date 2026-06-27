@@ -74,6 +74,7 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
+            // Écritures ledger (DEBIT = CREDIT = total)
             $this->ledgerService->debit(
                 $agenceEmettrice,
                 $total,
@@ -227,18 +228,30 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            $totalARembourser = $transfert->montant + $transfert->frais;
-
+            // 🔥 CORRECTION: ÉQUILIBRAGE COMPLET
+            // 1. Remboursement du montant à l'agence émettrice
             $this->ledgerService->credit(
                 $agenceEmettrice,
-                $totalARembourser,
+                $transfert->montant,
                 'ANNULATION_TRANSFERT',
                 $transfert->id,
                 $user->id,
                 $code,
-                "Annulation transfert - Remboursement total"
+                "Remboursement montant - Code: {$code}"
             );
 
+            // 2. Remboursement des frais à l'agence émettrice
+            $this->ledgerService->credit(
+                $agenceEmettrice,
+                $transfert->frais,
+                'ANNULATION_FRAIS',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Remboursement frais - Code: {$code}"
+            );
+
+            // 3. Débit du montant chez l'agence destinataire
             $this->ledgerService->debit(
                 $agenceDestinataire,
                 $transfert->montant,
@@ -246,9 +259,21 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Annulation transfert - Retrait fonds"
+                "Retrait fonds destinataire - Code: {$code}"
             );
 
+            // 4. Débit des frais chez l'agence émettrice (compensation)
+            $this->ledgerService->debit(
+                $agenceEmettrice,
+                $transfert->frais,
+                'ANNULATION_FRAIS',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Compensation frais - Code: {$code}"
+            );
+
+            // Vérification finale: DEBIT = CREDIT
             $this->ledgerService->verifierDoubleEcriture($transfert->id);
 
             Log::channel('audit')->info('transfert_annule', [
@@ -256,7 +281,6 @@ class TransfertService
                 'code' => $code,
                 'montant' => $transfert->montant,
                 'frais' => $transfert->frais,
-                'total_rembourse' => $totalARembourser,
                 'motif' => $motif,
                 'user_id' => $user->id
             ]);
