@@ -69,3 +69,10 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/test', function() {
     return response()->json(['message' => 'Test OK']);
 });
+
+// Rate limiting pour les routes sensibles
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::post('/transferts', [TransfertController::class, 'creer']);
+    Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
+    Route::put('/transferts/annuler/{code}', [TransfertController::class, 'annuler']);
+});
