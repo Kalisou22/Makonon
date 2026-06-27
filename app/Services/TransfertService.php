@@ -6,9 +6,11 @@ use App\Models\Transfert;
 use App\Models\Client;
 use App\Models\Agence;
 use App\Models\User;
+use App\Models\Ledger;
 use App\Exceptions\FondsInsuffisantsException;
 use App\Exceptions\TransfertException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TransfertService
 {
@@ -19,40 +21,44 @@ class TransfertService
         $this->ledgerService = $ledgerService;
     }
 
+    /**
+     * Créer un transfert avec son ledger
+     */
     public function creer(array $data, User $user): Transfert
     {
         $agenceEmettrice = Agence::findOrFail($data['agence_envoi_id']);
         $agenceDestinataire = Agence::findOrFail($data['agence_destinataire_id']);
 
-        // Créer l'expéditeur
+        // Créer ou récupérer l'expéditeur
         $expediteur = Client::firstOrCreate(
             ['telephone' => $data['telephone_expediteur']],
             ['nom' => $data['nom_expediteur']]
         );
 
-        // Créer le bénéficiaire
+        // Créer ou récupérer le bénéficiaire
         $beneficiaire = Client::firstOrCreate(
             ['telephone' => $data['telephone_beneficiaire']],
             ['nom' => $data['nom_beneficiaire']]
         );
 
+        // 🔥 TRANSACTION UNIQUE - TOUT OU RIEN
         return DB::transaction(function () use ($data, $user, $agenceEmettrice, $agenceDestinataire, $expediteur, $beneficiaire) {
-            // 1. Vérifier le solde
+            // 1. Vérifier le solde de l'agence émettrice
             if (!$this->ledgerService->verifierSolde($agenceEmettrice->id, $data['montant'])) {
                 $solde = $this->ledgerService->getSolde($agenceEmettrice->id);
                 throw new FondsInsuffisantsException($solde, $data['montant']);
             }
 
-            // 2. Générer le code (via le modèle)
+            // 2. Générer le code unique
             $code = Transfert::generateCode();
 
             // 3. Calculer les frais
             $frais = $this->calculerFrais($data['montant']);
             $commission = $frais * 0.75;
 
-            // 4. Créer le transfert (AVEC CODE)
+            // 4. Créer le transfert
             $transfert = Transfert::create([
-                'code' => $code, // 🔥 MAINTENANT PRÉSENT
+                'code' => $code,
                 'expediteur_id' => $expediteur->id,
                 'beneficiaire_id' => $beneficiaire->id,
                 'agence_envoi_id' => $agenceEmettrice->id,
@@ -65,32 +71,73 @@ class TransfertService
                 'date_envoi' => now(),
             ]);
 
-            // 5. Débiter l'agence émettrice
-            $this->ledgerService->debit(
+            // 5. 🔥 CRÉER LE LEDGER POUR LE DÉBIT (AVEC transfert_id)
+            $this->creerLedgerDebit(
                 $agenceEmettrice,
-                $data['montant'],
-                'TRANSFERT_EMIS',
-                $transfert->id,
-                $user->id,
-                $code,
-                "Transfert émis vers {$agenceDestinataire->nom}"
+                $transfert,
+                $user,
+                $code
             );
 
-            // 6. Créditer l'agence destinataire
-            $this->ledgerService->credit(
+            // 6. 🔥 CRÉER LE LEDGER POUR LE CRÉDIT (AVEC transfert_id)
+            $this->creerLedgerCredit(
                 $agenceDestinataire,
-                $data['montant'],
-                'TRANSFERT_RECU',
-                $transfert->id,
-                $user->id,
-                $code,
-                "Transfert reçu de {$agenceEmettrice->nom}"
+                $transfert,
+                $user,
+                $code
             );
+
+            // 7. Mettre à jour le solde de l'agence (optionnel selon votre logique)
+            // $this->updateAgenceSolde($agenceEmettrice, $transfert);
+
+            Log::info('Transfert créé avec succès', [
+                'transfert_id' => $transfert->id,
+                'code' => $code,
+                'montant' => $data['montant'],
+                'utilisateur' => $user->id
+            ]);
 
             return $transfert;
         });
     }
 
+    /**
+     * Créer l'entrée ledger pour le débit
+     */
+    private function creerLedgerDebit(Agence $agence, Transfert $transfert, User $user, string $code): Ledger
+    {
+        // 🔥 CRÉER LE LEDGER AVEC LE transfert_id DÉJÀ CRÉÉ
+        return $this->ledgerService->debit(
+            $agence,
+            $transfert->montant,
+            'TRANSFERT_EMIS',
+            $transfert->id, // 🔥 transfert_id EXISTE
+            $user->id,
+            $code,
+            "Transfert émis vers {$agence->nom} - Code: {$code}"
+        );
+    }
+
+    /**
+     * Créer l'entrée ledger pour le crédit
+     */
+    private function creerLedgerCredit(Agence $agence, Transfert $transfert, User $user, string $code): Ledger
+    {
+        // 🔥 CRÉER LE LEDGER AVEC LE transfert_id DÉJÀ CRÉÉ
+        return $this->ledgerService->credit(
+            $agence,
+            $transfert->montant,
+            'TRANSFERT_RECU',
+            $transfert->id, // 🔥 transfert_id EXISTE
+            $user->id,
+            $code,
+            "Transfert reçu de {$agence->nom} - Code: {$code}"
+        );
+    }
+
+    /**
+     * Calculer les frais
+     */
     private function calculerFrais(float $montant): float
     {
         if ($montant <= 100000) return 1000;
