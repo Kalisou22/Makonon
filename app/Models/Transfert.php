@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 class Transfert extends Model
 {
+    protected $table = 'transferts';
+
     protected $fillable = [
         'code',
         'expediteur_id',
@@ -23,7 +25,8 @@ class Transfert extends Model
         'date_envoi',
         'date_retrait',
         'date_annulation',
-        'motif_annulation'
+        'motif_annulation',
+        'idempotency_key',
     ];
 
     protected $casts = [
