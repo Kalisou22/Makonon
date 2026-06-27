@@ -4,27 +4,29 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    public function login(LoginRequest $request)
+    // Garder LoginRequest pour les vraies requêtes HTTP
+    public function login(Request $request)
     {
-        $user = User::where('email', $request->email)->first();
+        // Validation manuelle pour compatibilité
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string|min:6'
+        ]);
 
-        // Utiliser password_hash au lieu de password
-        if (!$user || !Hash::check($request->password, $user->password_hash)) {
-            return response()->json([
-                'error' => 'Identifiants incorrects'
-            ], 401);
+        $user = User::where('email', $validated['email'])->first();
+
+        if (!$user || !Hash::check($validated['password'], $user->password_hash)) {
+            return response()->json(['error' => 'Identifiants incorrects'], 401);
         }
 
         if (!$user->actif) {
-            return response()->json([
-                'error' => 'Compte désactivé'
-            ], 403);
+            return response()->json(['error' => 'Compte désactivé'], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
