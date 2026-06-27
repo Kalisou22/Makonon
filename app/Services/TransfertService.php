@@ -23,30 +23,33 @@ class TransfertService
 
     public function creer(array $data, User $user): Transfert
     {
-        $agenceEmettrice = Agence::findOrFail($data['agence_envoi_id']);
-        $agenceDestinataire = Agence::findOrFail($data['agence_destinataire_id']);
+        if (!empty($data['idempotency_key'])) {
+            $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
+            if ($existing) {
+                return $existing;
+            }
+        }
 
-        $expediteur = Client::firstOrCreate(
-            ['telephone' => $data['telephone_expediteur']],
-            ['nom' => $data['nom_expediteur']]
-        );
+        return DB::transaction(function () use ($data, $user) {
+            $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->first();
+            $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->first();
 
-        $beneficiaire = Client::firstOrCreate(
-            ['telephone' => $data['telephone_beneficiaire']],
-            ['nom' => $data['nom_beneficiaire']]
-        );
+            if (!$agenceEmettrice || !$agenceDestinataire) {
+                throw new TransfertException('Agence non trouvée', 404);
+            }
 
-        return DB::transaction(function () use ($data, $user, $agenceEmettrice, $agenceDestinataire, $expediteur, $beneficiaire) {
+            $expediteur = Client::firstOrCreate(
+                ['telephone' => $data['telephone_expediteur']],
+                ['nom' => $data['nom_expediteur']]
+            );
+
+            $beneficiaire = Client::firstOrCreate(
+                ['telephone' => $data['telephone_beneficiaire']],
+                ['nom' => $data['nom_beneficiaire']]
+            );
+
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
-
-            // Vérification idempotence
-            if (!empty($data['idempotency_key'])) {
-                $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
-                if ($existing) {
-                    return $existing;
-                }
-            }
 
             $solde = $this->ledgerService->getSoldeWithLock($agenceEmettrice->id);
             if ($solde < $total) {
@@ -204,7 +207,6 @@ class TransfertService
                 throw new TransfertException('Accès interdit', 403);
             }
 
-            // Vérification critique: solde de l'agence destinataire
             $soldeDestinataire = $this->ledgerService->getSoldeWithLock($agenceDestinataire->id);
             if ($soldeDestinataire < $transfert->montant) {
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
