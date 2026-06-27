@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TransfertController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Api\CaisseController;
 use App\Http\Controllers\Api\AgenceController;
 use App\Http\Controllers\Api\UtilisateurController;
 use App\Http\Controllers\Api\StatistiqueController;
+use App\Http\Controllers\Api\LedgerController;
 
 Route::get('/health', function() {
     return response()->json(['status' => 'ok', 'message' => 'API Makonon Transfert']);
@@ -14,18 +16,22 @@ Route::get('/health', function() {
 
 Route::post('/login', [AuthController::class, 'login']);
 
+// 🔥 ROUTES PROTÉGÉES PAR AUTH
 Route::middleware('auth:sanctum')->group(function () {
-
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Routes Transfert - CORRIGÉES
+    // Routes Transferts
     Route::post('/transferts', [TransfertController::class, 'creer']);
-    Route::get('/transferts', [TransfertController::class, 'index']);
-    Route::get('/transferts/solde-agence', [TransfertController::class, 'soldeAgence']);
-    Route::get('/transferts/verifier/{code}', [TransfertController::class, 'verifier']);
     Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
     Route::put('/transferts/annuler/{code}', [TransfertController::class, 'annuler']);
+    Route::get('/transferts/verifier/{code}', [TransfertController::class, 'verifier']);
+    Route::get('/transferts', [TransfertController::class, 'index']);
+    Route::get('/transferts/solde-agence', [TransfertController::class, 'soldeAgence']);
+
+    // 🔥 ROUTES LEDGER (PROTÉGÉES)
+    Route::get('/ledger', [LedgerController::class, 'index']);
+    Route::get('/ledger/agence/{agenceId}', [LedgerController::class, 'byAgence']);
 
     // Routes Clients
     Route::get('/clients', [ClientController::class, 'index']);
@@ -63,7 +69,3 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/test', function() {
     return response()->json(['message' => 'Test OK']);
 });
-
-    // 🔥 Route d'audit du ledger
-    Route::get('/ledger', [App\Http\Controllers\Api\LedgerController::class, 'index']);
-    Route::get('/ledger/agence/{agenceId}', [App\Http\Controllers\Api\LedgerController::class, 'byAgence']);
