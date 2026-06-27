@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 class Transfert extends Model
 {
     protected $fillable = [
-        'code',  // 🔥 AJOUT OBLIGATOIRE
+        'code',
         'expediteur_id',
         'beneficiaire_id',
         'agence_envoi_id',
@@ -35,10 +35,6 @@ class Transfert extends Model
         'date_annulation' => 'datetime',
     ];
 
-    // ============================================================
-    // GÉNÉRATEUR DE CODE
-    // ============================================================
-    
     public static function generateCode(): string
     {
         do {
@@ -47,10 +43,16 @@ class Transfert extends Model
         return $code;
     }
 
-    // ============================================================
-    // RELATIONS
-    // ============================================================
-    
+    public function scopeParCode($query, string $code)
+    {
+        return $query->where('code', $code);
+    }
+
+    public function scopeParStatut($query, string $statut)
+    {
+        return $query->where('statut', $statut);
+    }
+
     public function expediteur()
     {
         return $this->belongsTo(Client::class, 'expediteur_id');
@@ -81,30 +83,13 @@ class Transfert extends Model
         return $this->belongsTo(User::class, 'utilisateur_retrait_id');
     }
 
+    public function utilisateurAnnulation()
+    {
+        return $this->belongsTo(User::class, 'utilisateur_annulation_id');
+    }
+
     public function ledger()
     {
         return $this->hasMany(Ledger::class);
-    }
-
-    // ============================================================
-    // SCOPES
-    // ============================================================
-    
-    public function scopeEnAttente($query)
-    {
-        return $query->where('statut', 'EN_ATTENTE');
-    }
-
-    public function scopeRetire($query)
-    {
-        return $query->where('statut', 'RETIRE');
-    }
-
-    public function scopeParAgence($query, int $agenceId)
-    {
-        return $query->where(function ($q) use ($agenceId) {
-            $q->where('agence_envoi_id', $agenceId)
-              ->orWhere('agence_retrait_id', $agenceId);
-        });
     }
 }
