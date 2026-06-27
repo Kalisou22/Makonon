@@ -24,10 +24,10 @@ class LedgerService
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
 
-            $soldeAvant = $this->getSolde($agence->id);
+            $soldeAvant = $this->getSoldeWithLock($agence->id);
             $soldeApres = $soldeAvant + $montant;
 
-            return $this->creerEntreeLedger(
+            $ledger = $this->creerEntreeLedger(
                 $agence->id,
                 'CREDIT',
                 $montant,
@@ -39,6 +39,10 @@ class LedgerService
                 $reference,
                 $description
             );
+
+            $this->verifierDoubleEcriture($transfertId);
+
+            return $ledger;
         });
     }
 
@@ -56,14 +60,14 @@ class LedgerService
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
 
-            $soldeAvant = $this->getSolde($agence->id);
+            $soldeAvant = $this->getSoldeWithLock($agence->id);
             $soldeApres = $soldeAvant - $montant;
 
             if ($soldeApres < 0) {
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
 
-            return $this->creerEntreeLedger(
+            $ledger = $this->creerEntreeLedger(
                 $agence->id,
                 'DEBIT',
                 $montant,
@@ -75,6 +79,23 @@ class LedgerService
                 $reference,
                 $description
             );
+
+            $this->verifierDoubleEcriture($transfertId);
+
+            return $ledger;
+        });
+    }
+
+    public function getSoldeWithLock(int $agenceId): float
+    {
+        return DB::transaction(function () use ($agenceId) {
+            $agence = Agence::where('id', $agenceId)->lockForUpdate()->first();
+            if (!$agence) {
+                throw new \RuntimeException("Agence non trouvée");
+            }
+            return (float) Ledger::where('agence_id', $agenceId)
+                ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
+                ->value('solde');
         });
     }
 
@@ -132,11 +153,24 @@ class LedgerService
         }
     }
 
-    public function getByAgence(int $agenceId, int $perPage = 10)
+    private function verifierDoubleEcriture(?int $transfertId): void
     {
-        return Ledger::where('agence_id', $agenceId)
-            ->with(['utilisateur', 'transfert'])
-            ->latest('created_at')
-            ->paginate($perPage);
+        if ($transfertId === null) {
+            return;
+        }
+
+        $totalDebit = (float) Ledger::where('transfert_id', $transfertId)
+            ->where('type', 'DEBIT')
+            ->sum('montant');
+
+        $totalCredit = (float) Ledger::where('transfert_id', $transfertId)
+            ->where('type', 'CREDIT')
+            ->sum('montant');
+
+        if (abs($totalDebit - $totalCredit) > 0.01) {
+            throw new \RuntimeException(
+                "Incohérence ledger: DEBIT={$totalDebit}, CREDIT={$totalCredit}"
+            );
+        }
     }
 }
