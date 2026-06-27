@@ -19,9 +19,6 @@ class TransfertController extends Controller
         $this->ledgerService = $ledgerService;
     }
 
-    /**
-     * Créer un transfert
-     */
     public function creer(Request $request)
     {
         $validated = $request->validate([
@@ -52,41 +49,65 @@ class TransfertController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
-                'code' => 422
-            ], 422);
+                'code' => $e->getCode() ?: 422
+            ], $e->getCode() ?: 422);
         }
     }
 
-    /**
-     * Solde de l'agence connectée
-     */
-    public function soldeAgence()
+    public function retirer(Request $request, string $code)
     {
         $user = auth()->user();
 
-        if (!$user->agence_id) {
+        try {
+            $transfert = $this->transfertService->retirer($code, $user);
+
             return response()->json([
-                'error' => 'Utilisateur non rattaché à une agence'
-            ], 403);
+                'message' => 'Retrait effectué avec succès',
+                'data' => [
+                    'id' => $transfert->id,
+                    'code' => $transfert->code,
+                    'statut' => $transfert->statut,
+                    'date_retrait' => $transfert->date_retrait,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => $e->getCode() ?: 422
+            ], $e->getCode() ?: 422);
         }
-
-        $solde = $this->ledgerService->getSolde($user->agence_id);
-
-        return response()->json([
-            'solde' => $solde,
-            'agence_id' => $user->agence_id
-        ]);
     }
 
-    /**
-     * Liste des transferts
-     */
+    public function annuler(Request $request, string $code)
+    {
+        $user = auth()->user();
+
+        try {
+            $transfert = $this->transfertService->annuler($code, $user, $request->motif);
+
+            return response()->json([
+                'message' => 'Transfert annulé avec succès',
+                'data' => [
+                    'id' => $transfert->id,
+                    'code' => $transfert->code,
+                    'statut' => $transfert->statut,
+                    'date_annulation' => $transfert->date_annulation,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => $e->getCode() ?: 422
+            ], $e->getCode() ?: 422);
+        }
+    }
+
     public function index(Request $request)
     {
         $user = auth()->user();
         $query = \App\Models\Transfert::with(['expediteur', 'beneficiaire', 'agenceEnvoi', 'agenceRetrait']);
 
-        if ($user->agence_id) {
+        if ($user->agence_id && $user->role !== 'SUPERADMIN') {
             $query->where(function ($q) use ($user) {
                 $q->where('agence_envoi_id', $user->agence_id)
                   ->orWhere('agence_retrait_id', $user->agence_id);
@@ -103,9 +124,6 @@ class TransfertController extends Controller
         return response()->json($transferts);
     }
 
-    /**
-     * Vérifier un transfert
-     */
     public function verifier(string $code)
     {
         $transfert = \App\Models\Transfert::where('code', $code)
@@ -113,47 +131,23 @@ class TransfertController extends Controller
             ->first();
 
         if (!$transfert) {
-            return response()->json([
-                'error' => 'Transfert introuvable'
-            ], 404);
+            return response()->json(['error' => 'Transfert introuvable'], 404);
         }
 
-        return response()->json([
-            'data' => $transfert
-        ]);
+        return response()->json(['data' => $transfert]);
     }
 
-    /**
-     * Retirer un transfert
-     */
-    public function retirer(Request $request, string $code)
+    public function soldeAgence()
     {
         $user = auth()->user();
-        $transfert = \App\Models\Transfert::where('code', $code)
-            ->where('statut', 'ENVOYE')
-            ->first();
 
-        if (!$transfert) {
-            return response()->json([
-                'error' => 'Transfert introuvable ou déjà retiré'
-            ], 404);
+        if (!$user->agence_id) {
+            return response()->json(['error' => 'Utilisateur non rattaché à une agence'], 403);
         }
 
-        // Logique de retrait à implémenter
         return response()->json([
-            'message' => 'Fonctionnalité de retrait en développement',
-            'code' => $code
-        ]);
-    }
-
-    /**
-     * Annuler un transfert
-     */
-    public function annuler(Request $request, string $code)
-    {
-        return response()->json([
-            'message' => 'Fonctionnalité d\'annulation en développement',
-            'code' => $code
+            'solde' => $this->ledgerService->getSolde($user->agence_id),
+            'agence_id' => $user->agence_id
         ]);
     }
 }
