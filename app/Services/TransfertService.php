@@ -1,184 +1,120 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Transfert;
 use App\Models\Client;
 use App\Models\Agence;
-use App\Models\Commission;
-use App\Models\Parametre;
+use App\Models\User;
+use App\Exceptions\FondsInsuffisantsException;
+use App\Exceptions\TransfertException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TransfertService
 {
-    protected LedgerService $ledger;
-    protected AuditService $audit;
+    protected LedgerService $ledgerService;
 
-    public function __construct(LedgerService $ledger, AuditService $audit)
+    public function __construct(LedgerService $ledgerService)
     {
-        $this->ledger = $ledger;
-        $this->audit = $audit;
+        $this->ledgerService = $ledgerService;
     }
 
-    public function creer(array $data, int $utilisateurId): Transfert
+    /**
+     * Créer un transfert
+     */
+    public function creer(array $data, User $user): Transfert
     {
-        return DB::transaction(function () use ($data, $utilisateurId) {
-            $expediteur = Client::firstOrCreate(
-                ['telephone' => $data['telephone_expediteur']],
-                ['nom' => $data['nom_expediteur']]
-            );
+        $agenceEmettrice = Agence::findOrFail($data['agence_envoi_id']);
+        $agenceDestinataire = Agence::findOrFail($data['agence_destinataire_id']);
 
-            $beneficiaire = Client::firstOrCreate(
-                ['telephone' => $data['telephone_beneficiaire']],
-                ['nom' => $data['nom_beneficiaire']]
-            );
+        // Créer ou récupérer l'expéditeur
+        $expediteur = Client::firstOrCreate(
+            ['telephone' => $data['telephone_expediteur']],
+            ['nom' => $data['nom_expediteur']]
+        );
 
-            $paramCommission = Parametre::where('cle', 'COMMISSION_POURCENTAGE')->first();
-            $pourcentage = $paramCommission ? (float)$paramCommission->valeur : 1.5;
-            
-            $paramFrais = Parametre::where('cle', 'FRAIS_FIXES')->first();
-            $frais = $paramFrais ? (float)$paramFrais->valeur : 1000;
+        // Créer ou récupérer le bénéficiaire
+        $beneficiaire = Client::firstOrCreate(
+            ['telephone' => $data['telephone_beneficiaire']],
+            ['nom' => $data['nom_beneficiaire']]
+        );
 
-            $montant = (float)$data['montant'];
-            $commission = ($montant * $pourcentage) / 100;
-            $montantTotal = $montant + $commission + $frais;
+        return DB::transaction(function () use ($data, $user, $agenceEmettrice, $agenceDestinataire, $expediteur, $beneficiaire) {
+            // 1. Vérifier le solde
+            if (!$this->ledgerService->verifierSolde($agenceEmettrice->id, $data['montant'])) {
+                $solde = $this->ledgerService->getSolde($agenceEmettrice->id);
+                throw new FondsInsuffisantsException($solde, $data['montant']);
+            }
 
+            // 2. Générer le code unique
+            $code = $this->genererCode();
+
+            // 3. Calculer les frais
+            $frais = $this->calculerFrais($data['montant']);
+            $commission = $frais * 0.75;
+
+            // 4. Créer le transfert
             $transfert = Transfert::create([
-                'code' => Transfert::generateCode(),
+                'code' => $code,
                 'expediteur_id' => $expediteur->id,
                 'beneficiaire_id' => $beneficiaire->id,
-                'agence_envoi_id' => $data['agence_envoi_id'],
-                'agence_retrait_id' => $data['agence_retrait_id'] ?? null,
-                'utilisateur_envoi_id' => $utilisateurId,
-                'montant' => $montant,
+                'agence_envoi_id' => $agenceEmettrice->id,
+                'agence_retrait_id' => $agenceDestinataire->id,
+                'utilisateur_envoi_id' => $user->id,
+                'montant' => $data['montant'],
                 'frais' => $frais,
                 'commission' => $commission,
                 'statut' => 'ENVOYE',
-                'date_envoi' => now()
+                'date_envoi' => now(),
             ]);
 
-            Commission::create([
-                'transfert_id' => $transfert->id,
-                'montant' => $commission,
-                'pourcentage' => $pourcentage
-            ]);
+            // 5. Débiter l'agence émettrice
+            $this->ledgerService->debit(
+                $agenceEmettrice,
+                $data['montant'],
+                'TRANSFERT_EMIS',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Transfert émis vers {$agenceDestinataire->nom}"
+            );
 
-            $agenceEnvoi = Agence::findOrFail($data['agence_envoi_id']);
-            $this->ledger->debit($agenceEnvoi, $montantTotal, 'ENVOI', $transfert->id, $utilisateurId);
-
-            if (!empty($data['agence_retrait_id'])) {
-                $agenceRetrait = Agence::findOrFail($data['agence_retrait_id']);
-                $montantNet = $montant - $commission - $frais;
-                if ($montantNet > 0) {
-                    $this->ledger->credit($agenceRetrait, $montantNet, 'RECEPTION', $transfert->id, $utilisateurId);
-                }
-            }
-
-            $this->audit->log($utilisateurId, 'CREATION', 'transfert', $transfert->id, null, $transfert->toArray());
+            // 6. Créditer l'agence destinataire
+            $this->ledgerService->credit(
+                $agenceDestinataire,
+                $data['montant'],
+                'TRANSFERT_RECU',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Transfert reçu de {$agenceEmettrice->nom}"
+            );
 
             return $transfert;
         });
     }
 
-    public function retirer(string $code, int $utilisateurId, int $agenceId): Transfert
+    /**
+     * Générer un code unique
+     */
+    private function genererCode(): string
     {
-        return DB::transaction(function () use ($code, $utilisateurId, $agenceId) {
-            $transfert = Transfert::where('code', $code)
-                ->whereIn('statut', ['ENVOYE', 'EN_ATTENTE'])
-                ->firstOrFail();
+        do {
+            $code = 'TRF' . now()->format('YmdHis') . rand(1000, 9999);
+        } while (Transfert::where('code', $code)->exists());
 
-            if ($transfert->agence_retrait_id && $transfert->agence_retrait_id != $agenceId) {
-                throw new \Exception("Retrait non autorisé dans cette agence");
-            }
-
-            if (!$transfert->agence_retrait_id) {
-                $transfert->agence_retrait_id = $agenceId;
-                $transfert->save();
-            }
-
-            $montantNet = $transfert->montant - $transfert->commission - $transfert->frais;
-            
-            if ($montantNet <= 0) {
-                throw new \Exception("Montant net de retrait invalide");
-            }
-
-            $agence = Agence::findOrFail($agenceId);
-            $this->ledger->debit($agence, $montantNet, 'RETRAIT', $transfert->id, $utilisateurId);
-
-            $transfert->update([
-                'statut' => 'RETIRE',
-                'date_retrait' => now(),
-                'utilisateur_retrait_id' => $utilisateurId
-            ]);
-
-            $this->audit->log($utilisateurId, 'RETRAIT', 'transfert', $transfert->id, null, $transfert->toArray());
-
-            return $transfert;
-        });
+        return $code;
     }
 
-    public function annuler(string $code, int $utilisateurId, int $agenceId): Transfert
+    /**
+     * Calculer les frais
+     */
+    private function calculerFrais(float $montant): float
     {
-        return DB::transaction(function () use ($code, $utilisateurId, $agenceId) {
-            $transfert = Transfert::where('code', $code)
-                ->whereIn('statut', ['ENVOYE', 'EN_ATTENTE'])
-                ->firstOrFail();
-
-            if ($transfert->agence_envoi_id != $agenceId) {
-                throw new \Exception("Seule l'agence d'envoi peut annuler ce transfert");
-            }
-
-            $agence = Agence::findOrFail($agenceId);
-            $montantTotal = $transfert->montant + $transfert->commission + $transfert->frais;
-            $this->ledger->credit($agence, $montantTotal, 'ANNULATION', $transfert->id, $utilisateurId);
-
-            if ($transfert->agence_retrait_id) {
-                $agenceRetrait = Agence::find($transfert->agence_retrait_id);
-                if ($agenceRetrait) {
-                    $montantNet = $transfert->montant - $transfert->commission - $transfert->frais;
-                    if ($montantNet > 0) {
-                        $this->ledger->debit($agenceRetrait, $montantNet, 'ANNULATION_RETRAIT', $transfert->id, $utilisateurId);
-                    }
-                }
-            }
-
-            $transfert->update([
-                'statut' => 'ANNULE',
-                'utilisateur_retrait_id' => $utilisateurId
-            ]);
-
-            $this->audit->log($utilisateurId, 'ANNULATION', 'transfert', $transfert->id, null, $transfert->toArray());
-
-            return $transfert;
-        });
-    }
-
-    public function getByCode(string $code): Transfert
-    {
-        return Transfert::with(['expediteur', 'beneficiaire', 'agenceEnvoi', 'agenceRetrait'])
-            ->where('code', $code)
-            ->firstOrFail();
-    }
-
-    public function getTransferts(int $agenceId = null, string $statut = null, int $perPage = 20)
-    {
-        $query = Transfert::with(['expediteur', 'beneficiaire', 'agenceEnvoi', 'agenceRetrait']);
-
-        if ($agenceId) {
-            $query->where(function($q) use ($agenceId) {
-                $q->where('agence_envoi_id', $agenceId)
-                  ->orWhere('agence_retrait_id', $agenceId);
-            });
-        }
-
-        if ($statut) {
-            $query->where('statut', $statut);
-        }
-
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
-    }
-
-    public function getSoldeAgence(int $agenceId): float
-    {
-        return $this->ledger->getSolde($agenceId);
+        if ($montant <= 100000) return 1000;
+        if ($montant <= 500000) return 2000;
+        if ($montant <= 1000000) return 3000;
+        return 5000;
     }
 }
