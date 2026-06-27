@@ -63,3 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/test', function() {
     return response()->json(['message' => 'Test OK']);
 });
+
+    // 🔥 Route d'audit du ledger
+    Route::get('/ledger', [App\Http\Controllers\Api\LedgerController::class, 'index']);
+    Route::get('/ledger/agence/{agenceId}', [App\Http\Controllers\Api\LedgerController::class, 'byAgence']);
