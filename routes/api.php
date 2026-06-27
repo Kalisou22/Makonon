@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/transferts', [TransfertController::class, 'index']);
     Route::get('/transferts/solde-agence', [TransfertController::class, 'soldeAgence']);
 
-    // 🔥 ROUTES LEDGER (PROTÉGÉES)
+    // Routes Ledger
     Route::get('/ledger', [LedgerController::class, 'index']);
     Route::get('/ledger/agence/{agenceId}', [LedgerController::class, 'byAgence']);
 
