@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Exceptions\FondsInsuffisantsException;
 use App\Exceptions\TransfertException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class TransfertService
 {
@@ -20,21 +19,18 @@ class TransfertService
         $this->ledgerService = $ledgerService;
     }
 
-    /**
-     * Créer un transfert
-     */
     public function creer(array $data, User $user): Transfert
     {
         $agenceEmettrice = Agence::findOrFail($data['agence_envoi_id']);
         $agenceDestinataire = Agence::findOrFail($data['agence_destinataire_id']);
 
-        // Créer ou récupérer l'expéditeur
+        // Créer l'expéditeur
         $expediteur = Client::firstOrCreate(
             ['telephone' => $data['telephone_expediteur']],
             ['nom' => $data['nom_expediteur']]
         );
 
-        // Créer ou récupérer le bénéficiaire
+        // Créer le bénéficiaire
         $beneficiaire = Client::firstOrCreate(
             ['telephone' => $data['telephone_beneficiaire']],
             ['nom' => $data['nom_beneficiaire']]
@@ -47,16 +43,16 @@ class TransfertService
                 throw new FondsInsuffisantsException($solde, $data['montant']);
             }
 
-            // 2. Générer le code unique
-            $code = $this->genererCode();
+            // 2. Générer le code (via le modèle)
+            $code = Transfert::generateCode();
 
             // 3. Calculer les frais
             $frais = $this->calculerFrais($data['montant']);
             $commission = $frais * 0.75;
 
-            // 4. Créer le transfert
+            // 4. Créer le transfert (AVEC CODE)
             $transfert = Transfert::create([
-                'code' => $code,
+                'code' => $code, // 🔥 MAINTENANT PRÉSENT
                 'expediteur_id' => $expediteur->id,
                 'beneficiaire_id' => $beneficiaire->id,
                 'agence_envoi_id' => $agenceEmettrice->id,
@@ -95,21 +91,6 @@ class TransfertService
         });
     }
 
-    /**
-     * Générer un code unique
-     */
-    private function genererCode(): string
-    {
-        do {
-            $code = 'TRF' . now()->format('YmdHis') . rand(1000, 9999);
-        } while (Transfert::where('code', $code)->exists());
-
-        return $code;
-    }
-
-    /**
-     * Calculer les frais
-     */
     private function calculerFrais(float $montant): float
     {
         if ($montant <= 100000) return 1000;
