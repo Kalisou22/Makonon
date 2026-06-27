@@ -21,42 +21,32 @@ class TransfertService
         $this->ledgerService = $ledgerService;
     }
 
-    /**
-     * Créer un transfert avec son ledger
-     */
     public function creer(array $data, User $user): Transfert
     {
         $agenceEmettrice = Agence::findOrFail($data['agence_envoi_id']);
         $agenceDestinataire = Agence::findOrFail($data['agence_destinataire_id']);
 
-        // Créer ou récupérer l'expéditeur
         $expediteur = Client::firstOrCreate(
             ['telephone' => $data['telephone_expediteur']],
             ['nom' => $data['nom_expediteur']]
         );
 
-        // Créer ou récupérer le bénéficiaire
         $beneficiaire = Client::firstOrCreate(
             ['telephone' => $data['telephone_beneficiaire']],
             ['nom' => $data['nom_beneficiaire']]
         );
 
-        // 🔥 TRANSACTION UNIQUE - TOUT OU RIEN
         return DB::transaction(function () use ($data, $user, $agenceEmettrice, $agenceDestinataire, $expediteur, $beneficiaire) {
-            // 1. Vérifier le solde de l'agence émettrice
-            if (!$this->ledgerService->verifierSolde($agenceEmettrice->id, $data['montant'])) {
-                $solde = $this->ledgerService->getSolde($agenceEmettrice->id);
-                throw new FondsInsuffisantsException($solde, $data['montant']);
+            $solde = $this->ledgerService->getSolde($agenceEmettrice->id);
+            $frais = $this->calculerFrais($data['montant']);
+            $total = $data['montant'] + $frais;
+
+            if ($solde < $total) {
+                throw new FondsInsuffisantsException($solde, $total);
             }
 
-            // 2. Générer le code unique
             $code = Transfert::generateCode();
 
-            // 3. Calculer les frais
-            $frais = $this->calculerFrais($data['montant']);
-            $commission = $frais * 0.75;
-
-            // 4. Créer le transfert
             $transfert = Transfert::create([
                 'code' => $code,
                 'expediteur_id' => $expediteur->id,
@@ -66,78 +56,138 @@ class TransfertService
                 'utilisateur_envoi_id' => $user->id,
                 'montant' => $data['montant'],
                 'frais' => $frais,
-                'commission' => $commission,
+                'commission' => $frais * 0.75,
                 'statut' => 'ENVOYE',
                 'date_envoi' => now(),
             ]);
 
-            // 5. 🔥 CRÉER LE LEDGER POUR LE DÉBIT (AVEC transfert_id)
-            $this->creerLedgerDebit(
+            $this->ledgerService->debit(
                 $agenceEmettrice,
-                $transfert,
-                $user,
-                $code
+                $data['montant'],
+                'TRANSFERT_EMIS',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Transfert émis vers {$agenceDestinataire->nom}"
             );
 
-            // 6. 🔥 CRÉER LE LEDGER POUR LE CRÉDIT (AVEC transfert_id)
-            $this->creerLedgerCredit(
+            $this->ledgerService->credit(
                 $agenceDestinataire,
-                $transfert,
-                $user,
-                $code
+                $data['montant'],
+                'TRANSFERT_RECU',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Transfert reçu de {$agenceEmettrice->nom}"
             );
 
-            // 7. Mettre à jour le solde de l'agence (optionnel selon votre logique)
-            // $this->updateAgenceSolde($agenceEmettrice, $transfert);
-
-            Log::info('Transfert créé avec succès', [
-                'transfert_id' => $transfert->id,
-                'code' => $code,
-                'montant' => $data['montant'],
-                'utilisateur' => $user->id
-            ]);
+            Log::info('Transfert créé', ['transfert_id' => $transfert->id, 'code' => $code]);
 
             return $transfert;
         });
     }
 
-    /**
-     * Créer l'entrée ledger pour le débit
-     */
-    private function creerLedgerDebit(Agence $agence, Transfert $transfert, User $user, string $code): Ledger
+    public function retirer(string $code, User $user): Transfert
     {
-        // 🔥 CRÉER LE LEDGER AVEC LE transfert_id DÉJÀ CRÉÉ
-        return $this->ledgerService->debit(
-            $agence,
-            $transfert->montant,
-            'TRANSFERT_EMIS',
-            $transfert->id, // 🔥 transfert_id EXISTE
-            $user->id,
-            $code,
-            "Transfert émis vers {$agence->nom} - Code: {$code}"
-        );
+        return DB::transaction(function () use ($code, $user) {
+            $transfert = Transfert::where('code', $code)
+                ->where('statut', 'ENVOYE')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$transfert) {
+                throw new TransfertException('Transfert introuvable ou déjà retiré', 404);
+            }
+
+            $agence = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
+
+            if (!$agence) {
+                throw new TransfertException('Agence de retrait non trouvée', 404);
+            }
+
+            if ($user->agence_id !== $agence->id && $user->role !== 'SUPERADMIN') {
+                throw new TransfertException('Accès interdit à ce transfert', 403);
+            }
+
+            $solde = $this->ledgerService->getSolde($agence->id);
+            if ($solde < $transfert->montant) {
+                throw new FondsInsuffisantsException($solde, $transfert->montant);
+            }
+
+            $transfert->update([
+                'statut' => 'RETIRE',
+                'date_retrait' => now(),
+                'utilisateur_retrait_id' => $user->id,
+            ]);
+
+            $this->ledgerService->debit(
+                $agence,
+                $transfert->montant,
+                'RETRAIT_EFFECTUE',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Retrait effectué - Code: {$code}"
+            );
+
+            Log::info('Transfert retiré', ['transfert_id' => $transfert->id, 'code' => $code]);
+
+            return $transfert;
+        });
     }
 
-    /**
-     * Créer l'entrée ledger pour le crédit
-     */
-    private function creerLedgerCredit(Agence $agence, Transfert $transfert, User $user, string $code): Ledger
+    public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
-        // 🔥 CRÉER LE LEDGER AVEC LE transfert_id DÉJÀ CRÉÉ
-        return $this->ledgerService->credit(
-            $agence,
-            $transfert->montant,
-            'TRANSFERT_RECU',
-            $transfert->id, // 🔥 transfert_id EXISTE
-            $user->id,
-            $code,
-            "Transfert reçu de {$agence->nom} - Code: {$code}"
-        );
+        return DB::transaction(function () use ($code, $user, $motif) {
+            $transfert = Transfert::where('code', $code)
+                ->where('statut', 'ENVOYE')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$transfert) {
+                throw new TransfertException('Transfert introuvable ou déjà traité', 404);
+            }
+
+            $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
+            $agenceDestinataire = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
+
+            if ($user->agence_id !== $agenceEmettrice->id && $user->role !== 'SUPERADMIN') {
+                throw new TransfertException('Accès interdit à ce transfert', 403);
+            }
+
+            $transfert->update([
+                'statut' => 'ANNULE',
+                'date_annulation' => now(),
+                'utilisateur_annulation_id' => $user->id,
+                'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
+            ]);
+
+            $this->ledgerService->credit(
+                $agenceEmettrice,
+                $transfert->montant,
+                'ANNULATION_TRANSFERT',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Annulation transfert - Code: {$code}"
+            );
+
+            $this->ledgerService->debit(
+                $agenceDestinataire,
+                $transfert->montant,
+                'ANNULATION_TRANSFERT',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Annulation transfert - Code: {$code}"
+            );
+
+            Log::info('Transfert annulé', ['transfert_id' => $transfert->id, 'code' => $code]);
+
+            return $transfert;
+        });
     }
 
-    /**
-     * Calculer les frais
-     */
     private function calculerFrais(float $montant): float
     {
         if ($montant <= 100000) return 1000;
