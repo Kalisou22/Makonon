@@ -103,6 +103,9 @@ class TransfertService
                 "Frais transfert - Code: {$code}"
             );
 
+            // 🔥 Vérification après toutes les écritures
+            $this->ledgerService->verifierDoubleEcriture($transfert->id);
+
             Log::channel('audit')->info('transfert_cree', [
                 'transfert_id' => $transfert->id,
                 'code' => $code,
@@ -160,6 +163,8 @@ class TransfertService
                 $code,
                 "Retrait effectué - Code: {$code}"
             );
+
+            $this->ledgerService->verifierDoubleEcriture($transfert->id);
 
             Log::channel('audit')->info('transfert_retire', [
                 'transfert_id' => $transfert->id,
@@ -240,6 +245,8 @@ class TransfertService
                 $code,
                 "Annulation transfert - Retrait fonds"
             );
+
+            $this->ledgerService->verifierDoubleEcriture($transfert->id);
 
             Log::channel('audit')->info('transfert_annule', [
                 'transfert_id' => $transfert->id,
