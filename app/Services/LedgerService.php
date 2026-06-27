@@ -40,8 +40,6 @@ class LedgerService
                 $description
             );
 
-            $this->verifierDoubleEcriture($transfertId);
-
             return $ledger;
         });
     }
@@ -80,8 +78,6 @@ class LedgerService
                 $description
             );
 
-            $this->verifierDoubleEcriture($transfertId);
-
             return $ledger;
         });
     }
@@ -110,6 +106,30 @@ class LedgerService
     {
         $solde = $this->getSolde($agenceId);
         return $solde >= $montant;
+    }
+
+    /**
+     * 🔥 Vérification de cohérence ledger - À appeler APRÈS toutes les écritures
+     */
+    public function verifierDoubleEcriture(?int $transfertId): void
+    {
+        if ($transfertId === null) {
+            return;
+        }
+
+        $totalDebit = (float) Ledger::where('transfert_id', $transfertId)
+            ->where('type', 'DEBIT')
+            ->sum('montant');
+
+        $totalCredit = (float) Ledger::where('transfert_id', $transfertId)
+            ->where('type', 'CREDIT')
+            ->sum('montant');
+
+        if (abs($totalDebit - $totalCredit) > 0.01) {
+            throw new \RuntimeException(
+                "Incohérence ledger: DEBIT={$totalDebit}, CREDIT={$totalCredit}"
+            );
+        }
     }
 
     private function creerEntreeLedger(
@@ -149,27 +169,6 @@ class LedgerService
         if ($montant > 999999999.99) {
             throw new \InvalidArgumentException(
                 sprintf('Le montant est trop élevé. Max: 999,999,999.99. Reçu: %s', $montant)
-            );
-        }
-    }
-
-    private function verifierDoubleEcriture(?int $transfertId): void
-    {
-        if ($transfertId === null) {
-            return;
-        }
-
-        $totalDebit = (float) Ledger::where('transfert_id', $transfertId)
-            ->where('type', 'DEBIT')
-            ->sum('montant');
-
-        $totalCredit = (float) Ledger::where('transfert_id', $transfertId)
-            ->where('type', 'CREDIT')
-            ->sum('montant');
-
-        if (abs($totalDebit - $totalCredit) > 0.01) {
-            throw new \RuntimeException(
-                "Incohérence ledger: DEBIT={$totalDebit}, CREDIT={$totalCredit}"
             );
         }
     }
