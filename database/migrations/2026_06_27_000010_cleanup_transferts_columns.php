@@ -9,17 +9,23 @@ return new class extends Migration
     public function up()
     {
         Schema::table('transferts', function (Blueprint $table) {
-            // Supprimer les colonnes dupliquées/inutiles
+            // Supprimer les contraintes étrangères d'abord
+            if (Schema::hasColumn('transferts', 'client_id')) {
+                $table->dropForeign(['client_id']);
+                $table->dropColumn('client_id');
+            }
+            
             if (Schema::hasColumn('transferts', 'code_transfert')) {
                 $table->dropColumn('code_transfert');
             }
-            if (Schema::hasColumn('transferts', 'client_id')) {
-                $table->dropColumn('client_id');
-            }
+            
             if (Schema::hasColumn('transferts', 'agence_emetteur_id')) {
+                $table->dropForeign(['agence_emetteur_id']);
                 $table->dropColumn('agence_emetteur_id');
             }
+            
             if (Schema::hasColumn('transferts', 'agence_destinataire_id')) {
+                $table->dropForeign(['agence_destinataire_id']);
                 $table->dropColumn('agence_destinataire_id');
             }
         });
