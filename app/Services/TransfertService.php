@@ -139,22 +139,34 @@ class TransfertService
     public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
         return DB::transaction(function () use ($code, $user, $motif) {
+            // 🔒 Verrouiller le transfert
             $transfert = Transfert::where('code', $code)
-                ->where('statut', 'ENVOYE')
                 ->lockForUpdate()
                 ->first();
 
             if (!$transfert) {
-                throw new TransfertException('Transfert introuvable ou déjà traité', 404);
+                throw new TransfertException('Transfert introuvable', 404);
             }
 
+            // ✅ Vérifier que le transfert est en attente
+            if ($transfert->statut !== 'ENVOYE') {
+                throw new TransfertException('Transfert déjà traité (retiré ou annulé)', 400);
+            }
+
+            // 🔒 Verrouiller les agences
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
             $agenceDestinataire = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
 
+            if (!$agenceEmettrice || !$agenceDestinataire) {
+                throw new TransfertException('Agence non trouvée', 404);
+            }
+
+            // ✅ Vérifier les droits
             if ($user->agence_id !== $agenceEmettrice->id && $user->role !== 'SUPERADMIN') {
                 throw new TransfertException('Accès interdit à ce transfert', 403);
             }
 
+            // 📝 Mettre à jour le transfert
             $transfert->update([
                 'statut' => 'ANNULE',
                 'date_annulation' => now(),
@@ -162,6 +174,7 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
+            // 💰 Rembourser l'agence émettrice
             $this->ledgerService->credit(
                 $agenceEmettrice,
                 $transfert->montant,
@@ -169,9 +182,10 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Annulation transfert - Code: {$code}"
+                "Annulation transfert - Remboursement à {$agenceEmettrice->nom}"
             );
 
+            // 💰 Annuler le crédit de l'agence destinataire
             $this->ledgerService->debit(
                 $agenceDestinataire,
                 $transfert->montant,
@@ -179,10 +193,15 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Annulation transfert - Code: {$code}"
+                "Annulation transfert - Retrait de {$agenceDestinataire->nom}"
             );
 
-            Log::info('Transfert annulé', ['transfert_id' => $transfert->id, 'code' => $code]);
+            Log::info('Transfert annulé', [
+                'transfert_id' => $transfert->id,
+                'code' => $code,
+                'motif' => $motif,
+                'utilisateur' => $user->id
+            ]);
 
             return $transfert;
         });
