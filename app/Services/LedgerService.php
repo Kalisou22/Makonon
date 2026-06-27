@@ -10,6 +10,9 @@ use Illuminate\Support\Str;
 
 class LedgerService
 {
+    /**
+     * Créditer une agence (AJOUT D'ARGENT)
+     */
     public function credit(
         Agence $agence,
         float $montant,
@@ -19,9 +22,12 @@ class LedgerService
         ?string $reference = null,
         ?string $description = null
     ): Ledger {
+        // ✅ Validation du montant
         $this->validerMontant($montant);
 
+        // ✅ Transaction + Lock
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
+            // 🔒 Verrouillage pour éviter les race conditions
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
 
             $soldeAvant = $this->getSolde($agence->id);
@@ -42,6 +48,9 @@ class LedgerService
         });
     }
 
+    /**
+     * Débiter une agence (RETRAIT D'ARGENT)
+     */
     public function debit(
         Agence $agence,
         float $montant,
@@ -51,14 +60,18 @@ class LedgerService
         ?string $reference = null,
         ?string $description = null
     ): Ledger {
+        // ✅ Validation du montant
         $this->validerMontant($montant);
 
+        // ✅ Transaction + Lock
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
+            // 🔒 Verrouillage pour éviter les race conditions
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
 
             $soldeAvant = $this->getSolde($agence->id);
             $soldeApres = $soldeAvant - $montant;
 
+            // ✅ Vérification du solde
             if ($soldeApres < 0) {
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
@@ -78,19 +91,28 @@ class LedgerService
         });
     }
 
+    /**
+     * Récupérer le solde d'une agence
+     */
     public function getSolde(int $agenceId): float
     {
-        return Ledger::where('agence_id', $agenceId)
+        return (float) Ledger::where('agence_id', $agenceId)
             ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
             ->value('solde');
     }
 
+    /**
+     * Vérifier si une agence a un solde suffisant
+     */
     public function verifierSolde(int $agenceId, float $montant): bool
     {
         $solde = $this->getSolde($agenceId);
         return $solde >= $montant;
     }
 
+    /**
+     * Récupérer le solde avec verrouillage (opérations critiques)
+     */
     public function getSoldeWithLock(int $agenceId): float
     {
         return DB::transaction(function () use ($agenceId) {
@@ -102,6 +124,9 @@ class LedgerService
         });
     }
 
+    /**
+     * Créer une entrée dans le ledger
+     */
     private function creerEntreeLedger(
         int $agenceId,
         string $type,
@@ -128,6 +153,9 @@ class LedgerService
         ]);
     }
 
+    /**
+     * VALIDATION STRICTE DU MONTANT
+     */
     private function validerMontant(float $montant): void
     {
         if ($montant <= 0) {
