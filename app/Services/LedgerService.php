@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 class LedgerService
 {
     /**
-     * Créditer une agence (AJOUT D'ARGENT)
+     * Créditer une agence avec lockForUpdate
      */
     public function credit(
         Agence $agence,
@@ -22,10 +22,8 @@ class LedgerService
         ?string $reference = null,
         ?string $description = null
     ): Ledger {
-        // ✅ Validation du montant
         $this->validerMontant($montant);
 
-        // ✅ Transaction + Lock
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             // 🔒 Verrouillage pour éviter les race conditions
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
@@ -49,7 +47,7 @@ class LedgerService
     }
 
     /**
-     * Débiter une agence (RETRAIT D'ARGENT)
+     * Débiter une agence avec lockForUpdate
      */
     public function debit(
         Agence $agence,
@@ -60,10 +58,8 @@ class LedgerService
         ?string $reference = null,
         ?string $description = null
     ): Ledger {
-        // ✅ Validation du montant
         $this->validerMontant($montant);
 
-        // ✅ Transaction + Lock
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             // 🔒 Verrouillage pour éviter les race conditions
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
@@ -71,7 +67,6 @@ class LedgerService
             $soldeAvant = $this->getSolde($agence->id);
             $soldeApres = $soldeAvant - $montant;
 
-            // ✅ Vérification du solde
             if ($soldeApres < 0) {
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
@@ -111,20 +106,6 @@ class LedgerService
     }
 
     /**
-     * Récupérer le solde avec verrouillage (opérations critiques)
-     */
-    public function getSoldeWithLock(int $agenceId): float
-    {
-        return DB::transaction(function () use ($agenceId) {
-            $agence = Agence::where('id', $agenceId)->lockForUpdate()->first();
-            if (!$agence) {
-                throw new \RuntimeException("Agence non trouvée");
-            }
-            return $this->getSolde($agenceId);
-        });
-    }
-
-    /**
      * Créer une entrée dans le ledger
      */
     private function creerEntreeLedger(
@@ -154,7 +135,7 @@ class LedgerService
     }
 
     /**
-     * VALIDATION STRICTE DU MONTANT
+     * Valider le montant
      */
     private function validerMontant(float $montant): void
     {
@@ -167,7 +148,92 @@ class LedgerService
         if ($montant > 999999999.99) {
             throw new \InvalidArgumentException(
                 sprintf('Le montant est trop élevé. Max: 999,999,999.99. Reçu: %s', $montant)
+# Vérifier que le LedgerService utilise lockForUpdate
+cat app/Services/LedgerService.php | grep -A 10 "lockForUpdate"
+
+# Si ce n'est pas le cas, ajouter la méthode
+cat > app/Services/LedgerService.php << 'EOF'
+<?php
+
+namespace App\Services;
+
+use App\Models\Ledger;
+use App\Models\Agence;
+use App\Exceptions\FondsInsuffisantsException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class LedgerService
+{
+    /**
+     * Créditer une agence avec lockForUpdate
+     */
+    public function credit(
+        Agence $agence,
+        float $montant,
+        string $nature,
+        ?int $transfertId,
+        int $utilisateurId,
+        ?string $reference = null,
+        ?string $description = null
+    ): Ledger {
+        $this->validerMontant($montant);
+
+        return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
+            // 🔒 Verrouillage pour éviter les race conditions
+            $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+
+            $soldeAvant = $this->getSolde($agence->id);
+            $soldeApres = $soldeAvant + $montant;
+
+            return $this->creerEntreeLedger(
+                $agence->id,
+                'CREDIT',
+                $montant,
+                $soldeAvant,
+                $soldeApres,
+                $nature,
+                $transfertId,
+                $utilisateurId,
+                $reference,
+                $description
             );
-        }
+        });
     }
-}
+
+    /**
+     * Débiter une agence avec lockForUpdate
+     */
+    public function debit(
+        Agence $agence,
+        float $montant,
+        string $nature,
+        ?int $transfertId,
+        int $utilisateurId,
+        ?string $reference = null,
+        ?string $description = null
+    ): Ledger {
+        $this->validerMontant($montant);
+
+        return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
+            // 🔒 Verrouillage pour éviter les race conditions
+            $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+
+            $soldeAvant = $this->getSolde($agence->id);
+            $soldeApres = $soldeAvant - $montant;
+
+            if ($soldeApres < 0) {
+                throw new FondsInsuffisantsException($soldeAvant, $montant);
+            }
+
+            return $this->creerEntreeLedger(
+                $agence->id,
+                'DEBIT',
+                $montant,
+
+# Ajouter la route dans routes/api.php
+cat >> routes/api.php << 'EOF'
+
+    // 🔥 Route d'audit du ledger
+    Route::get('/ledger', [App\Http\Controllers\Api\LedgerController::class, 'index']);
+    Route::get('/ledger/agence/{agenceId}', [App\Http\Controllers\Api\LedgerController::class, 'byAgence']);
