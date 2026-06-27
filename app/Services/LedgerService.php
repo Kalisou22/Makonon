@@ -237,3 +237,14 @@ cat >> routes/api.php << 'EOF'
     // 🔥 Route d'audit du ledger
     Route::get('/ledger', [App\Http\Controllers\Api\LedgerController::class, 'index']);
     Route::get('/ledger/agence/{agenceId}', [App\Http\Controllers\Api\LedgerController::class, 'byAgence']);
+
+    /**
+     * Récupérer les écritures ledger d'une agence
+     */
+    public function getByAgence(int $agenceId, int $perPage = 10)
+    {
+        return Ledger::where('agence_id', $agenceId)
+            ->with(['utilisateur', 'transfert'])
+            ->latest('created_at')
+            ->paginate($perPage);
+    }
