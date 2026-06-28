@@ -154,6 +154,7 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
+            // 🔥 FORCER L'ÉCRITURE LEDGER AVEC transfert_id
             $this->ledger->debit(
                 $agence,
                 $transfert->montant,
@@ -193,18 +194,19 @@ class TransfertService
                 throw new TransfertException('Transfert déjà traité', 400);
             }
 
-            // 🔥 VÉRIFICATION ANTI-FRAUDE AVEC FALLBACK
-            // 1. Vérifier par transfert_id
-            $retraitParId = Ledger::where('transfert_id', $transfert->id)
+            // 🔥 VÉRIFICATION LEDGER - RETRAIT_EFFECTUE
+            $retraitExiste = Ledger::where('transfert_id', $transfert->id)
                 ->where('nature', 'RETRAIT_EFFECTUE')
                 ->exists();
 
-            // 2. Vérifier par reference (fallback)
-            $retraitParRef = Ledger::where('reference', $transfert->code)
-                ->where('nature', 'RETRAIT_EFFECTUE')
-                ->exists();
+            // 🔥 FALLBACK - Vérifier par référence
+            if (!$retraitExiste) {
+                $retraitExiste = Ledger::where('reference', $transfert->code)
+                    ->where('nature', 'RETRAIT_EFFECTUE')
+                    ->exists();
+            }
 
-            if ($retraitParId || $retraitParRef) {
+            if ($retraitExiste) {
                 throw new TransfertException(
                     'Annulation impossible : le transfert a déjà été retiré',
                     400
