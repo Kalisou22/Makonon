@@ -43,75 +43,69 @@ class LedgerService
         return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
+    // 🔥 PAS DE DB::transaction IMBRIQUEE - La transaction est gérée par le service appelant
     public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
         $this->validerMontant($montant);
 
-        return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
-            $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+        $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
 
-            $soldeAvant = $this->getSoldeWithLock($agence->id);
-            $soldeApres = $soldeAvant + $montant;
+        $soldeAvant = $this->getSoldeWithLock($agence->id);
+        $soldeApres = $soldeAvant + $montant;
 
-            return Ledger::create([
-                'agence_id' => $agence->id,
-                'transfert_id' => $transfertId,
-                'type' => 'CREDIT',
-                'nature' => $nature,
-                'montant' => $montant,
-                'solde_avant' => $soldeAvant,
-                'solde_apres' => $soldeApres,
-                'utilisateur_id' => $utilisateurId,
-                'reference' => $reference ?? Str::uuid()->toString(),
-                'description' => $description ?? $nature,
-            ]);
-        });
+        return Ledger::create([
+            'agence_id' => $agence->id,
+            'transfert_id' => $transfertId,
+            'type' => 'CREDIT',
+            'nature' => $nature,
+            'montant' => $montant,
+            'solde_avant' => $soldeAvant,
+            'solde_apres' => $soldeApres,
+            'utilisateur_id' => $utilisateurId,
+            'reference' => $reference ?? Str::uuid()->toString(),
+            'description' => $description ?? $nature,
+        ]);
     }
 
     public function debit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
         $this->validerMontant($montant);
 
-        return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
-            $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+        $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
 
-            $soldeAvant = $this->getSoldeWithLock($agence->id);
-            $soldeApres = $soldeAvant - $montant;
+        $soldeAvant = $this->getSoldeWithLock($agence->id);
+        $soldeApres = $soldeAvant - $montant;
 
-            if ($soldeApres < 0 && $agence->code !== self::SYSTEM_AGENCE_CODE) {
-                throw new FondsInsuffisantsException($soldeAvant, $montant);
-            }
+        if ($soldeApres < 0 && $agence->code !== self::SYSTEM_AGENCE_CODE) {
+            throw new FondsInsuffisantsException($soldeAvant, $montant);
+        }
 
-            return Ledger::create([
-                'agence_id' => $agence->id,
-                'transfert_id' => $transfertId,
-                'type' => 'DEBIT',
-                'nature' => $nature,
-                'montant' => $montant,
-                'solde_avant' => $soldeAvant,
-                'solde_apres' => $soldeApres,
-                'utilisateur_id' => $utilisateurId,
-                'reference' => $reference ?? Str::uuid()->toString(),
-                'description' => $description ?? $nature,
-            ]);
-        });
+        return Ledger::create([
+            'agence_id' => $agence->id,
+            'transfert_id' => $transfertId,
+            'type' => 'DEBIT',
+            'nature' => $nature,
+            'montant' => $montant,
+            'solde_avant' => $soldeAvant,
+            'solde_apres' => $soldeApres,
+            'utilisateur_id' => $utilisateurId,
+            'reference' => $reference ?? Str::uuid()->toString(),
+            'description' => $description ?? $nature,
+        ]);
     }
 
     public function getSoldeWithLock(int $agenceId): float
     {
-        return DB::transaction(function () use ($agenceId) {
-            Agence::where('id', $agenceId)->lockForUpdate()->firstOrFail();
-            return $this->getSolde($agenceId);
-        });
+        // 🔥 PAS de transaction IMBRIQUEE
+        Agence::where('id', $agenceId)->lockForUpdate()->firstOrFail();
+        return $this->getSolde($agenceId);
     }
 
     public function getSolde(int $agenceId): float
     {
-        $solde = (float) Ledger::where('agence_id', $agenceId)
+        return (float) Ledger::where('agence_id', $agenceId)
             ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
             ->value('solde');
-        
-        return $solde;
     }
 
     public function verifierDoubleEcriture(?int $transfertId): void
