@@ -84,22 +84,19 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // ============================================================
-            // 🔥 FLUX COMPTABLE CORRECT - SYSTEME COMME PIVOT
-            // ============================================================
-            // 1. AG001 paie total (montant + frais)
+            // 🔥 FLUX COMPTABLE CORRECT
+            // 1. AG001 paie total
             $this->ledger->debit($agenceEmettrice, $total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Transfert émis");
 
             // 2. SYSTEM reçoit total
             $this->ledger->creditSystem($total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Réception transfert");
 
-            // 3. 🔥 SYSTEM envoie le montant à AG002 (LIGNE MANQUANTE)
+            // 3. SYSTEM envoie montant à AG002
             $this->ledger->debitSystem($data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Envoi au destinataire");
 
-            // 4. AG002 reçoit le montant
+            // 4. AG002 reçoit montant
             $this->ledger->credit($agenceDestinataire, $data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Transfert reçu");
 
-            // 5. Vérification de la double écriture
             $this->ledger->verifierDoubleEcriture($transfert->id);
 
             Log::info('Transfert créé', [
@@ -154,7 +151,7 @@ class TransfertService
             // 1. DEBIT de l'agence de retrait
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Retrait effectué");
 
-            // 2. CREDIT du compte SYSTEM (compensation)
+            // 2. CREDIT du compte SYSTEM
             $this->ledger->creditSystem($transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Compensation retrait");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
@@ -214,16 +211,16 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // 1. DEBIT de l'agence destinataire (retour du montant)
+            // 1. DEBIT de l'agence destinataire
             $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Retour fonds destinataire");
 
-            // 2. CREDIT du compte SYSTEM (compensation)
+            // 2. CREDIT du compte SYSTEM
             $this->ledger->creditSystem($transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Compensation annulation");
 
             // 3. DEBIT du compte SYSTEM (remboursement total)
             $this->ledger->debitSystem($totalARembourser, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement total");
 
-            // 4. CREDIT de l'agence émettrice (remboursement total)
+            // 4. CREDIT de l'agence émettrice
             $this->ledger->credit($agenceEmettrice, $totalARembourser, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement total");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
