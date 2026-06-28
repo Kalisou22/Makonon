@@ -1,10 +1,5 @@
 <?php
 
-use Monolog\Handler\NullHandler;
-use Monolog\Handler\StreamHandler;
-use Monolog\Handler\SyslogUdpHandler;
-use Monolog\Processor\PsrLogMessageProcessor;
-
 return [
     'default' => env('LOG_CHANNEL', 'stack'),
     'deprecations' => [
@@ -37,17 +32,9 @@ return [
             'days' => 14,
             'replace_placeholders' => true,
         ],
-        'slack' => [
-            'driver' => 'slack',
-            'url' => env('LOG_SLACK_WEBHOOK_URL'),
-            'username' => 'Laravel Log',
-            'emoji' => ':boom:',
-            'level' => env('LOG_LEVEL', 'critical'),
-            'replace_placeholders' => true,
-        ],
         'null' => [
             'driver' => 'monolog',
-            'handler' => NullHandler::class,
+            'handler' => \Monolog\Handler\NullHandler::class,
         ],
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
