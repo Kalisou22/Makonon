@@ -16,24 +16,24 @@ Route::get('/health', function() {
 
 Route::post('/login', [AuthController::class, 'login']);
 
-// 🔥 ROUTES PROTÉGÉES PAR AUTH
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Routes Transferts
-    Route::post('/transferts', [TransfertController::class, 'creer']);
-    Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
-    Route::put('/transferts/annuler/{code}', [TransfertController::class, 'annuler']);
+    // 🔥 Routes transferts avec rate limiting
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::post('/transferts', [TransfertController::class, 'creer']);
+        Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
+        Route::put('/transferts/annuler/{code}', [TransfertController::class, 'annuler']);
+    });
+
     Route::get('/transferts/verifier/{code}', [TransfertController::class, 'verifier']);
     Route::get('/transferts', [TransfertController::class, 'index']);
     Route::get('/transferts/solde-agence', [TransfertController::class, 'soldeAgence']);
 
-    // Routes Ledger
     Route::get('/ledger', [LedgerController::class, 'index']);
     Route::get('/ledger/agence/{agenceId}', [LedgerController::class, 'byAgence']);
 
-    // Routes Clients
     Route::get('/clients', [ClientController::class, 'index']);
     Route::post('/clients', [ClientController::class, 'store']);
     Route::get('/clients/{client}', [ClientController::class, 'show']);
@@ -41,14 +41,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/clients/{client}', [ClientController::class, 'destroy']);
     Route::get('/clients/telephone/{telephone}', [ClientController::class, 'byTelephone']);
 
-    // Routes Caisses
     Route::get('/caisses', [CaisseController::class, 'index']);
     Route::get('/caisses/{caisse}', [CaisseController::class, 'show']);
     Route::get('/caisses/{caisse}/solde', [CaisseController::class, 'solde']);
     Route::post('/caisses/entree', [CaisseController::class, 'entree']);
     Route::post('/caisses/sortie', [CaisseController::class, 'sortie']);
 
-    // Routes Admin
     Route::middleware('role:SUPERADMIN,ADMIN')->group(function () {
         Route::get('/agences', [AgenceController::class, 'index']);
         Route::post('/agences', [AgenceController::class, 'store']);
@@ -68,11 +66,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/test', function() {
     return response()->json(['message' => 'Test OK']);
-});
-
-// Rate limiting pour les routes sensibles
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
-    Route::post('/transferts', [TransfertController::class, 'creer']);
-    Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
-    Route::put('/transferts/annuler/{code}', [TransfertController::class, 'annuler']);
 });
