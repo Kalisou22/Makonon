@@ -53,7 +53,6 @@ class TransfertService
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
 
-            // Vérification du solde - DEBUG
             $solde = $this->ledger->getSolde($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
@@ -97,6 +96,7 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
+            // 🔥 VÉRIFICATION STATUT
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
@@ -118,6 +118,7 @@ class TransfertService
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
 
+            // 🔥 MISE À JOUR STATUT
             $transfert->update([
                 'statut' => 'RETIRE',
                 'date_retrait' => now(),
@@ -144,6 +145,7 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
+            // 🔥 VÉRIFICATION STATUT - BLOQUER SI RETIRE
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
@@ -154,7 +156,7 @@ class TransfertService
                 throw new TransfertException('Transfert déjà traité', 400);
             }
 
-            // Vérification anti-fraude
+            // 🔥 VÉRIFICATION LEDGER
             $retraitExiste = Ledger::where('transfert_id', $transfert->id)
                 ->where('nature', 'RETRAIT_EFFECTUE')
                 ->exists();
@@ -175,6 +177,7 @@ class TransfertService
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
             }
 
+            // 🔥 MISE À JOUR STATUT
             $transfert->update([
                 'statut' => 'ANNULE',
                 'date_annulation' => now(),
