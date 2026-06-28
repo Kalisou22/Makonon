@@ -154,6 +154,7 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
+            // 🔥 TRACER LE RETRAIT DANS LE LEDGER
             $this->ledger->debit(
                 $agence,
                 $transfert->montant,
@@ -161,7 +162,7 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Retrait"
+                "Retrait effectué"
             );
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
@@ -193,6 +194,18 @@ class TransfertService
                 throw new TransfertException('Transfert déjà traité', 400);
             }
 
+            // 🔥 VÉRIFICATION ANTI-FRAUDE: vérifier si le transfert a été retiré
+            $retraitExiste = Ledger::where('transfert_id', $transfert->id)
+                ->where('nature', 'RETRAIT_EFFECTUE')
+                ->exists();
+
+            if ($retraitExiste) {
+                throw new TransfertException(
+                    'Annulation impossible : le transfert a déjà été retiré',
+                    400
+                );
+            }
+
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
             $agenceDestinataire = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
 
@@ -202,21 +215,6 @@ class TransfertService
 
             if ($user->agence_id !== $agenceEmettrice->id && $user->role !== 'SUPERADMIN') {
                 throw new TransfertException('Accès interdit', 403);
-            }
-
-            // 🔥 VÉRIFICATION ANTI-FRAUDE: vérifier si le transfert a déjà été retiré
-            // via le statut ou via une entrée ledger DEBIT après la réception
-            $fondsUtilises = Ledger::where('agence_id', $agenceDestinataire->id)
-                ->where('type', 'DEBIT')
-                ->where('transfert_id', $transfert->id)
-                ->where('nature', 'RETRAIT_EFFECTUE')
-                ->exists();
-
-            if ($fondsUtilises) {
-                throw new TransfertException(
-                    'Annulation impossible : les fonds ont déjà été retirés',
-                    400
-                );
             }
 
             $soldeDestinataire = $this->ledger->getSoldeWithLock($agenceDestinataire->id);
