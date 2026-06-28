@@ -53,7 +53,7 @@ class TransfertService
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
 
-            $solde = $this->ledger->getSolde($agenceEmettrice->id);
+            $solde = $this->ledger->getSoldeWithLock($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
             }
@@ -96,7 +96,7 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 VÉRIFICATION STATUT - BLOQUER SI RETIRE
+            // 🔥 BLOQUER SI DÉJÀ RETIRÉ
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
@@ -118,6 +118,7 @@ class TransfertService
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
 
+            // 🔥 MISE À JOUR STATUT
             $transfert->update([
                 'statut' => 'RETIRE',
                 'date_retrait' => now(),
@@ -144,7 +145,7 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 VÉRIFICATION STATUT - BLOQUER SI RETIRE
+            // 🔥 BLOQUER SI DÉJÀ RETIRÉ
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
