@@ -7,6 +7,7 @@ use App\Services\TransfertService;
 use App\Services\LedgerService;
 use App\Http\Requests\TransfertRequest;
 use App\Exceptions\TransfertException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -58,7 +59,7 @@ class TransfertController extends Controller
                 'line' => $e->getLine()
             ]);
             return response()->json([
-                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'message' => 'Erreur: ' . $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'code' => 500
@@ -151,7 +152,7 @@ class TransfertController extends Controller
                 'line' => $e->getLine()
             ]);
             return response()->json([
-                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'message' => 'Erreur: ' . $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'code' => 500
@@ -185,7 +186,7 @@ class TransfertController extends Controller
                 'line' => $e->getLine()
             ]);
             return response()->json([
-                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'message' => 'Erreur: ' . $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'code' => 500
