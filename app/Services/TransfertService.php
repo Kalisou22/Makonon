@@ -90,7 +90,6 @@ class TransfertService
     public function retirer(string $code, User $user): Transfert
     {
         return DB::transaction(function () use ($code, $user) {
-            // 🔥 NORMALISER LE CODE (UPPERCASE)
             $code = strtoupper(trim($code));
             $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
 
@@ -102,9 +101,11 @@ class TransfertService
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
+
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Annulé', 400);
             }
+
             if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Non disponible', 400);
             }
@@ -140,7 +141,6 @@ class TransfertService
     public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
         return DB::transaction(function () use ($code, $user, $motif) {
-            // 🔥 NORMALISER LE CODE (UPPERCASE)
             $code = strtoupper(trim($code));
             $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
 
@@ -151,9 +151,11 @@ class TransfertService
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
+
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
+
             if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Transfert déjà traité', 400);
             }
