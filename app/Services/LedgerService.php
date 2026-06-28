@@ -43,7 +43,6 @@ class LedgerService
         return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
-    // 🔥 PAS DE DB::transaction IMBRIQUEE - La transaction est gérée par le service appelant
     public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
         $this->validerMontant($montant);
@@ -96,7 +95,6 @@ class LedgerService
 
     public function getSoldeWithLock(int $agenceId): float
     {
-        // 🔥 PAS de transaction IMBRIQUEE
         Agence::where('id', $agenceId)->lockForUpdate()->firstOrFail();
         return $this->getSolde($agenceId);
     }
