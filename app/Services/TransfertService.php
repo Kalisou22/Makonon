@@ -96,6 +96,7 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
+            // 🔥 VÉRIFICATION STATUT - BLOQUER SI RETIRE
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
@@ -137,7 +138,6 @@ class TransfertService
     public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
         return DB::transaction(function () use ($code, $user, $motif) {
-            // 🔒 VERROUILLER LE TRANSFERT
             $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
 
             if (!$transfert) {
@@ -148,22 +148,11 @@ class TransfertService
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
-
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
-
             if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Transfert déjà traité', 400);
-            }
-
-            // 🔥 VÉRIFICATION LEDGER
-            $retraitExiste = Ledger::where('transfert_id', $transfert->id)
-                ->where('nature', 'RETRAIT_EFFECTUE')
-                ->exists();
-
-            if ($retraitExiste) {
-                throw new TransfertException('Annulation impossible : le transfert a déjà été retiré', 400);
             }
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
