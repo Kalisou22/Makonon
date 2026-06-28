@@ -84,20 +84,32 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // 🔥 FLUX COMPTABLE CORRECT - SYSTEME COMME PIVOT
-            // 1. Débit de l'agence émettrice (montant + frais)
+            // 🔥 FLUX COMPTABLE CORRECT - SYSTEME COMME PIVOT (DOUBLE ÉCRITURE)
+            // 
+            // Schema des flux:
+            // AG001 (DEBIT) -----> SYSTEM (CREDIT) -----> AG002 (CREDIT)
+            //                    |-> SYSTEM (DEBIT)
+            //                    |-> AG002 (CREDIT)
+            // 
+            // Résultat: SYSTEM garde les frais, AG002 reçoit le montant
+
+            // 1. DEBIT de l'agence émettrice (montant + frais)
             $this->ledger->debit($agenceEmettrice, $total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Transfert émis");
 
-            // 2. Crédit du compte système (réception totale)
+            // 2. CREDIT du compte SYSTEM (réception totale)
             $this->ledger->creditSystem($total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Réception transfert");
 
-            // 3. Débit du compte système (envoi du montant)
+            // 3. DEBIT du compte SYSTEM (envoi du montant)
             $this->ledger->debitSystem($data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Envoi au destinataire");
 
-            // 4. Crédit de l'agence destinataire (montant uniquement)
+            // 4. CREDIT de l'agence destinataire (montant uniquement)
             $this->ledger->credit($agenceDestinataire, $data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Transfert reçu");
 
+            // Vérification de la double écriture
             $this->ledger->verifierDoubleEcriture($transfert->id);
+
+            // Vérification de l'équilibre SYSTEM
+            $this->verifierSoldeSystem($data['montant'], $frais);
 
             Log::info('Transfert créé', ['id' => $transfert->id, 'code' => $code]);
 
@@ -143,10 +155,10 @@ class TransfertService
             ]);
 
             // 🔥 RETRAIT CORRECT
-            // 1. Débit de l'agence de retrait
+            // 1. DEBIT de l'agence de retrait
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Retrait effectué");
 
-            // 2. Crédit du compte système (compensation)
+            // 2. CREDIT du compte SYSTEM (compensation)
             $this->ledger->creditSystem($transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Compensation retrait");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
@@ -207,16 +219,16 @@ class TransfertService
             ]);
 
             // 🔥 ANNULATION CORRECTE - INVERSION COMPLETE
-            // 1. Débit de l'agence destinataire (retour du montant)
+            // 1. DEBIT de l'agence destinataire (retour du montant)
             $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Retour fonds destinataire");
 
-            // 2. Crédit du compte système (compensation)
+            // 2. CREDIT du compte SYSTEM (compensation)
             $this->ledger->creditSystem($transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Compensation annulation");
 
-            // 3. Débit du compte système (remboursement total)
+            // 3. DEBIT du compte SYSTEM (remboursement total)
             $this->ledger->debitSystem($totalARembourser, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement total");
 
-            // 4. Crédit de l'agence émettrice (remboursement total)
+            // 4. CREDIT de l'agence émettrice (remboursement total)
             $this->ledger->credit($agenceEmettrice, $totalARembourser, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement total");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
@@ -238,5 +250,24 @@ class TransfertService
         if ($montant <= 500000) return 2000;
         if ($montant <= 1000000) return 3000;
         return 5000;
+    }
+
+    private function verifierSoldeSystem(float $montant, float $frais): void
+    {
+        $system = $this->ledger->getSystemAccount();
+        $soldeSystem = $this->ledger->getSolde($system->id);
+
+        // Log pour debug
+        Log::info('Solde SYSTEM après transfert', [
+            'solde' => $soldeSystem,
+            'montant' => $montant,
+            'frais' => $frais
+        ]);
+
+        // Le solde SYSTEM doit être égal aux frais après un transfert
+        // Si le solde est négatif ou trop élevé, c'est un problème
+        if ($soldeSystem < 0) {
+            Log::warning('Solde SYSTEM négatif', ['solde' => $soldeSystem]);
+        }
     }
 }
