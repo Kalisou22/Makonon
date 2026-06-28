@@ -96,16 +96,15 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 VÉRIFICATION STATUT STRICTE
-            if ($transfert->statut === 'RETIRE') {
+            // 🔥 VÉRIFICATION DES STATUTS - BLOQUER SI RETIRE OU ANNULE
+            $statut = strtoupper($transfert->statut);
+            if ($statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
-
-            if ($transfert->statut === 'ANNULE') {
+            if ($statut === 'ANNULE') {
                 throw new TransfertException('Annulé', 400);
             }
-
-            if ($transfert->statut !== 'ENVOYE') {
+            if ($statut !== 'ENVOYE') {
                 throw new TransfertException('Non disponible', 400);
             }
 
@@ -146,15 +145,14 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            if ($transfert->statut === 'RETIRE') {
+            $statut = strtoupper($transfert->statut);
+            if ($statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
-
-            if ($transfert->statut === 'ANNULE') {
+            if ($statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
-
-            if ($transfert->statut !== 'ENVOYE') {
+            if ($statut !== 'ENVOYE') {
                 throw new TransfertException('Transfert déjà traité', 400);
             }
 
