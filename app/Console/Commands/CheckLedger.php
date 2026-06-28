@@ -44,20 +44,45 @@ class CheckLedger extends Command
 
         $this->line("");
         $this->info('📊 Détail par agence:');
+
+        $rows = [];
+        $hasIncoherence = false;
+
+        foreach (Agence::all() as $agence) {
+            $debit = Ledger::where('agence_id', $agence->id)->where('type', 'DEBIT')->sum('montant');
+            $credit = Ledger::where('agence_id', $agence->id)->where('type', 'CREDIT')->sum('montant');
+            $ecartAgence = abs($debit - $credit);
+
+            $rows[] = [
+                $agence->id,
+                $agence->code . ' - ' . $agence->nom,
+                number_format($debit, 2),
+                number_format($credit, 2),
+                number_format($ecartAgence, 2),
+                $ecartAgence > 0.01 ? '⚠️' : '✅'
+            ];
+
+            if ($ecartAgence > 0.01) {
+                $hasIncoherence = true;
+            }
+        }
+
         $this->table(
-            ['ID', 'Agence', 'DEBIT', 'CREDIT', 'Écart'],
-            Agence::all()->map(function ($agence) {
-                $debit = Ledger::where('agence_id', $agence->id)->where('type', 'DEBIT')->sum('montant');
-                $credit = Ledger::where('agence_id', $agence->id)->where('type', 'CREDIT')->sum('montant');
-                return [
-                    $agence->id,
-                    $agence->code . ' - ' . $agence->nom,
-                    number_format($debit, 2),
-                    number_format($credit, 2),
-                    number_format(abs($debit - $credit), 2)
-                ];
-            })->toArray()
+            ['ID', 'Agence', 'DEBIT', 'CREDIT', 'Écart', 'Statut'],
+            $rows
         );
+
+        if ($hasIncoherence) {
+            $this->warn('');
+            $this->warn('⚠️  ATTENTION: Des déséquilibres par agence ont été détectés.');
+            $this->warn('    Cela peut être normal si les opérations sont en cours,');
+            $this->warn('    mais doit être surveillé pour éviter des incohérences.');
+            $this->warn('');
+            $this->warn('    🔧 Pour analyser plus en détail:');
+            $this->warn('       php artisan ledger:check --agence=1');
+        } else {
+            $this->info('✅ Toutes les agences sont équilibrées');
+        }
     }
 
     private function checkAgence(int $agenceId): void
@@ -81,6 +106,28 @@ class CheckLedger extends Command
             $this->info('✅ Ledger équilibré');
         } else {
             $this->error('❌ Incohérence détectée !');
+            $this->warn('');
+            $this->warn('🔍 Détail des opérations:');
+
+            $entries = Ledger::where('agence_id', $agenceId)
+                ->orderBy('id', 'desc')
+                ->limit(20)
+                ->get();
+
+            $this->table(
+                ['ID', 'Type', 'Nature', 'Montant', 'Solde Avant', 'Solde Après', 'Transfert'],
+                $entries->map(function ($e) {
+                    return [
+                        $e->id,
+                        $e->type,
+                        $e->nature,
+                        number_format($e->montant, 2),
+                        number_format($e->solde_avant, 2),
+                        number_format($e->solde_apres, 2),
+                        $e->transfert_id ?? '-'
+                    ];
+                })->toArray()
+            );
         }
     }
 }
