@@ -19,12 +19,24 @@ class LedgerService
 
     public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
-        return $this->credit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+        $system = $this->getSystemAccount();
+        return $this->credit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
-        return $this->debit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+        $system = $this->getSystemAccount();
+        return $this->debit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->credit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function debitAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
