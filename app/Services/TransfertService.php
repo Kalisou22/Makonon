@@ -122,7 +122,6 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 BLOQUER SI DÉJÀ TRAITÉ
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
@@ -149,7 +148,6 @@ class TransfertService
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
 
-            // 🔥 MISE À JOUR STATUT AVANT LEDGER
             $transfert->update([
                 'statut' => 'RETIRE',
                 'date_retrait' => now(),
@@ -183,29 +181,17 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 BLOQUER ANNULATION SI DÉJÀ RETIRÉ (CHECK STATUT AVANT TOUT)
-            if ($transfert->statut === 'RETIRE') {
-                throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
-            }
-
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
 
-            if ($transfert->statut !== 'ENVOYE') {
-                throw new TransfertException('Transfert déjà traité', 400);
+            // 🔥 BLOQUER ANNULATION SI DÉJÀ RETIRÉ
+            if ($transfert->statut === 'RETIRE') {
+                throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
 
-            // 🔥 VÉRIFICATION LEDGER - RETRAIT_EFFECTUE
-            $retraitExiste = Ledger::where('transfert_id', $transfert->id)
-                ->where('nature', 'RETRAIT_EFFECTUE')
-                ->exists();
-
-            if ($retraitExiste) {
-                throw new TransfertException(
-                    'Annulation impossible : le transfert a déjà été retiré',
-                    400
-                );
+            if ($transfert->statut !== 'ENVOYE') {
+                throw new TransfertException('Transfert déjà traité', 400);
             }
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
@@ -224,13 +210,12 @@ class TransfertService
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
             }
 
-            // 🔥 MISE À JOUR STATUT AVANT LEDGER
             $transfert->update([
                 'statut' => 'ANNULE',
                 'date_annulation' => now(),
                 'utilisateur_annulation_id' => $user->id,
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
-            );
+            ]);
 
             $this->ledger->debit(
                 $agenceDestinataire,
