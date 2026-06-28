@@ -14,27 +14,20 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['json'],
+            'channels' => ['single', 'audit'],
             'ignore_exceptions' => false,
-        ],
-        'json' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/laravel.json'),
-            'level' => env('LOG_LEVEL', 'debug'),
-            'days' => 14,
-            'formatter' => \Monolog\Formatter\JsonFormatter::class,
-        ],
-        'audit' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/audit.json'),
-            'level' => 'info',
-            'days' => 90,
-            'formatter' => \Monolog\Formatter\JsonFormatter::class,
         ],
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.log'),
+            'level' => 'info',
+            'days' => 90,
             'replace_placeholders' => true,
         ],
         'daily' => [
@@ -50,38 +43,6 @@ return [
             'username' => 'Laravel Log',
             'emoji' => ':boom:',
             'level' => env('LOG_LEVEL', 'critical'),
-            'replace_placeholders' => true,
-        ],
-        'papertrail' => [
-            'driver' => 'monolog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'handler' => env('LOG_PAPERTRAIL_HANDLER', SyslogUdpHandler::class),
-            'handler_with' => [
-                'host' => env('PAPERTRAIL_URL'),
-                'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
-            ],
-            'processors' => [PsrLogMessageProcessor::class],
-        ],
-        'stderr' => [
-            'driver' => 'monolog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'handler' => StreamHandler::class,
-            'formatter' => env('LOG_STDERR_FORMATTER'),
-            'with' => [
-                'stream' => 'php://stderr',
-            ],
-            'processors' => [PsrLogMessageProcessor::class],
-        ],
-        'syslog' => [
-            'driver' => 'syslog',
-            'level' => env('LOG_LEVEL', 'debug'),
-            'facility' => LOG_USER,
-            'replace_placeholders' => true,
-        ],
-        'errorlog' => [
-            'driver' => 'errorlog',
-            'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
         ],
         'null' => [
