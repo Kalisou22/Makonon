@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 class LedgerService
 {
     public const SYSTEM_AGENCE_CODE = 'SYSTEM';
+    public const FRAIS_AGENCE_CODE = 'FRAIS';
 
     public function getSystemAccount(): Agence
     {
@@ -21,21 +22,93 @@ class LedgerService
         return $system;
     }
 
+    public function getFraisAccount(): Agence
+    {
+        $frais = Agence::where('code', self::FRAIS_AGENCE_CODE)->first();
+        if (!$frais) {
+            throw new \RuntimeException("Compte frais non trouvé");
+        }
+        return $frais;
+    }
+
+    public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        $this->validerMontant($montant);
+        
+        return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
+            $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+            
+            $soldeAvant = $this->getSolde($agence->id);
+            $soldeApres = $soldeAvant + $montant;
+            
+            $agence->solde_cache = $soldeApres;
+            $agence->save();
+            
+            return Ledger::create([
+                'agence_id' => $agence->id,
+                'transfert_id' => $transfertId,
+                'type' => 'CREDIT',
+                'nature' => $nature,
+                'montant' => $montant,
+                'solde_avant' => $soldeAvant,
+                'solde_apres' => $soldeApres,
+                'utilisateur_id' => $utilisateurId,
+                'reference' => $reference ?? Str::uuid()->toString(),
+                'description' => $description ?? $nature,
+            ]);
+        });
+    }
+
+    public function debit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        $this->validerMontant($montant);
+        
+        return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
+            $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+            
+            $soldeAvant = $this->getSolde($agence->id);
+            $soldeApres = $soldeAvant - $montant;
+            
+            if ($soldeApres < 0 && $agence->code !== self::SYSTEM_AGENCE_CODE && $agence->code !== self::FRAIS_AGENCE_CODE) {
+                throw new FondsInsuffisantsException($soldeAvant, $montant);
+            }
+            
+            $agence->solde_cache = $soldeApres;
+            $agence->save();
+            
+            return Ledger::create([
+                'agence_id' => $agence->id,
+                'transfert_id' => $transfertId,
+                'type' => 'DEBIT',
+                'nature' => $nature,
+                'montant' => $montant,
+                'solde_avant' => $soldeAvant,
+                'solde_apres' => $soldeApres,
+                'utilisateur_id' => $utilisateurId,
+                'reference' => $reference ?? Str::uuid()->toString(),
+                'description' => $description ?? $nature,
+            ]);
+        });
+    }
+
     public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
-        $system = $this->getSystemAccount();
-        return $this->debit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+        return $this->debit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
-        $system = $this->getSystemAccount();
-        return $this->credit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+        return $this->credit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
-    public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    public function debitFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
-        return $this->credit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+        return $this->debit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function creditFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->credit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function debitAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
@@ -43,60 +116,9 @@ class LedgerService
         return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
-    public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
-        $this->validerMontant($montant);
-
-        $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
-
-        $soldeAvant = $this->getSoldeWithLock($agence->id);
-        $soldeApres = $soldeAvant + $montant;
-
-        return Ledger::create([
-            'agence_id' => $agence->id,
-            'transfert_id' => $transfertId,
-            'type' => 'CREDIT',
-            'nature' => $nature,
-            'montant' => $montant,
-            'solde_avant' => $soldeAvant,
-            'solde_apres' => $soldeApres,
-            'utilisateur_id' => $utilisateurId,
-            'reference' => $reference ?? Str::uuid()->toString(),
-            'description' => $description ?? $nature,
-        ]);
-    }
-
-    public function debit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        $this->validerMontant($montant);
-
-        $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
-
-        $soldeAvant = $this->getSoldeWithLock($agence->id);
-        $soldeApres = $soldeAvant - $montant;
-
-        if ($soldeApres < 0 && $agence->code !== self::SYSTEM_AGENCE_CODE) {
-            throw new FondsInsuffisantsException($soldeAvant, $montant);
-        }
-
-        return Ledger::create([
-            'agence_id' => $agence->id,
-            'transfert_id' => $transfertId,
-            'type' => 'DEBIT',
-            'nature' => $nature,
-            'montant' => $montant,
-            'solde_avant' => $soldeAvant,
-            'solde_apres' => $soldeApres,
-            'utilisateur_id' => $utilisateurId,
-            'reference' => $reference ?? Str::uuid()->toString(),
-            'description' => $description ?? $nature,
-        ]);
-    }
-
-    public function getSoldeWithLock(int $agenceId): float
-    {
-        Agence::where('id', $agenceId)->lockForUpdate()->firstOrFail();
-        return $this->getSolde($agenceId);
+        return $this->credit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function getSolde(int $agenceId): float
@@ -115,6 +137,16 @@ class LedgerService
 
         if (abs($totalDebit - $totalCredit) > 0.01) {
             throw new \RuntimeException("Incohérence ledger: DEBIT={$totalDebit}, CREDIT={$totalCredit}");
+        }
+    }
+
+    public function verifierSystemNul(): void
+    {
+        $system = $this->getSystemAccount();
+        $solde = $this->getSolde($system->id);
+        
+        if (abs($solde) > 0.01) {
+            throw new \RuntimeException("Solde SYSTEM non nul: {$solde}");
         }
     }
 

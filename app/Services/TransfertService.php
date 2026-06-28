@@ -6,7 +6,6 @@ use App\Models\Transfert;
 use App\Models\Client;
 use App\Models\Agence;
 use App\Models\User;
-use App\Models\Ledger;
 use App\Exceptions\FondsInsuffisantsException;
 use App\Exceptions\TransfertException;
 use Illuminate\Support\Facades\DB;
@@ -62,7 +61,7 @@ class TransfertService
                 );
             }
 
-            $solde = $this->ledger->getSoldeWithLock($agenceEmettrice->id);
+            $solde = $this->ledger->getSolde($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
             }
@@ -84,28 +83,78 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // ============================================================
-            // 🔥 FLUX COMPTABLE AVEC SYSTEM COMME PIVOT (STRICT)
-            // ============================================================
-            // 1. AG001 (DEBIT) → SYSTEM (CREDIT) pour total (montant + frais)
-            $this->ledger->debit($agenceEmettrice, $total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Transfert émis");
-            $this->ledger->creditSystem($total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Réception transfert");
+            // 1. DEBIT AGENCE SOURCE (total)
+            $this->ledger->debitAgence(
+                $agenceEmettrice,
+                $total,
+                'ENVOI',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Transfert émis - Montant: {$data['montant']} + Frais: {$frais}"
+            );
 
-            // 2. SYSTEM (DEBIT) → AG002 (CREDIT) pour montant uniquement
-            $this->ledger->debitSystem($data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Envoi au destinataire");
-            $this->ledger->credit($agenceDestinataire, $data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Transfert reçu");
+            // 2. CREDIT SYSTEM (total)
+            $this->ledger->creditSystem(
+                $total,
+                'ENVOI',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Réception transfert - Total: {$total}"
+            );
 
-            // 3. Vérification que SYSTEM = 0 (frais uniquement)
-            $this->verifierSoldeSystem($frais);
+            // 3. DEBIT SYSTEM (montant)
+            $this->ledger->debitSystem(
+                $data['montant'],
+                'RECEPTION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Envoi destinataire - Montant: {$data['montant']}"
+            );
+
+            // 4. CREDIT AGENCE DESTINATION (montant)
+            $this->ledger->creditAgence(
+                $agenceDestinataire,
+                $data['montant'],
+                'RECEPTION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Transfert reçu - Montant: {$data['montant']}"
+            );
+
+            // 5. DEBIT SYSTEM (frais)
+            $this->ledger->debitSystem(
+                $frais,
+                'FRAIS',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Frais transfert - Frais: {$frais}"
+            );
+
+            // 6. CREDIT COMPTE FRAIS (frais)
+            $this->ledger->creditFrais(
+                $frais,
+                'FRAIS',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Frais collectés - Frais: {$frais}"
+            );
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
+            $this->ledger->verifierSystemNul();
 
             Log::info('Transfert créé', [
                 'id' => $transfert->id,
                 'code' => $code,
                 'montant' => $data['montant'],
                 'frais' => $frais,
-                'total' => $total
+                'total' => $total,
+                'user' => $user->id
             ]);
 
             return $transfert;
@@ -138,7 +187,7 @@ class TransfertService
                 throw new TransfertException('Accès interdit', 403);
             }
 
-            $solde = $this->ledger->getSoldeWithLock($agence->id);
+            $solde = $this->ledger->getSolde($agence->id);
             if ($solde < $transfert->montant) {
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
@@ -149,16 +198,35 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
-            // 🔥 RETRAIT : AG002 (DEBIT) → SYSTEM (CREDIT)
-            $this->ledger->debit($agence, $transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Retrait effectué");
-            $this->ledger->creditSystem($transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Compensation retrait");
+            // 1. DEBIT AGENCE DESTINATION (montant)
+            $this->ledger->debitAgence(
+                $agence,
+                $transfert->montant,
+                'RETRAIT',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Retrait effectué - Montant: {$transfert->montant}"
+            );
 
-            // Vérification que SYSTEM = 0
-            $this->verifierSoldeSystem(0);
+            // 2. CREDIT SYSTEM (montant)
+            $this->ledger->creditSystem(
+                $transfert->montant,
+                'RETRAIT',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Compensation retrait - Montant: {$transfert->montant}"
+            );
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
+            $this->ledger->verifierSystemNul();
 
-            Log::info('Transfert retiré', ['id' => $transfert->id, 'code' => $code]);
+            Log::info('Transfert retiré', [
+                'id' => $transfert->id,
+                'code' => $code,
+                'user' => $user->id
+            ]);
 
             return $transfert;
         });
@@ -200,24 +268,76 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // 🔥 ANNULATION : INVERSION COMPLETE
-            // 1. AG002 (DEBIT) → SYSTEM (CREDIT) pour le montant
-            $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Retour fonds destinataire");
-            $this->ledger->creditSystem($transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Compensation annulation");
+            // 1. DEBIT AGENCE DESTINATION (montant)
+            $this->ledger->debitAgence(
+                $agenceDestinataire,
+                $transfert->montant,
+                'ANNULATION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Retour fonds destinataire - Montant: {$transfert->montant}"
+            );
 
-            // 2. SYSTEM (DEBIT) → AG001 (CREDIT) pour remboursement total
-            $this->ledger->debitSystem($totalARembourser, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement total");
-            $this->ledger->credit($agenceEmettrice, $totalARembourser, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement total");
+            // 2. CREDIT SYSTEM (montant)
+            $this->ledger->creditSystem(
+                $transfert->montant,
+                'ANNULATION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Compensation annulation - Montant: {$transfert->montant}"
+            );
 
-            // Vérification que SYSTEM = 0
-            $this->verifierSoldeSystem(0);
+            // 3. DEBIT SYSTEM (total remboursement)
+            $this->ledger->debitSystem(
+                $totalARembourser,
+                'ANNULATION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Remboursement total - Montant: {$totalARembourser}"
+            );
+
+            // 4. CREDIT AGENCE ÉMETTRICE (total remboursement)
+            $this->ledger->creditAgence(
+                $agenceEmettrice,
+                $totalARembourser,
+                'ANNULATION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Remboursement total - Montant: {$totalARembourser}"
+            );
+
+            // 5. DEBIT COMPTE FRAIS (frais)
+            $this->ledger->debitFrais(
+                $transfert->frais,
+                'ANNULATION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Remboursement frais - Frais: {$transfert->frais}"
+            );
+
+            // 6. CREDIT SYSTEM (frais)
+            $this->ledger->creditSystem(
+                $transfert->frais,
+                'ANNULATION',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Remboursement frais - Frais: {$transfert->frais}"
+            );
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
+            $this->ledger->verifierSystemNul();
 
             Log::info('Transfert annulé', [
                 'id' => $transfert->id,
                 'code' => $code,
                 'total_rembourse' => $totalARembourser,
+                'user' => $user->id,
                 'motif' => $motif
             ]);
 
@@ -231,18 +351,5 @@ class TransfertService
         if ($montant <= 500000) return 2000;
         if ($montant <= 1000000) return 3000;
         return 5000;
-    }
-
-    private function verifierSoldeSystem(float $frais): void
-    {
-        $system = $this->ledger->getSystemAccount();
-        $solde = $this->ledger->getSolde($system->id);
-
-        if (abs($solde - $frais) > 0.01) {
-            Log::warning('Solde SYSTEM anormal', [
-                'solde_actuel' => $solde,
-                'frais' => $frais
-            ]);
-        }
     }
 }

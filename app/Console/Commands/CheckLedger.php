@@ -5,15 +5,20 @@ namespace App\Console\Commands;
 use App\Models\Ledger;
 use App\Models\Agence;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class CheckLedger extends Command
 {
-    protected $signature = 'ledger:check {--agence= : Vérifier une agence spécifique}';
-    protected $description = 'Vérifier l\'intégrité du ledger (DEBIT = CREDIT)';
+    protected $signature = 'ledger:check 
+                            {--agence= : Vérifier une agence spécifique}
+                            {--fix : Tenter de corriger les anomalies}';
+    
+    protected $description = 'Vérifier l\'intégrité du ledger et détecter les anomalies';
 
     public function handle()
     {
         $this->info('🔍 Vérification du ledger...');
+        $this->newLine();
 
         $agenceId = $this->option('agence');
 
@@ -30,58 +35,76 @@ class CheckLedger extends Command
     {
         $totalDebit = Ledger::where('type', 'DEBIT')->sum('montant');
         $totalCredit = Ledger::where('type', 'CREDIT')->sum('montant');
-        $ecart = abs($totalDebit - $totalCredit);
+        $ecartGlobal = abs($totalDebit - $totalCredit);
 
+        $this->info('📊 SYNTHÈSE GLOBALE');
         $this->line("DEBIT total: " . number_format($totalDebit, 2) . " GNF");
         $this->line("CREDIT total: " . number_format($totalCredit, 2) . " GNF");
-        $this->line("Écart: " . number_format($ecart, 2) . " GNF");
+        $this->line("Écart: " . number_format($ecartGlobal, 2) . " GNF");
 
-        if ($ecart < 0.01) {
+        if ($ecartGlobal < 0.01) {
             $this->info('✅ Ledger global équilibré');
         } else {
-            $this->error('❌ Incohérence détectée !');
+            $this->error('❌ Incohérence globale détectée !');
         }
 
-        $this->line("");
-        $this->info('📊 Détail par agence:');
-
+        $this->newLine();
+        $this->info('📊 DÉTAIL PAR AGENCE');
+        
         $rows = [];
-        $hasIncoherence = false;
+        $systemNonNul = false;
+        $fraisNegatif = false;
 
         foreach (Agence::all() as $agence) {
             $debit = Ledger::where('agence_id', $agence->id)->where('type', 'DEBIT')->sum('montant');
             $credit = Ledger::where('agence_id', $agence->id)->where('type', 'CREDIT')->sum('montant');
-            $ecartAgence = abs($debit - $credit);
+            $solde = $credit - $debit;
+
+            $statut = '✅';
+            if (abs($solde) > 0.01) {
+                $statut = '⚠️';
+            }
+
+            if ($agence->code === 'SYSTEM' && abs($solde) > 0.01) {
+                $statut = '🔴 SYSTEM NON NUL';
+                $systemNonNul = true;
+            }
+
+            if ($agence->code === 'FRAIS' && $solde < 0) {
+                $statut = '🔴 FRAIS NÉGATIF';
+                $fraisNegatif = true;
+            }
 
             $rows[] = [
                 $agence->id,
-                $agence->code . ' - ' . $agence->nom,
+                $agence->code,
+                $agence->nom,
                 number_format($debit, 2),
                 number_format($credit, 2),
-                number_format($ecartAgence, 2),
-                $ecartAgence > 0.01 ? '⚠️' : '✅'
+                number_format($solde, 2),
+                $statut
             ];
-
-            if ($ecartAgence > 0.01) {
-                $hasIncoherence = true;
-            }
         }
 
         $this->table(
-            ['ID', 'Agence', 'DEBIT', 'CREDIT', 'Écart', 'Statut'],
+            ['ID', 'Code', 'Nom', 'DEBIT', 'CREDIT', 'SOLDE', 'Statut'],
             $rows
         );
 
-        if ($hasIncoherence) {
-            $this->warn('');
-            $this->warn('⚠️  ATTENTION: Des déséquilibres par agence ont été détectés.');
-            $this->warn('    Cela peut être normal si les opérations sont en cours,');
-            $this->warn('    mais doit être surveillé pour éviter des incohérences.');
-            $this->warn('');
-            $this->warn('    🔧 Pour analyser plus en détail:');
-            $this->warn('       php artisan ledger:check --agence=1');
-        } else {
-            $this->info('✅ Toutes les agences sont équilibrées');
+        $this->newLine();
+
+        if ($systemNonNul) {
+            $this->error('🚨 ALERTE : SYSTEM n\'est pas à 0 !');
+        }
+
+        if ($fraisNegatif) {
+            $this->error('🚨 ALERTE : FRAIS est négatif !');
+        }
+
+        if (!$systemNonNul && !$fraisNegatif) {
+            $this->info('✅ SYSTEM = 0');
+            $this->info('✅ FRAIS positif');
+            $this->info('✅ Système comptable cohérent');
         }
     }
 
@@ -95,19 +118,20 @@ class CheckLedger extends Command
 
         $debit = Ledger::where('agence_id', $agenceId)->where('type', 'DEBIT')->sum('montant');
         $credit = Ledger::where('agence_id', $agenceId)->where('type', 'CREDIT')->sum('montant');
-        $ecart = abs($debit - $credit);
+        $solde = $credit - $debit;
 
         $this->line("Agence: {$agence->code} - {$agence->nom}");
         $this->line("DEBIT: " . number_format($debit, 2) . " GNF");
         $this->line("CREDIT: " . number_format($credit, 2) . " GNF");
-        $this->line("Écart: " . number_format($ecart, 2) . " GNF");
+        $this->line("SOLDE: " . number_format($solde, 2) . " GNF");
+        $this->line("solde_cache: " . number_format($agence->solde_cache ?? 0, 2) . " GNF");
 
-        if ($ecart < 0.01) {
+        if (abs($solde) < 0.01) {
             $this->info('✅ Ledger équilibré');
         } else {
             $this->error('❌ Incohérence détectée !');
-            $this->warn('');
-            $this->warn('🔍 Détail des opérations:');
+            $this->newLine();
+            $this->warn('🔍 Dernières opérations:');
 
             $entries = Ledger::where('agence_id', $agenceId)
                 ->orderBy('id', 'desc')
