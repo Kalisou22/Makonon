@@ -101,17 +101,17 @@ class LedgerService
     {
         return DB::transaction(function () use ($agenceId) {
             Agence::where('id', $agenceId)->lockForUpdate()->firstOrFail();
-            return (float) Ledger::where('agence_id', $agenceId)
-                ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
-                ->value('solde');
+            return $this->getSolde($agenceId);
         });
     }
 
     public function getSolde(int $agenceId): float
     {
-        return (float) Ledger::where('agence_id', $agenceId)
+        $solde = (float) Ledger::where('agence_id', $agenceId)
             ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
             ->value('solde');
+        
+        return $solde;
     }
 
     public function verifierDoubleEcriture(?int $transfertId): void
