@@ -22,17 +22,19 @@ class TransfertController extends Controller
         $this->ledgerService = $ledgerService;
     }
 
-    public function creer(TransfertRequest $request)
+    public function creer(Request $request)
     {
         try {
-            $validated = $request->validated();
-            
-            if (empty($validated['idempotency_key'])) {
-                return response()->json([
-                    'message' => 'La clé d\'idempotence est requise',
-                    'code' => 422
-                ], 422);
-            }
+            $validated = $request->validate([
+                'nom_expediteur' => 'required|string|max:100',
+                'telephone_expediteur' => 'required|string|max:30',
+                'nom_beneficiaire' => 'required|string|max:100',
+                'telephone_beneficiaire' => 'required|string|max:30',
+                'montant' => 'required|numeric|min:100|max:999999999.99',
+                'agence_envoi_id' => 'required|exists:agences,id',
+                'agence_destinataire_id' => 'required|exists:agences,id|different:agence_envoi_id',
+                'idempotency_key' => 'required|string|max:100|unique:transferts,idempotency_key',
+            ]);
 
             $user = $request->user();
             $transfert = $this->transfertService->creer($validated, $user);
@@ -59,7 +61,7 @@ class TransfertController extends Controller
                 'line' => $e->getLine()
             ]);
             return response()->json([
-                'message' => 'Erreur: ' . $e->getMessage(),
+                'message' => 'Erreur serveur: ' . $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'code' => 500
