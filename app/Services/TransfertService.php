@@ -84,17 +84,17 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // 🔥 FLUX COMPTABLE CORRECT
-            // 1. AG001 paie total
+            // FLUX COMPTABLE CORRECT - SYSTEM COMME PIVOT
+            // 1. AG001 paie total (montant + frais)
             $this->ledger->debit($agenceEmettrice, $total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Transfert émis");
 
             // 2. SYSTEM reçoit total
             $this->ledger->creditSystem($total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Réception transfert");
 
-            // 3. SYSTEM envoie montant à AG002
+            // 3. SYSTEM envoie le montant à AG002
             $this->ledger->debitSystem($data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Envoi au destinataire");
 
-            // 4. AG002 reçoit montant
+            // 4. AG002 reçoit le montant
             $this->ledger->credit($agenceDestinataire, $data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Transfert reçu");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
@@ -151,7 +151,7 @@ class TransfertService
             // 1. DEBIT de l'agence de retrait
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Retrait effectué");
 
-            // 2. CREDIT du compte SYSTEM
+            // 2. CREDIT du compte SYSTEM (compensation)
             $this->ledger->creditSystem($transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Compensation retrait");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
