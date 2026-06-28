@@ -17,7 +17,6 @@ class AuditService
             'old_data' => $oldData,
             'new_data' => $newData,
             'ip' => Request::ip(),
-            'user_agent' => Request::userAgent(),
         ]);
     }
 
