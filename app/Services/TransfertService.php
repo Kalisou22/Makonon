@@ -27,7 +27,6 @@ class TransfertService
             throw new TransfertException('Clé idempotence requise', 422);
         }
 
-        // 🔥 Vérification idempotence AVANT transaction
         $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
         if ($existing) {
             return $existing;
@@ -97,7 +96,6 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 BLOQUER SI DÉJÀ RETIRÉ
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
@@ -145,7 +143,6 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 BLOQUER SI DÉJÀ RETIRÉ
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
