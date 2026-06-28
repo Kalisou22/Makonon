@@ -61,7 +61,7 @@ class TransfertService
             $code = 'TRF' . date('Ymd') . strtoupper(substr(uniqid(), -6));
 
             $transfert = Transfert::create([
-                'code' => $code,
+                'code' => strtoupper($code),
                 'expediteur_id' => $expediteur->id,
                 'beneficiaire_id' => $beneficiaire->id,
                 'agence_envoi_id' => $agenceEmettrice->id,
@@ -90,8 +90,9 @@ class TransfertService
     public function retirer(string $code, User $user): Transfert
     {
         return DB::transaction(function () use ($code, $user) {
-            // 🔥 RECHERCHE INSENSIBLE À LA CASSE
-            $transfert = Transfert::where('code', 'LIKE', $code)->lockForUpdate()->first();
+            // 🔥 NORMALISER LE CODE (UPPERCASE)
+            $code = strtoupper(trim($code));
+            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
 
             if (!$transfert) {
                 throw new TransfertException('Transfert introuvable', 404);
@@ -139,8 +140,9 @@ class TransfertService
     public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
         return DB::transaction(function () use ($code, $user, $motif) {
-            // 🔥 RECHERCHE INSENSIBLE À LA CASSE
-            $transfert = Transfert::where('code', 'LIKE', $code)->lockForUpdate()->first();
+            // 🔥 NORMALISER LE CODE (UPPERCASE)
+            $code = strtoupper(trim($code));
+            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
 
             if (!$transfert) {
                 throw new TransfertException('Transfert introuvable', 404);
