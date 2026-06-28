@@ -55,7 +55,6 @@ class TransfertService
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
 
-            // 🔥 Validation: montant + frais <= MAX
             if ($total > self::MAX_MONTANT) {
                 throw new TransfertException(
                     "Le montant total (incluant les frais) ne peut dépasser " . number_format(self::MAX_MONTANT, 0) . " GNF",
@@ -85,9 +84,15 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
+            // 🔥 LOGIQUE COMPTABLE CORRIGÉE
+            // 1. Débit de l'agence émettrice (montant + frais)
             $this->ledger->debit($agenceEmettrice, $total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Transfert émis");
+
+            // 2. Crédit de l'agence destinataire (montant uniquement)
             $this->ledger->credit($agenceDestinataire, $data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Transfert reçu");
-            $this->ledger->credit($agenceEmettrice, $frais, 'FRAIS_TRANSFERT', $transfert->id, $user->id, $code, "Frais");
+
+            // 3. Crédit des frais au compte système
+            $this->ledger->creditSystem($frais, 'FRAIS_TRANSFERT', $transfert->id, $user->id, $code, "Frais de transfert");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
 
@@ -134,7 +139,11 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
+            // 🔥 RETRAIT CORRIGÉ
+            // 1. Débit de l'agence de retrait
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Retrait effectué");
+
+            // 2. Crédit du compte système (compensation)
             $this->ledger->creditSystem($transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Compensation retrait");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
@@ -192,10 +201,15 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Retrait fonds destinataire");
+            // 🔥 ANNULATION CORRIGÉE - Inversion exacte de la création
+            // 1. Débit de l'agence destinataire (retour du montant)
+            $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Retour fonds destinataire");
+
+            // 2. Crédit de l'agence émettrice (remboursement du montant)
             $this->ledger->credit($agenceEmettrice, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement montant");
-            $this->ledger->debit($agenceEmettrice, $transfert->frais, 'ANNULATION_FRAIS', $transfert->id, $user->id, $code, "Compensation frais");
-            $this->ledger->credit($agenceEmettrice, $transfert->frais, 'ANNULATION_FRAIS', $transfert->id, $user->id, $code, "Remboursement frais");
+
+            // 3. Débit du compte système (remboursement des frais)
+            $this->ledger->debitSystem($transfert->frais, 'ANNULATION_FRAIS', $transfert->id, $user->id, $code, "Remboursement frais");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
 
