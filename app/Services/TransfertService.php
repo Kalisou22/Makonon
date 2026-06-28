@@ -84,7 +84,6 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // 🔥 LOGIQUE COMPTABLE CORRIGÉE
             // 1. Débit de l'agence émettrice (montant + frais)
             $this->ledger->debit($agenceEmettrice, $total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Transfert émis");
 
@@ -139,7 +138,6 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
-            // 🔥 RETRAIT CORRIGÉ
             // 1. Débit de l'agence de retrait
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Retrait effectué");
 
@@ -194,6 +192,8 @@ class TransfertService
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
             }
 
+            $totalARembourser = $transfert->montant + $transfert->frais;
+
             $transfert->update([
                 'statut' => 'ANNULE',
                 'date_annulation' => now(),
@@ -201,19 +201,24 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // 🔥 ANNULATION CORRIGÉE - Inversion exacte de la création
+            // 🔥 ANNULATION CORRIGÉE - REMBOURSEMENT TOTAL
             // 1. Débit de l'agence destinataire (retour du montant)
             $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Retour fonds destinataire");
 
-            // 2. Crédit de l'agence émettrice (remboursement du montant)
-            $this->ledger->credit($agenceEmettrice, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement montant");
+            // 2. Crédit de l'agence émettrice (remboursement TOTAL : montant + frais)
+            $this->ledger->credit($agenceEmettrice, $totalARembourser, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement total");
 
-            // 3. Débit du compte système (remboursement des frais)
-            $this->ledger->debitSystem($transfert->frais, 'ANNULATION_FRAIS', $transfert->id, $user->id, $code, "Remboursement frais");
+            // 3. Débit du compte système (compensation des frais)
+            $this->ledger->debitSystem($transfert->frais, 'ANNULATION_FRAIS', $transfert->id, $user->id, $code, "Compensation frais");
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
 
-            Log::info('Transfert annulé', ['id' => $transfert->id, 'code' => $code]);
+            Log::info('Transfert annulé', [
+                'id' => $transfert->id,
+                'code' => $code,
+                'total_rembourse' => $totalARembourser,
+                'motif' => $motif
+            ]);
 
             return $transfert;
         });
