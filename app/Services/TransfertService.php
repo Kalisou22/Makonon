@@ -74,8 +74,6 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // TRANSFERT: DEBIT = CREDIT
-            // 1. DEBIT agence émettrice (montant + frais)
             $this->ledger->debit(
                 $agenceEmettrice,
                 $total,
@@ -86,7 +84,6 @@ class TransfertService
                 "Transfert émis"
             );
 
-            // 2. CREDIT agence destinataire (montant)
             $this->ledger->credit(
                 $agenceDestinataire,
                 $data['montant'],
@@ -97,7 +94,6 @@ class TransfertService
                 "Transfert reçu"
             );
 
-            // 3. CREDIT agence émettrice (frais) via système
             $this->ledger->credit(
                 $agenceEmettrice,
                 $frais,
@@ -207,7 +203,7 @@ class TransfertService
                 throw new TransfertException('Accès interdit', 403);
             }
 
-            // Vérifier que l'agence destinataire peut rembourser
+            // 🔥 VÉRIFICATION CRITIQUE: solde de l'agence destinataire
             $soldeDestinataire = $this->ledger->getSoldeWithLock($agenceDestinataire->id);
             if ($soldeDestinataire < $transfert->montant) {
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
@@ -220,8 +216,7 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // ANNULATION: INVERSE EXACT DE LA CRÉATION
-            // 1. DEBIT agence destinataire (retirer le montant)
+            // Annulation équilibrée
             $this->ledger->debit(
                 $agenceDestinataire,
                 $transfert->montant,
@@ -232,7 +227,6 @@ class TransfertService
                 "Retrait fonds destinataire"
             );
 
-            // 2. CREDIT agence émettrice (remboursement montant)
             $this->ledger->credit(
                 $agenceEmettrice,
                 $transfert->montant,
@@ -243,7 +237,6 @@ class TransfertService
                 "Remboursement montant"
             );
 
-            // 3. DEBIT agence émettrice (compensation frais)
             $this->ledger->debit(
                 $agenceEmettrice,
                 $transfert->frais,
@@ -254,7 +247,6 @@ class TransfertService
                 "Compensation frais"
             );
 
-            // 4. CREDIT agence émettrice (remboursement frais)
             $this->ledger->credit(
                 $agenceEmettrice,
                 $transfert->frais,
