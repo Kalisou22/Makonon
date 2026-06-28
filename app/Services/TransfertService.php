@@ -90,21 +90,21 @@ class TransfertService
     public function retirer(string $code, User $user): Transfert
     {
         return DB::transaction(function () use ($code, $user) {
-            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
+            // 🔥 RECHERCHE INSENSIBLE À LA CASSE
+            $transfert = Transfert::where('code', 'LIKE', $code)->lockForUpdate()->first();
 
             if (!$transfert) {
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 VÉRIFICATION DES STATUTS - BLOQUER SI RETIRE OU ANNULE
-            $statut = strtoupper($transfert->statut);
-            if ($statut === 'RETIRE') {
+            // 🔥 BLOQUER SI RETIRE
+            if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
-            if ($statut === 'ANNULE') {
+            if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Annulé', 400);
             }
-            if ($statut !== 'ENVOYE') {
+            if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Non disponible', 400);
             }
 
@@ -139,20 +139,20 @@ class TransfertService
     public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
         return DB::transaction(function () use ($code, $user, $motif) {
-            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
+            // 🔥 RECHERCHE INSENSIBLE À LA CASSE
+            $transfert = Transfert::where('code', 'LIKE', $code)->lockForUpdate()->first();
 
             if (!$transfert) {
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            $statut = strtoupper($transfert->statut);
-            if ($statut === 'RETIRE') {
+            if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
-            if ($statut === 'ANNULE') {
+            if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
-            if ($statut !== 'ENVOYE') {
+            if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Transfert déjà traité', 400);
             }
 
