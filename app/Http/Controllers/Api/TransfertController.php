@@ -37,7 +37,6 @@ class TransfertController extends Controller
                 'montant' => 'required|numeric|min:100|max:999999999.99',
                 'agence_envoi_id' => 'required|exists:agences,id',
                 'agence_destinataire_id' => 'required|exists:agences,id|different:agence_envoi_id',
-                // 🔥 IDEMPOTENCY KEY REQUIRED
                 'idempotency_key' => 'required|string|max:100',
             ]);
 
@@ -64,8 +63,8 @@ class TransfertController extends Controller
             ]);
             return response()->json([
                 'message' => $e->getMessage(),
-                'code' => $e->getCode() ?: 500
-            ], $e->getCode() ?: 500);
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -93,8 +92,8 @@ class TransfertController extends Controller
             ]);
             return response()->json([
                 'message' => $e->getMessage(),
-                'code' => $e->getCode() ?: 500
-            ], $e->getCode() ?: 500);
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -122,8 +121,8 @@ class TransfertController extends Controller
             ]);
             return response()->json([
                 'message' => $e->getMessage(),
-                'code' => $e->getCode() ?: 500
-            ], $e->getCode() ?: 500);
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -154,7 +153,6 @@ class TransfertController extends Controller
                 'agence_id' => $user->agence_id
             ]);
         } catch (Throwable $e) {
-            Log::error('Erreur solde agence', ['message' => $e->getMessage()]);
             return response()->json(['message' => 'Erreur serveur'], 500);
         }
     }
