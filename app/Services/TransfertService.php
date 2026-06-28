@@ -74,7 +74,8 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // Écritures ledger (DEBIT = CREDIT = total)
+            // TRANSFERT: DEBIT = CREDIT
+            // 1. DEBIT agence émettrice (montant + frais)
             $this->ledger->debit(
                 $agenceEmettrice,
                 $total,
@@ -85,6 +86,7 @@ class TransfertService
                 "Transfert émis"
             );
 
+            // 2. CREDIT agence destinataire (montant)
             $this->ledger->credit(
                 $agenceDestinataire,
                 $data['montant'],
@@ -95,6 +97,7 @@ class TransfertService
                 "Transfert reçu"
             );
 
+            // 3. CREDIT agence émettrice (frais) via système
             $this->ledger->credit(
                 $agenceEmettrice,
                 $frais,
@@ -182,15 +185,15 @@ class TransfertService
             }
 
             if ($transfert->statut === 'ANNULE') {
-                throw new TransfertException('Déjà annulé', 400);
+                throw new TransfertException('Transfert déjà annulé', 400);
             }
 
             if ($transfert->statut === 'RETIRE') {
-                throw new TransfertException('Déjà retiré', 400);
+                throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
 
             if ($transfert->statut !== 'ENVOYE') {
-                throw new TransfertException('Non disponible', 400);
+                throw new TransfertException('Transfert déjà traité', 400);
             }
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
@@ -204,6 +207,7 @@ class TransfertService
                 throw new TransfertException('Accès interdit', 403);
             }
 
+            // Vérifier que l'agence destinataire peut rembourser
             $soldeDestinataire = $this->ledger->getSoldeWithLock($agenceDestinataire->id);
             if ($soldeDestinataire < $transfert->montant) {
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
@@ -213,10 +217,11 @@ class TransfertService
                 'statut' => 'ANNULE',
                 'date_annulation' => now(),
                 'utilisateur_annulation_id' => $user->id,
-                'motif_annulation' => $motif ?? 'Annulation',
+                'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // ÉQUILIBRAGE: DEBIT = CREDIT
+            // ANNULATION: INVERSE EXACT DE LA CRÉATION
+            // 1. DEBIT agence destinataire (retirer le montant)
             $this->ledger->debit(
                 $agenceDestinataire,
                 $transfert->montant,
@@ -224,9 +229,10 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Retrait fonds"
+                "Retrait fonds destinataire"
             );
 
+            // 2. CREDIT agence émettrice (remboursement montant)
             $this->ledger->credit(
                 $agenceEmettrice,
                 $transfert->montant,
@@ -234,9 +240,10 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Remboursement"
+                "Remboursement montant"
             );
 
+            // 3. DEBIT agence émettrice (compensation frais)
             $this->ledger->debit(
                 $agenceEmettrice,
                 $transfert->frais,
@@ -244,9 +251,10 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Annulation frais"
+                "Compensation frais"
             );
 
+            // 4. CREDIT agence émettrice (remboursement frais)
             $this->ledger->credit(
                 $agenceEmettrice,
                 $transfert->frais,
