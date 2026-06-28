@@ -10,7 +10,24 @@ use Illuminate\Support\Str;
 
 class LedgerService
 {
-    public const SYSTEM_AGENCE_ID = 0;
+    public const SYSTEM_AGENCE_CODE = 'SYSTEM';
+
+    public function getSystemAccount(): Agence
+    {
+        return Agence::where('code', self::SYSTEM_AGENCE_CODE)->firstOrFail();
+    }
+
+    public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        $system = $this->getSystemAccount();
+        return $this->credit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        $system = $this->getSystemAccount();
+        return $this->debit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
 
     public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
@@ -20,24 +37,6 @@ class LedgerService
     public function debitAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
         return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
-
-    public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        $systemAgence = Agence::find(self::SYSTEM_AGENCE_ID);
-        if (!$systemAgence) {
-            throw new \RuntimeException("Compte système non trouvé");
-        }
-        return $this->credit($systemAgence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
-
-    public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        $systemAgence = Agence::find(self::SYSTEM_AGENCE_ID);
-        if (!$systemAgence) {
-            throw new \RuntimeException("Compte système non trouvé");
-        }
-        return $this->debit($systemAgence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
@@ -75,7 +74,7 @@ class LedgerService
             $soldeAvant = $this->getSoldeWithLock($agence->id);
             $soldeApres = $soldeAvant - $montant;
 
-            if ($soldeApres < 0 && $agence->id !== self::SYSTEM_AGENCE_ID) {
+            if ($soldeApres < 0 && $agence->code !== self::SYSTEM_AGENCE_CODE) {
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
 
