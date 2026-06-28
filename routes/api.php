@@ -20,13 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // 🔥 Routes transferts avec rate limiting
-    Route::middleware('throttle:60,1')->group(function () {
-        Route::post('/transferts', [TransfertController::class, 'creer']);
-        Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
-        Route::put('/transferts/annuler/{code}', [TransfertController::class, 'annuler']);
-    });
-
+    Route::post('/transferts', [TransfertController::class, 'creer']);
+    Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
+    Route::put('/transferts/annuler/{code}', [TransfertController::class, 'annuler']);
     Route::get('/transferts/verifier/{code}', [TransfertController::class, 'verifier']);
     Route::get('/transferts', [TransfertController::class, 'index']);
     Route::get('/transferts/solde-agence', [TransfertController::class, 'soldeAgence']);
