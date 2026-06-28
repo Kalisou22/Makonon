@@ -33,8 +33,12 @@ class TransfertService
         }
 
         return DB::transaction(function () use ($data, $user) {
-            $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->firstOrFail();
-            $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->firstOrFail();
+            $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->first();
+            $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->first();
+
+            if (!$agenceEmettrice || !$agenceDestinataire) {
+                throw new TransfertException('Agence non trouvée', 404);
+            }
 
             $expediteur = Client::firstOrCreate(
                 ['telephone' => $data['telephone_expediteur']],
@@ -49,7 +53,8 @@ class TransfertService
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
 
-            $solde = $this->ledger->getSoldeWithLock($agenceEmettrice->id);
+            // Vérification du solde - DEBUG
+            $solde = $this->ledger->getSolde($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
             }
@@ -71,7 +76,6 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // Double écriture
             $this->ledger->debit($agenceEmettrice, $total, 'TRANSFERT_EMIS', $transfert->id, $user->id, $code, "Transfert émis");
             $this->ledger->credit($agenceDestinataire, $data['montant'], 'TRANSFERT_RECU', $transfert->id, $user->id, $code, "Transfert reçu");
             $this->ledger->credit($agenceEmettrice, $frais, 'FRAIS_TRANSFERT', $transfert->id, $user->id, $code, "Frais");
@@ -87,7 +91,11 @@ class TransfertService
     public function retirer(string $code, User $user): Transfert
     {
         return DB::transaction(function () use ($code, $user) {
-            $transfert = Transfert::where('code', $code)->lockForUpdate()->firstOrFail();
+            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
+
+            if (!$transfert) {
+                throw new TransfertException('Transfert introuvable', 404);
+            }
 
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
@@ -99,7 +107,7 @@ class TransfertService
                 throw new TransfertException('Non disponible', 400);
             }
 
-            $agence = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->firstOrFail();
+            $agence = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
 
             if ($user->agence_id !== $agence->id && $user->role !== 'SUPERADMIN') {
                 throw new TransfertException('Accès interdit', 403);
@@ -116,7 +124,6 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
-            // Double écriture
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Retrait effectué");
             $this->ledger->creditSystem($transfert->montant, 'RETRAIT_EFFECTUE', $transfert->id, $user->id, $code, "Compensation retrait");
 
@@ -131,7 +138,11 @@ class TransfertService
     public function annuler(string $code, User $user, ?string $motif = null): Transfert
     {
         return DB::transaction(function () use ($code, $user, $motif) {
-            $transfert = Transfert::where('code', $code)->lockForUpdate()->firstOrFail();
+            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
+
+            if (!$transfert) {
+                throw new TransfertException('Transfert introuvable', 404);
+            }
 
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
@@ -152,8 +163,8 @@ class TransfertService
                 throw new TransfertException('Annulation impossible : le transfert a déjà été retiré', 400);
             }
 
-            $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->firstOrFail();
-            $agenceDestinataire = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->firstOrFail();
+            $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
+            $agenceDestinataire = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
 
             if ($user->agence_id !== $agenceEmettrice->id && $user->role !== 'SUPERADMIN') {
                 throw new TransfertException('Accès interdit', 403);
@@ -171,7 +182,6 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // Annulation: inversion des écritures
             $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Retrait fonds destinataire");
             $this->ledger->credit($agenceEmettrice, $transfert->montant, 'ANNULATION_TRANSFERT', $transfert->id, $user->id, $code, "Remboursement montant");
             $this->ledger->debit($agenceEmettrice, $transfert->frais, 'ANNULATION_FRAIS', $transfert->id, $user->id, $code, "Compensation frais");
