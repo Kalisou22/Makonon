@@ -21,7 +21,7 @@ class TransfertRequest extends FormRequest
             'montant' => 'required|numeric|min:100|max:999999999.99',
             'agence_envoi_id' => 'required|exists:agences,id',
             'agence_destinataire_id' => 'required|exists:agences,id|different:agence_envoi_id',
-            'idempotency_key' => 'required|string|max:100|unique:transferts,idempotency_key',
+            'idempotency_key' => 'nullable|string|max:100',
         ];
     }
 
@@ -31,8 +31,6 @@ class TransfertRequest extends FormRequest
             'montant.min' => 'Le montant minimum est de 100 GNF',
             'montant.max' => 'Le montant maximum est de 999,999,999.99 GNF',
             'agence_destinataire_id.different' => 'Les agences doivent être différentes',
-            'idempotency_key.required' => 'La clé d\'idempotence est requise',
-            'idempotency_key.unique' => 'Cette requête a déjà été traitée',
         ];
     }
 }
