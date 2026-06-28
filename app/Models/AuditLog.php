@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuditLog extends Model
 {
+    public $timestamps = false;  // 🔥 Désactiver les timestamps
+
     protected $fillable = [
         'utilisateur_id',
         'action',
