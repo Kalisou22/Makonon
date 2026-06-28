@@ -6,6 +6,7 @@ use App\Models\Transfert;
 use App\Models\Client;
 use App\Models\Agence;
 use App\Models\User;
+use App\Models\Ledger;
 use App\Exceptions\FondsInsuffisantsException;
 use App\Exceptions\TransfertException;
 use Illuminate\Support\Facades\DB;
@@ -203,7 +204,21 @@ class TransfertService
                 throw new TransfertException('Accès interdit', 403);
             }
 
-            // 🔥 VÉRIFICATION CRITIQUE: solde de l'agence destinataire
+            // 🔥 VÉRIFICATION ANTI-FRAUDE: l'agence destinataire a-t-elle utilisé les fonds ?
+            $fondsUtilises = Ledger::where('agence_id', $agenceDestinataire->id)
+                ->where('type', 'DEBIT')
+                ->where('transfert_id', '!=', $transfert->id)
+                ->where('created_at', '>', $transfert->created_at)
+                ->sum('montant');
+
+            if ($fondsUtilises > 0) {
+                throw new TransfertException(
+                    'Annulation impossible : les fonds ont déjà été utilisés',
+                    400
+                );
+            }
+
+            // Vérification du solde disponible
             $soldeDestinataire = $this->ledger->getSoldeWithLock($agenceDestinataire->id);
             if ($soldeDestinataire < $transfert->montant) {
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
