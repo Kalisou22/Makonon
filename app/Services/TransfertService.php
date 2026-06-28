@@ -154,7 +154,7 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
-            // 🔥 TRACER LE RETRAIT DANS LE LEDGER
+            // 🔥 ÉCRITURE LEDGER POUR LE RETRAIT - AVEC transfert_id
             $this->ledger->debit(
                 $agence,
                 $transfert->montant,
@@ -194,7 +194,7 @@ class TransfertService
                 throw new TransfertException('Transfert déjà traité', 400);
             }
 
-            // 🔥 VÉRIFICATION ANTI-FRAUDE: vérifier si le transfert a été retiré
+            // 🔥 VÉRIFICATION LEDGER: le transfert a-t-il été retiré ?
             $retraitExiste = Ledger::where('transfert_id', $transfert->id)
                 ->where('nature', 'RETRAIT_EFFECTUE')
                 ->exists();
