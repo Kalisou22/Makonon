@@ -27,6 +27,7 @@ class TransfertService
             throw new TransfertException('Clé idempotence requise', 422);
         }
 
+        // 🔥 Vérification idempotence AVANT transaction
         $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
         if ($existing) {
             return $existing;
@@ -118,7 +119,6 @@ class TransfertService
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
 
-            // 🔥 MISE À JOUR STATUT
             $transfert->update([
                 'statut' => 'RETIRE',
                 'date_retrait' => now(),
