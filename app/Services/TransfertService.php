@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Log;
 
 class TransfertService
 {
+    private const MAX_MONTANT = 999999999.99;
+
     protected LedgerService $ledger;
 
     public function __construct(LedgerService $ledger)
@@ -52,6 +54,14 @@ class TransfertService
 
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
+
+            // 🔥 Validation: montant + frais <= MAX
+            if ($total > self::MAX_MONTANT) {
+                throw new TransfertException(
+                    "Le montant total (incluant les frais) ne peut dépasser " . number_format(self::MAX_MONTANT, 0) . " GNF",
+                    422
+                );
+            }
 
             $solde = $this->ledger->getSoldeWithLock($agenceEmettrice->id);
             if ($solde < $total) {
@@ -97,15 +107,12 @@ class TransfertService
                 throw new TransfertException('Transfert introuvable', 404);
             }
 
-            // 🔥 BLOQUER SI RETIRE
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
-
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Annulé', 400);
             }
-
             if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Non disponible', 400);
             }
@@ -151,13 +158,19 @@ class TransfertService
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
-
             if ($transfert->statut === 'ANNULE') {
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
-
             if ($transfert->statut !== 'ENVOYE') {
                 throw new TransfertException('Transfert déjà traité', 400);
+            }
+
+            $retraitExiste = Ledger::where('transfert_id', $transfert->id)
+                ->where('nature', 'RETRAIT_EFFECTUE')
+                ->exists();
+
+            if ($retraitExiste) {
+                throw new TransfertException('Annulation impossible : le transfert a déjà été retiré', 400);
             }
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
