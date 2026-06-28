@@ -148,12 +148,15 @@ class TransfertService
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
 
+            // 🔥 MISE À JOUR STATUT
             $transfert->update([
                 'statut' => 'RETIRE',
                 'date_retrait' => now(),
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
+            // 🔥 DOUBLE ÉCRITURE POUR LE RETRAIT
+            // 1. Débit de l'agence (retrait effectif)
             $this->ledger->debit(
                 $agence,
                 $transfert->montant,
@@ -162,6 +165,16 @@ class TransfertService
                 $user->id,
                 $code,
                 "Retrait effectué"
+            );
+
+            // 2. Crédit système (compensation)
+            $this->ledger->creditSystem(
+                $transfert->montant,
+                'RETRAIT_EFFECTUE',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Compensation retrait"
             );
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
@@ -185,9 +198,21 @@ class TransfertService
                 throw new TransfertException('Transfert déjà annulé', 400);
             }
 
-            // 🔥 BLOQUER ANNULATION SI DÉJÀ RETIRÉ
+            // 🔥 BLOQUER SI DÉJÀ RETIRÉ (STATUT)
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
+            }
+
+            // 🔥 VÉRIFICATION LEDGER
+            $retraitExiste = Ledger::where('transfert_id', $transfert->id)
+                ->where('nature', 'RETRAIT_EFFECTUE')
+                ->exists();
+
+            if ($retraitExiste) {
+                throw new TransfertException(
+                    'Annulation impossible : le transfert a déjà été retiré',
+                    400
+                );
             }
 
             if ($transfert->statut !== 'ENVOYE') {
