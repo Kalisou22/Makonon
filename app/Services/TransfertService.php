@@ -204,21 +204,21 @@ class TransfertService
                 throw new TransfertException('Accès interdit', 403);
             }
 
-            // 🔥 VÉRIFICATION ANTI-FRAUDE: l'agence destinataire a-t-elle utilisé les fonds ?
+            // 🔥 VÉRIFICATION ANTI-FRAUDE: vérifier si le transfert a déjà été retiré
+            // via le statut ou via une entrée ledger DEBIT après la réception
             $fondsUtilises = Ledger::where('agence_id', $agenceDestinataire->id)
                 ->where('type', 'DEBIT')
-                ->where('transfert_id', '!=', $transfert->id)
-                ->where('created_at', '>', $transfert->created_at)
-                ->sum('montant');
+                ->where('transfert_id', $transfert->id)
+                ->where('nature', 'RETRAIT_EFFECTUE')
+                ->exists();
 
-            if ($fondsUtilises > 0) {
+            if ($fondsUtilises) {
                 throw new TransfertException(
-                    'Annulation impossible : les fonds ont déjà été utilisés',
+                    'Annulation impossible : les fonds ont déjà été retirés',
                     400
                 );
             }
 
-            // Vérification du solde disponible
             $soldeDestinataire = $this->ledger->getSoldeWithLock($agenceDestinataire->id);
             if ($soldeDestinataire < $transfert->montant) {
                 throw new FondsInsuffisantsException($soldeDestinataire, $transfert->montant);
@@ -231,7 +231,6 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // Annulation équilibrée
             $this->ledger->debit(
                 $agenceDestinataire,
                 $transfert->montant,
