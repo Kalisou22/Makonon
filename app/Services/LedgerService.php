@@ -14,19 +14,23 @@ class LedgerService
 
     public function getSystemAccount(): Agence
     {
-        return Agence::where('code', self::SYSTEM_AGENCE_CODE)->firstOrFail();
-    }
-
-    public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        $system = $this->getSystemAccount();
-        return $this->credit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+        $system = Agence::where('code', self::SYSTEM_AGENCE_CODE)->first();
+        if (!$system) {
+            throw new \RuntimeException("Compte système non trouvé");
+        }
+        return $system;
     }
 
     public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
     {
         $system = $this->getSystemAccount();
         return $this->debit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        $system = $this->getSystemAccount();
+        return $this->credit($system, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
