@@ -14,8 +14,22 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            'channels' => ['json'],
             'ignore_exceptions' => false,
+        ],
+        'json' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/laravel.json'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+        ],
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.json'),
+            'level' => 'info',
+            'days' => 90,
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
         ],
         'single' => [
             'driver' => 'single',
@@ -29,12 +43,6 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => 14,
             'replace_placeholders' => true,
-        ],
-        'audit' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/audit.log'),
-            'level' => 'info',
-            'days' => 90,
         ],
         'slack' => [
             'driver' => 'slack',
