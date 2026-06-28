@@ -8,6 +8,7 @@ use App\Services\LedgerService;
 use App\Http\Requests\TransfertRequest;
 use App\Exceptions\TransfertException;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class TransfertController extends Controller
 {
@@ -50,7 +51,7 @@ class TransfertController extends Controller
                 'message' => $e->getMessage(),
                 'code' => $e->getCode() ?: 422
             ], $e->getCode() ?: 422);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             Log::error('Erreur création transfert', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -58,6 +59,8 @@ class TransfertController extends Controller
             ]);
             return response()->json([
                 'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'code' => 500
             ], 500);
         }
@@ -98,7 +101,6 @@ class TransfertController extends Controller
         return response()->json(['data' => $transfert]);
     }
 
-    // 🔥 MÉTHODE MANQUANTE
     public function soldeAgence()
     {
         $user = auth()->user();
@@ -137,11 +139,23 @@ class TransfertController extends Controller
                     'date_retrait' => $transfert->date_retrait,
                 ]
             ]);
-        } catch (\Exception $e) {
+        } catch (TransfertException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'code' => $e->getCode() ?: 422
             ], $e->getCode() ?: 422);
+        } catch (Throwable $e) {
+            Log::error('Erreur retrait', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            return response()->json([
+                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -159,11 +173,23 @@ class TransfertController extends Controller
                     'date_annulation' => $transfert->date_annulation,
                 ]
             ]);
-        } catch (\Exception $e) {
+        } catch (TransfertException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'code' => $e->getCode() ?: 422
             ], $e->getCode() ?: 422);
+        } catch (Throwable $e) {
+            Log::error('Erreur annulation', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            return response()->json([
+                'message' => 'Erreur serveur: ' . $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => 500
+            ], 500);
         }
     }
 }
