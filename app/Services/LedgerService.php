@@ -79,7 +79,6 @@ class LedgerService
             $soldeAvant = $this->getSolde($agence->id);
             $soldeApres = $soldeAvant - $montant;
             
-            // Autoriser CAISSE à être débitée sans fonds (pour les dépôts)
             if ($soldeApres < 0 && !in_array($agence->code, [self::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE])) {
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
@@ -100,6 +99,36 @@ class LedgerService
                 'description' => $description ?? $nature,
             ]);
         });
+    }
+
+    public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->debit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->credit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function debitFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->debit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function creditFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->credit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function debitAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
+    }
+
+    public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {
+        return $this->credit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function getSolde(int $agenceId): float
