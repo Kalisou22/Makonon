@@ -34,6 +34,7 @@ class TransfertService
         }
 
         return DB::transaction(function () use ($data, $user) {
+            // Lock des agences
             $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->first();
             $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->first();
 
@@ -41,6 +42,7 @@ class TransfertService
                 throw new TransfertException('Agence non trouvée', 404);
             }
 
+            // Clients
             $expediteur = Client::firstOrCreate(
                 ['telephone' => $data['telephone_expediteur']],
                 ['nom' => $data['nom_expediteur']]
@@ -51,6 +53,7 @@ class TransfertService
                 ['nom' => $data['nom_beneficiaire']]
             );
 
+            // Calculs
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
 
@@ -61,11 +64,13 @@ class TransfertService
                 );
             }
 
+            // ✅ Vérification solde
             $solde = $this->ledger->getSolde($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
             }
 
+            // Création transfert
             $code = 'TRF' . date('Ymd') . strtoupper(substr(uniqid(), -6));
 
             $transfert = Transfert::create([
@@ -84,10 +89,10 @@ class TransfertService
             ]);
 
             // ============================================================
-            // CRÉATION TRANSFERT - 6 ÉCRITURES
+            // ✅ ÉCRITURES LEDGER (6 écritures)
             // ============================================================
             
-            // 1. DEBIT AGENCE SOURCE (total)
+            // 1. DEBIT AGENCE SOURCE (total = montant + frais)
             $this->ledger->debitAgence(
                 $agenceEmettrice,
                 $total,
@@ -95,7 +100,7 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Transfert émis - Montant: {$data['montant']} + Frais: {$frais}"
+                "Transfert émis - Total: {$total}"
             );
 
             // 2. CREDIT SYSTEM (total)
@@ -149,6 +154,7 @@ class TransfertService
                 "Frais collectés - Frais: {$frais}"
             );
 
+            // ✅ Vérifications
             $this->ledger->verifierDoubleEcriture($transfert->id);
             $this->ledger->verifierSystemNul();
 
@@ -202,7 +208,7 @@ class TransfertService
             ]);
 
             // ============================================================
-            // RETRAIT - 4 ÉCRITURES
+            // ✅ RETRAIT - 4 ÉCRITURES
             // ============================================================
             
             // 1. DEBIT AGENCE DESTINATION (montant)
@@ -226,7 +232,7 @@ class TransfertService
                 "Compensation retrait - Montant: {$transfert->montant}"
             );
 
-            // 3. DEBIT SYSTEM (montant) - annule le crédit SYSTEM
+            // 3. DEBIT SYSTEM (montant) - fermeture
             $this->ledger->debitSystem(
                 $transfert->montant,
                 'RETRAIT',
@@ -236,8 +242,7 @@ class TransfertService
                 "Fermeture retrait - Montant: {$transfert->montant}"
             );
 
-            // 4. CREDIT SYSTEM? Non, on crédite directement AGENCE ÉMETTRICE
-            // pour rembourser le montant
+            // 4. CREDIT AGENCE ÉMETTRICE (montant) - remboursement
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
             $this->ledger->creditAgence(
                 $agenceEmettrice,
@@ -299,10 +304,10 @@ class TransfertService
             ]);
 
             // ============================================================
-            // ANNULATION - 6 ÉCRITURES (inversion complète)
+            // ✅ ANNULATION - 6 ÉCRITURES (inversion complète)
             // ============================================================
             
-            // 1. DEBIT AGENCE DESTINATION (montant) - annule le crédit AG002
+            // 1. DEBIT AGENCE DESTINATION (montant)
             $this->ledger->debitAgence(
                 $agenceDestinataire,
                 $transfert->montant,
@@ -313,7 +318,7 @@ class TransfertService
                 "Retour fonds destinataire - Montant: {$transfert->montant}"
             );
 
-            // 2. CREDIT SYSTEM (montant) - annule le débit SYSTEM
+            // 2. CREDIT SYSTEM (montant)
             $this->ledger->creditSystem(
                 $transfert->montant,
                 'ANNULATION',
@@ -323,7 +328,7 @@ class TransfertService
                 "Compensation annulation - Montant: {$transfert->montant}"
             );
 
-            // 3. DEBIT SYSTEM (total) - remboursement
+            // 3. DEBIT SYSTEM (remboursement total)
             $this->ledger->debitSystem(
                 $totalARembourser,
                 'ANNULATION',
@@ -333,7 +338,7 @@ class TransfertService
                 "Remboursement total - Montant: {$totalARembourser}"
             );
 
-            // 4. CREDIT AGENCE ÉMETTRICE (total) - remboursement
+            // 4. CREDIT AGENCE ÉMETTRICE (remboursement total)
             $this->ledger->creditAgence(
                 $agenceEmettrice,
                 $totalARembourser,
@@ -344,7 +349,7 @@ class TransfertService
                 "Remboursement total - Montant: {$totalARembourser}"
             );
 
-            // 5. DEBIT FRAIS (frais) - annule le crédit FRAIS
+            // 5. DEBIT FRAIS (frais)
             $this->ledger->debitFrais(
                 $transfert->frais,
                 'ANNULATION',
@@ -354,7 +359,7 @@ class TransfertService
                 "Remboursement frais - Frais: {$transfert->frais}"
             );
 
-            // 6. CREDIT SYSTEM (frais) - annule le débit SYSTEM des frais
+            // 6. CREDIT SYSTEM (frais)
             $this->ledger->creditSystem(
                 $transfert->frais,
                 'ANNULATION',
