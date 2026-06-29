@@ -123,9 +123,14 @@ class LedgerService
         return $this->calculerSoldeReel($agenceId);
     }
 
+    /**
+     * ✅ Calcul dynamique du solde
+     * Ne pas utiliser solde_apres stocké
+     */
     private function calculerSoldeReel(int $agenceId): float
     {
-        $result = Ledger::where('agence_id', $agenceId)
+        $result = DB::table('ledger')
+            ->where('agence_id', $agenceId)
             ->select(DB::raw('
                 COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE 0 END), 0) -
                 COALESCE(SUM(CASE WHEN type = "DEBIT" THEN montant ELSE 0 END), 0)
@@ -139,6 +144,7 @@ class LedgerService
     {
         $solde = $this->calculerSoldeReel($agenceId);
         Agence::where('id', $agenceId)->update(['solde_cache' => $solde]);
+        Log::debug("Solde_cache mis à jour", ['agence_id' => $agenceId, 'solde' => $solde]);
     }
 
     public function verifierDoubleEcriture(?int $transfertId): void
@@ -171,7 +177,6 @@ class LedgerService
                 'agence' => $agence->code,
                 'cache' => $soldeCache,
                 'ledger' => $soldeLedger,
-                'écart' => $soldeCache - $soldeLedger
             ]);
             $agence->update(['solde_cache' => $soldeLedger]);
         }
