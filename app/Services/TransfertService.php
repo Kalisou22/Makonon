@@ -219,6 +219,20 @@ class TransfertService
                 "Compensation retrait - Montant: {$transfert->montant}"
             );
 
+            // 3. ✅ DEBIT SYSTEM pour remettre SYSTEM à 0
+            $this->ledger->debitSystem(
+                $transfert->montant,
+                'RETRAIT',
+                $transfert->id,
+                $user->id,
+                $code,
+                "Fermeture retrait - Montant: {$transfert->montant}"
+            );
+
+            // 4. ✅ CREDIT COMPTE FRAIS pour les frais (si non déjà faits)
+            // Note: Les frais sont déjà crédités lors de la création
+            // On ne fait rien ici
+
             $this->ledger->verifierDoubleEcriture($transfert->id);
             $this->ledger->verifierSystemNul();
 
@@ -289,7 +303,7 @@ class TransfertService
                 "Compensation annulation - Montant: {$transfert->montant}"
             );
 
-            // 3. DEBIT SYSTEM (total remboursement)
+            // 3. DEBIT SYSTEM (remboursement total)
             $this->ledger->debitSystem(
                 $totalARembourser,
                 'ANNULATION',
@@ -299,7 +313,7 @@ class TransfertService
                 "Remboursement total - Montant: {$totalARembourser}"
             );
 
-            // 4. CREDIT AGENCE ÉMETTRICE (total remboursement)
+            // 4. CREDIT AGENCE ÉMETTRICE (remboursement total)
             $this->ledger->creditAgence(
                 $agenceEmettrice,
                 $totalARembourser,
