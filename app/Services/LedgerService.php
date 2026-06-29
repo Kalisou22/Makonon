@@ -48,14 +48,18 @@ class LedgerService
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
             
-            $soldeAvant = $this->getSolde($agence->id);
+            // ✅ Recalcul direct du solde depuis le ledger
+            $soldeAvant = (float) Ledger::where('agence_id', $agence->id)
+                ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
+                ->value('solde');
+            
             $soldeApres = $soldeAvant + $montant;
             
             // ✅ Mise à jour solde_cache
             $agence->solde_cache = $soldeApres;
             $agence->save();
             
-            return Ledger::create([
+            $ledger = Ledger::create([
                 'agence_id' => $agence->id,
                 'transfert_id' => $transfertId,
                 'type' => 'CREDIT',
@@ -67,6 +71,11 @@ class LedgerService
                 'reference' => $reference ?? Str::uuid()->toString(),
                 'description' => $description ?? $nature,
             ]);
+            
+            // ✅ Vérification après écriture
+            $this->verifierSoldeCache($agence->id);
+            
+            return $ledger;
         });
     }
 
@@ -77,7 +86,11 @@ class LedgerService
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
             
-            $soldeAvant = $this->getSolde($agence->id);
+            // ✅ Recalcul direct du solde depuis le ledger
+            $soldeAvant = (float) Ledger::where('agence_id', $agence->id)
+                ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
+                ->value('solde');
+            
             $soldeApres = $soldeAvant - $montant;
             
             if ($soldeApres < 0 && !in_array($agence->code, [self::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE])) {
@@ -88,7 +101,7 @@ class LedgerService
             $agence->solde_cache = $soldeApres;
             $agence->save();
             
-            return Ledger::create([
+            $ledger = Ledger::create([
                 'agence_id' => $agence->id,
                 'transfert_id' => $transfertId,
                 'type' => 'DEBIT',
@@ -100,6 +113,11 @@ class LedgerService
                 'reference' => $reference ?? Str::uuid()->toString(),
                 'description' => $description ?? $nature,
             ]);
+            
+            // ✅ Vérification après écriture
+            $this->verifierSoldeCache($agence->id);
+            
+            return $ledger;
         });
     }
 
@@ -158,6 +176,23 @@ class LedgerService
         $solde = $this->getSolde($system->id);
         if (abs($solde) > 0.01) {
             throw new \RuntimeException("Solde SYSTEM non nul: {$solde}");
+        }
+    }
+
+    public function verifierSoldeCache(int $agenceId): void
+    {
+        $agence = Agence::find($agenceId);
+        if (!$agence) return;
+        
+        $soldeLedger = $this->getSolde($agenceId);
+        $soldeCache = $agence->solde_cache ?? 0;
+        
+        if (abs($soldeCache - $soldeLedger) > 0.01) {
+            Log::warning("Solde_cache désynchronisé", [
+                'agence' => $agence->code,
+                'cache' => $soldeCache,
+                'ledger' => $soldeLedger
+            ]);
         }
     }
 
