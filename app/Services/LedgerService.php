@@ -12,6 +12,7 @@ class LedgerService
 {
     public const SYSTEM_AGENCE_CODE = 'SYSTEM';
     public const FRAIS_AGENCE_CODE = 'FRAIS';
+    public const CAISSE_AGENCE_CODE = 'CAISSE';
 
     public function getSystemAccount(): Agence
     {
@@ -29,6 +30,15 @@ class LedgerService
             throw new \RuntimeException("Compte frais non trouvé");
         }
         return $frais;
+    }
+
+    public function getCaisseAccount(): Agence
+    {
+        $caisse = Agence::where('code', self::CAISSE_AGENCE_CODE)->first();
+        if (!$caisse) {
+            throw new \RuntimeException("Compte caisse non trouvé");
+        }
+        return $caisse;
     }
 
     public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
@@ -69,7 +79,8 @@ class LedgerService
             $soldeAvant = $this->getSolde($agence->id);
             $soldeApres = $soldeAvant - $montant;
             
-            if ($soldeApres < 0 && $agence->code !== self::SYSTEM_AGENCE_CODE && $agence->code !== self::FRAIS_AGENCE_CODE) {
+            // Autoriser CAISSE à être débitée sans fonds (pour les dépôts)
+            if ($soldeApres < 0 && !in_array($agence->code, [self::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE])) {
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
             
@@ -89,36 +100,6 @@ class LedgerService
                 'description' => $description ?? $nature,
             ]);
         });
-    }
-
-    public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        return $this->debit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
-
-    public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        return $this->credit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
-
-    public function debitFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        return $this->debit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
-
-    public function creditFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        return $this->credit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
-
-    public function debitAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
-
-    public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
-        return $this->credit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
     }
 
     public function getSolde(int $agenceId): float
@@ -144,7 +125,6 @@ class LedgerService
     {
         $system = $this->getSystemAccount();
         $solde = $this->getSolde($system->id);
-        
         if (abs($solde) > 0.01) {
             throw new \RuntimeException("Solde SYSTEM non nul: {$solde}");
         }
