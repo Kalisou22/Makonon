@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Log;
 class TransfertService
 {
     private const MAX_MONTANT = 999999999.99;
-
     protected LedgerService $ledger;
 
     public function __construct(LedgerService $ledger)
@@ -34,7 +33,6 @@ class TransfertService
         }
 
         return DB::transaction(function () use ($data, $user) {
-            // Lock
             $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->first();
             $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->first();
             $system = $this->ledger->getSystemAccount();
@@ -48,7 +46,6 @@ class TransfertService
                 ['telephone' => $data['telephone_expediteur']],
                 ['nom' => $data['nom_expediteur']]
             );
-
             $beneficiaire = Client::firstOrCreate(
                 ['telephone' => $data['telephone_beneficiaire']],
                 ['nom' => $data['nom_beneficiaire']]
@@ -67,7 +64,6 @@ class TransfertService
             }
 
             $code = 'TRF' . date('Ymd') . strtoupper(substr(uniqid(), -6));
-
             $transfert = Transfert::create([
                 'code' => strtoupper($code),
                 'expediteur_id' => $expediteur->id,
@@ -83,34 +79,24 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // ============================================================
-            // ✅ 6 ÉCRITURES LEDGER
-            // ============================================================
-            
-            // 1. DEBIT AG001 (total)
+            // 6 ÉCRITURES
             $this->ledger->debit($agenceEmettrice, $total, 'ENVOI', $transfert->id, $user->id, $code, "Débit AG001 - Total: {$total}");
-            
-            // 2. CREDIT SYSTEM (total)
             $this->ledger->credit($system, $total, 'ENVOI', $transfert->id, $user->id, $code, "Crédit SYSTEM - Total: {$total}");
-            
-            // 3. DEBIT SYSTEM (montant)
             $this->ledger->debit($system, $data['montant'], 'RECEPTION', $transfert->id, $user->id, $code, "Débit SYSTEM - Montant: {$data['montant']}");
-            
-            // 4. CREDIT AG002 (montant)
             $this->ledger->credit($agenceDestinataire, $data['montant'], 'RECEPTION', $transfert->id, $user->id, $code, "Crédit AG002 - Montant: {$data['montant']}");
-            
-            // 5. DEBIT SYSTEM (frais)
             $this->ledger->debit($system, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Débit SYSTEM - Frais: {$frais}");
-            
-            // 6. CREDIT FRAIS (frais)
             $this->ledger->credit($fraisAccount, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Crédit FRAIS - Frais: {$frais}");
 
-            // Vérifications
+            // Mise à jour des soldes cache APRÈS toutes les écritures
+            $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
+            $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
+            $this->ledger->mettreAJourSoldeCache($system->id);
+            $this->ledger->mettreAJourSoldeCache($fraisAccount->id);
+
             $this->ledger->verifierDoubleEcriture($transfert->id);
             $this->ledger->verifierSystemNul();
 
             Log::info('Transfert créé', ['id' => $transfert->id, 'code' => $code]);
-
             return $transfert;
         });
     }
@@ -124,7 +110,6 @@ class TransfertService
             if (!$transfert) {
                 throw new TransfertException('Transfert introuvable', 404);
             }
-
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Déjà retiré', 400);
             }
@@ -153,29 +138,23 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
-            // ============================================================
-            // ✅ 4 ÉCRITURES RETRAIT
-            // ============================================================
-            
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
 
-            // 1. DEBIT AG002 (montant)
+            // 4 ÉCRITURES
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit AG002 - Retrait");
-            
-            // 2. CREDIT SYSTEM (montant)
             $this->ledger->credit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit SYSTEM - Compensation");
-            
-            // 3. DEBIT SYSTEM (montant) - fermeture
             $this->ledger->debit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit SYSTEM - Fermeture");
-            
-            // 4. CREDIT AG001 (montant) - remboursement
             $this->ledger->credit($agenceEmettrice, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit AG001 - Remboursement");
+
+            // Mise à jour des soldes cache APRÈS toutes les écritures
+            $this->ledger->mettreAJourSoldeCache($agence->id);
+            $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
+            $this->ledger->mettreAJourSoldeCache($system->id);
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
             $this->ledger->verifierSystemNul();
 
             Log::info('Transfert retiré', ['id' => $transfert->id, 'code' => $code]);
-
             return $transfert;
         });
     }
@@ -189,7 +168,6 @@ class TransfertService
             if (!$transfert) {
                 throw new TransfertException('Transfert introuvable', 404);
             }
-
             if ($transfert->statut === 'RETIRE') {
                 throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 400);
             }
@@ -210,7 +188,6 @@ class TransfertService
             }
 
             $totalARembourser = $transfert->montant + $transfert->frais;
-
             $transfert->update([
                 'statut' => 'ANNULE',
                 'date_annulation' => now(),
@@ -218,33 +195,24 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // ============================================================
-            // ✅ 6 ÉCRITURES ANNULATION (inversion complète)
-            // ============================================================
-            
-            // 1. DEBIT AG002 (montant)
+            // 6 ÉCRITURES
             $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION', $transfert->id, $user->id, $code, "Débit AG002 - Annulation");
-            
-            // 2. CREDIT SYSTEM (montant)
             $this->ledger->credit($system, $transfert->montant, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit SYSTEM - Annulation");
-            
-            // 3. DEBIT SYSTEM (total)
             $this->ledger->debit($system, $totalARembourser, 'ANNULATION', $transfert->id, $user->id, $code, "Débit SYSTEM - Remboursement");
-            
-            // 4. CREDIT AG001 (total)
             $this->ledger->credit($agenceEmettrice, $totalARembourser, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit AG001 - Remboursement");
-            
-            // 5. DEBIT FRAIS (frais)
             $this->ledger->debit($fraisAccount, $transfert->frais, 'ANNULATION', $transfert->id, $user->id, $code, "Débit FRAIS - Remboursement");
-            
-            // 6. CREDIT SYSTEM (frais)
             $this->ledger->credit($system, $transfert->frais, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit SYSTEM - Remboursement frais");
+
+            // Mise à jour des soldes cache APRÈS toutes les écritures
+            $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
+            $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
+            $this->ledger->mettreAJourSoldeCache($system->id);
+            $this->ledger->mettreAJourSoldeCache($fraisAccount->id);
 
             $this->ledger->verifierDoubleEcriture($transfert->id);
             $this->ledger->verifierSystemNul();
 
             Log::info('Transfert annulé', ['id' => $transfert->id, 'code' => $code]);
-
             return $transfert;
         });
     }
