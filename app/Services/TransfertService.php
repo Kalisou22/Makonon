@@ -34,7 +34,6 @@ class TransfertService
         }
 
         return DB::transaction(function () use ($data, $user) {
-            // Lock des agences
             $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->first();
             $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->first();
 
@@ -42,7 +41,6 @@ class TransfertService
                 throw new TransfertException('Agence non trouvée', 404);
             }
 
-            // Clients
             $expediteur = Client::firstOrCreate(
                 ['telephone' => $data['telephone_expediteur']],
                 ['nom' => $data['nom_expediteur']]
@@ -53,7 +51,6 @@ class TransfertService
                 ['nom' => $data['nom_beneficiaire']]
             );
 
-            // Calculs
             $frais = $this->calculerFrais($data['montant']);
             $total = $data['montant'] + $frais;
 
@@ -64,13 +61,12 @@ class TransfertService
                 );
             }
 
-            // ✅ Vérification solde
+            // ✅ Vérification du solde
             $solde = $this->ledger->getSolde($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
             }
 
-            // Création transfert
             $code = 'TRF' . date('Ymd') . strtoupper(substr(uniqid(), -6));
 
             $transfert = Transfert::create([
@@ -89,22 +85,23 @@ class TransfertService
             ]);
 
             // ============================================================
-            // ✅ ÉCRITURES LEDGER (6 écritures)
+            // ✅ FLUX COMPTABLE CORRIGÉ - 6 ÉCRITURES
             // ============================================================
             
-            // 1. DEBIT AGENCE SOURCE (total = montant + frais)
-            $this->ledger->debitAgence(
+            // 🔴 ÉTAPE 1: DEBIT AGENCE SOURCE (montant + frais)
+            $this->ledger->debit(
                 $agenceEmettrice,
                 $total,
                 'ENVOI',
                 $transfert->id,
                 $user->id,
                 $code,
-                "Transfert émis - Total: {$total}"
+                "Transfert émis - Montant: {$data['montant']} + Frais: {$frais}"
             );
 
-            // 2. CREDIT SYSTEM (total)
-            $this->ledger->creditSystem(
+            // 🔴 ÉTAPE 2: CREDIT SYSTEM (montant + frais)
+            $this->ledger->credit(
+                $this->ledger->getSystemAccount(),
                 $total,
                 'ENVOI',
                 $transfert->id,
@@ -113,8 +110,9 @@ class TransfertService
                 "Réception transfert - Total: {$total}"
             );
 
-            // 3. DEBIT SYSTEM (montant)
-            $this->ledger->debitSystem(
+            // 🔴 ÉTAPE 3: DEBIT SYSTEM (montant)
+            $this->ledger->debit(
+                $this->ledger->getSystemAccount(),
                 $data['montant'],
                 'RECEPTION',
                 $transfert->id,
@@ -123,8 +121,8 @@ class TransfertService
                 "Envoi destinataire - Montant: {$data['montant']}"
             );
 
-            // 4. CREDIT AGENCE DESTINATION (montant)
-            $this->ledger->creditAgence(
+            // 🔴 ÉTAPE 4: CREDIT AGENCE DESTINATION (montant)
+            $this->ledger->credit(
                 $agenceDestinataire,
                 $data['montant'],
                 'RECEPTION',
@@ -134,8 +132,9 @@ class TransfertService
                 "Transfert reçu - Montant: {$data['montant']}"
             );
 
-            // 5. DEBIT SYSTEM (frais)
-            $this->ledger->debitSystem(
+            // 🔴 ÉTAPE 5: DEBIT SYSTEM (frais)
+            $this->ledger->debit(
+                $this->ledger->getSystemAccount(),
                 $frais,
                 'FRAIS',
                 $transfert->id,
@@ -144,8 +143,9 @@ class TransfertService
                 "Frais transfert - Frais: {$frais}"
             );
 
-            // 6. CREDIT FRAIS (frais)
-            $this->ledger->creditFrais(
+            // 🔴 ÉTAPE 6: CREDIT FRAIS (frais)
+            $this->ledger->credit(
+                $this->ledger->getFraisAccount(),
                 $frais,
                 'FRAIS',
                 $transfert->id,
@@ -212,7 +212,7 @@ class TransfertService
             // ============================================================
             
             // 1. DEBIT AGENCE DESTINATION (montant)
-            $this->ledger->debitAgence(
+            $this->ledger->debit(
                 $agence,
                 $transfert->montant,
                 'RETRAIT',
@@ -223,7 +223,8 @@ class TransfertService
             );
 
             // 2. CREDIT SYSTEM (montant)
-            $this->ledger->creditSystem(
+            $this->ledger->credit(
+                $this->ledger->getSystemAccount(),
                 $transfert->montant,
                 'RETRAIT',
                 $transfert->id,
@@ -232,8 +233,9 @@ class TransfertService
                 "Compensation retrait - Montant: {$transfert->montant}"
             );
 
-            // 3. DEBIT SYSTEM (montant) - fermeture
-            $this->ledger->debitSystem(
+            // 3. DEBIT SYSTEM (montant)
+            $this->ledger->debit(
+                $this->ledger->getSystemAccount(),
                 $transfert->montant,
                 'RETRAIT',
                 $transfert->id,
@@ -242,9 +244,9 @@ class TransfertService
                 "Fermeture retrait - Montant: {$transfert->montant}"
             );
 
-            // 4. CREDIT AGENCE ÉMETTRICE (montant) - remboursement
+            // 4. CREDIT AGENCE ÉMETTRICE (montant)
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
-            $this->ledger->creditAgence(
+            $this->ledger->credit(
                 $agenceEmettrice,
                 $transfert->montant,
                 'RETRAIT',
@@ -304,11 +306,11 @@ class TransfertService
             ]);
 
             // ============================================================
-            // ✅ ANNULATION - 6 ÉCRITURES (inversion complète)
+            // ✅ ANNULATION - 6 ÉCRITURES
             // ============================================================
             
             // 1. DEBIT AGENCE DESTINATION (montant)
-            $this->ledger->debitAgence(
+            $this->ledger->debit(
                 $agenceDestinataire,
                 $transfert->montant,
                 'ANNULATION',
@@ -319,7 +321,8 @@ class TransfertService
             );
 
             // 2. CREDIT SYSTEM (montant)
-            $this->ledger->creditSystem(
+            $this->ledger->credit(
+                $this->ledger->getSystemAccount(),
                 $transfert->montant,
                 'ANNULATION',
                 $transfert->id,
@@ -329,7 +332,8 @@ class TransfertService
             );
 
             // 3. DEBIT SYSTEM (remboursement total)
-            $this->ledger->debitSystem(
+            $this->ledger->debit(
+                $this->ledger->getSystemAccount(),
                 $totalARembourser,
                 'ANNULATION',
                 $transfert->id,
@@ -339,7 +343,7 @@ class TransfertService
             );
 
             // 4. CREDIT AGENCE ÉMETTRICE (remboursement total)
-            $this->ledger->creditAgence(
+            $this->ledger->credit(
                 $agenceEmettrice,
                 $totalARembourser,
                 'ANNULATION',
@@ -350,7 +354,8 @@ class TransfertService
             );
 
             // 5. DEBIT FRAIS (frais)
-            $this->ledger->debitFrais(
+            $this->ledger->debit(
+                $this->ledger->getFraisAccount(),
                 $transfert->frais,
                 'ANNULATION',
                 $transfert->id,
@@ -360,7 +365,8 @@ class TransfertService
             );
 
             // 6. CREDIT SYSTEM (frais)
-            $this->ledger->creditSystem(
+            $this->ledger->credit(
+                $this->ledger->getSystemAccount(),
                 $transfert->frais,
                 'ANNULATION',
                 $transfert->id,
