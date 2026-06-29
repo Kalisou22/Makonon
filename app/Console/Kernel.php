@@ -8,12 +8,12 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
-        \App\Console\Commands\CheckLedger::class,
+        \App\Console\Commands\CheckMultiAgences::class,
     ];
 
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('ledger:check')->daily();
+        // $schedule->command('multi:check')->daily();
     }
 
     protected function commands(): void
@@ -22,6 +22,3 @@ class Kernel extends ConsoleKernel
         require base_path('routes/console.php');
     }
 }
-    protected $commands = [
-        \App\Console\Commands\CheckMultiAgences::class,
-    ];
