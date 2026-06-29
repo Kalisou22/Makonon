@@ -51,6 +51,7 @@ class LedgerService
             $soldeAvant = $this->getSolde($agence->id);
             $soldeApres = $soldeAvant + $montant;
             
+            // ✅ Mise à jour solde_cache
             $agence->solde_cache = $soldeApres;
             $agence->save();
             
@@ -83,6 +84,7 @@ class LedgerService
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
             
+            // ✅ Mise à jour solde_cache
             $agence->solde_cache = $soldeApres;
             $agence->save();
             
