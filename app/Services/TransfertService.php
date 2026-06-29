@@ -23,16 +23,22 @@ class TransfertService
 
     public function creer(array $data, User $user): Transfert
     {
+        // Vérifier la clé d'idempotence
         if (empty($data['idempotency_key'])) {
             throw new TransfertException('Clé idempotence requise', 422);
         }
 
-        $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
-        if ($existing) {
-            return $existing;
-        }
-
         return DB::transaction(function () use ($data, $user) {
+            // ✅ Vérification idempotence AVANT toute création
+            $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
+            if ($existing) {
+                Log::info('Transfert existant retourné (idempotence)', [
+                    'idempotency_key' => $data['idempotency_key'],
+                    'transfert_id' => $existing->id
+                ]);
+                return $existing;
+            }
+
             $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->first();
             $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->first();
             $system = $this->ledger->getSystemAccount();
@@ -87,7 +93,7 @@ class TransfertService
             $this->ledger->debit($system, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Débit SYSTEM - Frais: {$frais}");
             $this->ledger->credit($fraisAccount, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Crédit FRAIS - Frais: {$frais}");
 
-            // ✅ Mise à jour des soldes cache APRÈS toutes les écritures
+            // Mise à jour des soldes cache
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
@@ -146,7 +152,6 @@ class TransfertService
             $this->ledger->debit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit SYSTEM - Fermeture");
             $this->ledger->credit($agenceEmettrice, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit AG001 - Remboursement");
 
-            // ✅ Mise à jour des soldes cache
             $this->ledger->mettreAJourSoldeCache($agence->id);
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
@@ -203,7 +208,6 @@ class TransfertService
             $this->ledger->debit($fraisAccount, $transfert->frais, 'ANNULATION', $transfert->id, $user->id, $code, "Débit FRAIS - Remboursement");
             $this->ledger->credit($system, $transfert->frais, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit SYSTEM - Remboursement frais");
 
-            // ✅ Mise à jour des soldes cache
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
