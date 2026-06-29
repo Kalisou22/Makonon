@@ -49,7 +49,7 @@ class LedgerService
         $soldeAvant = $this->calculerSoldeReel($agence->id);
         $soldeApres = $soldeAvant + $montant;
 
-        return Ledger::create([
+        $ledger = Ledger::create([
             'agence_id' => $agence->id,
             'transfert_id' => $transfertId,
             'type' => 'CREDIT',
@@ -61,6 +61,9 @@ class LedgerService
             'reference' => $reference ?? Str::uuid()->toString(),
             'description' => $description ?? $nature,
         ]);
+
+        $this->mettreAJourSoldeCache($agence->id);
+        return $ledger;
     }
 
     public function debit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
@@ -74,7 +77,7 @@ class LedgerService
             throw new FondsInsuffisantsException($soldeAvant, $montant);
         }
 
-        return Ledger::create([
+        $ledger = Ledger::create([
             'agence_id' => $agence->id,
             'transfert_id' => $transfertId,
             'type' => 'DEBIT',
@@ -86,6 +89,9 @@ class LedgerService
             'reference' => $reference ?? Str::uuid()->toString(),
             'description' => $description ?? $nature,
         ]);
+
+        $this->mettreAJourSoldeCache($agence->id);
+        return $ledger;
     }
 
     public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
@@ -123,10 +129,6 @@ class LedgerService
         return $this->calculerSoldeReel($agenceId);
     }
 
-    /**
-     * ✅ Calcul dynamique du solde
-     * Ne pas utiliser solde_apres stocké
-     */
     private function calculerSoldeReel(int $agenceId): float
     {
         $result = DB::table('ledger')
@@ -144,7 +146,7 @@ class LedgerService
     {
         $solde = $this->calculerSoldeReel($agenceId);
         Agence::where('id', $agenceId)->update(['solde_cache' => $solde]);
-        Log::debug("Solde_cache mis à jour", ['agence_id' => $agenceId, 'solde' => $solde]);
+        Log::info("Solde_cache mis à jour", ['agence_id' => $agenceId, 'solde' => $solde]);
     }
 
     public function verifierDoubleEcriture(?int $transfertId): void
