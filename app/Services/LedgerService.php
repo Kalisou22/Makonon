@@ -6,6 +6,7 @@ use App\Models\Ledger;
 use App\Models\Agence;
 use App\Exceptions\FondsInsuffisantsException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class LedgerService
@@ -48,16 +49,9 @@ class LedgerService
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
             
-            // ✅ Recalcul direct du solde depuis le ledger
-            $soldeAvant = (float) Ledger::where('agence_id', $agence->id)
-                ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
-                ->value('solde');
-            
+            // ✅ Calcul correct du solde incluant DEBIT et CREDIT
+            $soldeAvant = $this->calculerSoldeReel($agence->id);
             $soldeApres = $soldeAvant + $montant;
-            
-            // ✅ Mise à jour solde_cache
-            $agence->solde_cache = $soldeApres;
-            $agence->save();
             
             $ledger = Ledger::create([
                 'agence_id' => $agence->id,
@@ -72,8 +66,8 @@ class LedgerService
                 'description' => $description ?? $nature,
             ]);
             
-            // ✅ Vérification après écriture
-            $this->verifierSoldeCache($agence->id);
+            // ✅ Mise à jour du solde_cache APRÈS l'insertion
+            $this->mettreAJourSoldeCache($agence->id);
             
             return $ledger;
         });
@@ -86,20 +80,13 @@ class LedgerService
         return DB::transaction(function () use ($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description) {
             $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
             
-            // ✅ Recalcul direct du solde depuis le ledger
-            $soldeAvant = (float) Ledger::where('agence_id', $agence->id)
-                ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
-                ->value('solde');
-            
+            // ✅ Calcul correct du solde incluant DEBIT et CREDIT
+            $soldeAvant = $this->calculerSoldeReel($agence->id);
             $soldeApres = $soldeAvant - $montant;
             
             if ($soldeApres < 0 && !in_array($agence->code, [self::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE])) {
                 throw new FondsInsuffisantsException($soldeAvant, $montant);
             }
-            
-            // ✅ Mise à jour solde_cache
-            $agence->solde_cache = $soldeApres;
-            $agence->save();
             
             $ledger = Ledger::create([
                 'agence_id' => $agence->id,
@@ -114,8 +101,8 @@ class LedgerService
                 'description' => $description ?? $nature,
             ]);
             
-            // ✅ Vérification après écriture
-            $this->verifierSoldeCache($agence->id);
+            // ✅ Mise à jour du solde_cache APRÈS l'insertion
+            $this->mettreAJourSoldeCache($agence->id);
             
             return $ledger;
         });
@@ -153,9 +140,41 @@ class LedgerService
 
     public function getSolde(int $agenceId): float
     {
-        return (float) Ledger::where('agence_id', $agenceId)
-            ->select(DB::raw('COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE -montant END), 0) as solde'))
-            ->value('solde');
+        return $this->calculerSoldeReel($agenceId);
+    }
+
+    /**
+     * ✅ CALCUL CORRECT DU SOLDE (incluant DEBIT et CREDIT)
+     */
+    private function calculerSoldeReel(int $agenceId): float
+    {
+        $result = Ledger::where('agence_id', $agenceId)
+            ->select(DB::raw('
+                COALESCE(SUM(CASE WHEN type = "CREDIT" THEN montant ELSE 0 END), 0) -
+                COALESCE(SUM(CASE WHEN type = "DEBIT" THEN montant ELSE 0 END), 0)
+                as solde
+            '))
+            ->first();
+        
+        return (float) ($result->solde ?? 0);
+    }
+
+    /**
+     * ✅ MISE À JOUR DU solde_cache APRÈS chaque opération
+     */
+    private function mettreAJourSoldeCache(int $agenceId): void
+    {
+        $solde = $this->calculerSoldeReel($agenceId);
+        
+        Agence::where('id', $agenceId)->update([
+            'solde_cache' => $solde
+        ]);
+        
+        // Log pour audit
+        Log::debug("Solde_cache mis à jour", [
+            'agence_id' => $agenceId,
+            'nouveau_solde' => $solde
+        ]);
     }
 
     public function verifierDoubleEcriture(?int $transfertId): void
@@ -184,14 +203,22 @@ class LedgerService
         $agence = Agence::find($agenceId);
         if (!$agence) return;
         
-        $soldeLedger = $this->getSolde($agenceId);
+        $soldeLedger = $this->calculerSoldeReel($agenceId);
         $soldeCache = $agence->solde_cache ?? 0;
         
         if (abs($soldeCache - $soldeLedger) > 0.01) {
-            Log::warning("Solde_cache désynchronisé", [
+            Log::warning("⚠️ Solde_cache désynchronisé", [
                 'agence' => $agence->code,
                 'cache' => $soldeCache,
-                'ledger' => $soldeLedger
+                'ledger' => $soldeLedger,
+                'écart' => $soldeCache - $soldeLedger
+            ]);
+            
+            // ✅ Correction automatique
+            $agence->update(['solde_cache' => $soldeLedger]);
+            Log::info("✅ Solde_cache corrigé automatiquement", [
+                'agence' => $agence->code,
+                'nouveau_solde' => $soldeLedger
             ]);
         }
     }
