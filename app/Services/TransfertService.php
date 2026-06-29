@@ -83,8 +83,11 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // ✅ FLUX CORRECT: 6 ÉCRITURES
-            // 1. DEBIT AGENCE SOURCE (montant + frais = total)
+            // ============================================================
+            // CRÉATION TRANSFERT - 6 ÉCRITURES
+            // ============================================================
+            
+            // 1. DEBIT AGENCE SOURCE (total)
             $this->ledger->debitAgence(
                 $agenceEmettrice,
                 $total,
@@ -92,10 +95,10 @@ class TransfertService
                 $transfert->id,
                 $user->id,
                 $code,
-                "Transfert émis - Total: {$total}"
+                "Transfert émis - Montant: {$data['montant']} + Frais: {$frais}"
             );
 
-            // 2. CREDIT SYSTEM (montant + frais = total)
+            // 2. CREDIT SYSTEM (total)
             $this->ledger->creditSystem(
                 $total,
                 'ENVOI',
@@ -198,7 +201,10 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
-            // ✅ RETRAIT: 4 ÉCRITURES
+            // ============================================================
+            // RETRAIT - 4 ÉCRITURES
+            // ============================================================
+            
             // 1. DEBIT AGENCE DESTINATION (montant)
             $this->ledger->debitAgence(
                 $agence,
@@ -220,7 +226,7 @@ class TransfertService
                 "Compensation retrait - Montant: {$transfert->montant}"
             );
 
-            // 3. DEBIT SYSTEM (montant)
+            // 3. DEBIT SYSTEM (montant) - annule le crédit SYSTEM
             $this->ledger->debitSystem(
                 $transfert->montant,
                 'RETRAIT',
@@ -230,7 +236,8 @@ class TransfertService
                 "Fermeture retrait - Montant: {$transfert->montant}"
             );
 
-            // 4. CREDIT AGENCE ÉMETTRICE (montant)
+            // 4. CREDIT SYSTEM? Non, on crédite directement AGENCE ÉMETTRICE
+            // pour rembourser le montant
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
             $this->ledger->creditAgence(
                 $agenceEmettrice,
@@ -291,8 +298,11 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // ✅ ANNULATION: 6 ÉCRITURES (inversion complète)
-            // 1. DEBIT AGENCE DESTINATION (montant)
+            // ============================================================
+            // ANNULATION - 6 ÉCRITURES (inversion complète)
+            // ============================================================
+            
+            // 1. DEBIT AGENCE DESTINATION (montant) - annule le crédit AG002
             $this->ledger->debitAgence(
                 $agenceDestinataire,
                 $transfert->montant,
@@ -303,7 +313,7 @@ class TransfertService
                 "Retour fonds destinataire - Montant: {$transfert->montant}"
             );
 
-            // 2. CREDIT SYSTEM (montant)
+            // 2. CREDIT SYSTEM (montant) - annule le débit SYSTEM
             $this->ledger->creditSystem(
                 $transfert->montant,
                 'ANNULATION',
@@ -313,7 +323,7 @@ class TransfertService
                 "Compensation annulation - Montant: {$transfert->montant}"
             );
 
-            // 3. DEBIT SYSTEM (remboursement total)
+            // 3. DEBIT SYSTEM (total) - remboursement
             $this->ledger->debitSystem(
                 $totalARembourser,
                 'ANNULATION',
@@ -323,7 +333,7 @@ class TransfertService
                 "Remboursement total - Montant: {$totalARembourser}"
             );
 
-            // 4. CREDIT AGENCE ÉMETTRICE (remboursement total)
+            // 4. CREDIT AGENCE ÉMETTRICE (total) - remboursement
             $this->ledger->creditAgence(
                 $agenceEmettrice,
                 $totalARembourser,
@@ -334,7 +344,7 @@ class TransfertService
                 "Remboursement total - Montant: {$totalARembourser}"
             );
 
-            // 5. DEBIT FRAIS (frais)
+            // 5. DEBIT FRAIS (frais) - annule le crédit FRAIS
             $this->ledger->debitFrais(
                 $transfert->frais,
                 'ANNULATION',
@@ -344,7 +354,7 @@ class TransfertService
                 "Remboursement frais - Frais: {$transfert->frais}"
             );
 
-            // 6. CREDIT SYSTEM (frais)
+            // 6. CREDIT SYSTEM (frais) - annule le débit SYSTEM des frais
             $this->ledger->creditSystem(
                 $transfert->frais,
                 'ANNULATION',
