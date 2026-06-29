@@ -79,15 +79,29 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // 6 ÉCRITURES
+            // ============================================================
+            // ✅ 6 ÉCRITURES - CORRECTES
+            // ============================================================
+            
+            // 1. DEBIT AG001 (total = montant + frais)
             $this->ledger->debit($agenceEmettrice, $total, 'ENVOI', $transfert->id, $user->id, $code, "Débit AG001 - Total: {$total}");
+            
+            // 2. CREDIT SYSTEM (total)
             $this->ledger->credit($system, $total, 'ENVOI', $transfert->id, $user->id, $code, "Crédit SYSTEM - Total: {$total}");
+            
+            // 3. DEBIT SYSTEM (montant)
             $this->ledger->debit($system, $data['montant'], 'RECEPTION', $transfert->id, $user->id, $code, "Débit SYSTEM - Montant: {$data['montant']}");
+            
+            // 4. CREDIT AG002 (montant)
             $this->ledger->credit($agenceDestinataire, $data['montant'], 'RECEPTION', $transfert->id, $user->id, $code, "Crédit AG002 - Montant: {$data['montant']}");
+            
+            // 5. DEBIT SYSTEM (frais)
             $this->ledger->debit($system, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Débit SYSTEM - Frais: {$frais}");
+            
+            // 6. CREDIT FRAIS (frais)
             $this->ledger->credit($fraisAccount, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Crédit FRAIS - Frais: {$frais}");
 
-            // Mise à jour des soldes cache APRÈS toutes les écritures
+            // ✅ Mise à jour des soldes cache APRÈS toutes les écritures
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
@@ -140,13 +154,23 @@ class TransfertService
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
 
-            // 4 ÉCRITURES
+            // ============================================================
+            // ✅ 4 ÉCRITURES - RETRAIT
+            // ============================================================
+            
+            // 1. DEBIT AG002 (montant)
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit AG002 - Retrait");
+            
+            // 2. CREDIT SYSTEM (montant)
             $this->ledger->credit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit SYSTEM - Compensation");
+            
+            // 3. DEBIT SYSTEM (montant)
             $this->ledger->debit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit SYSTEM - Fermeture");
+            
+            // 4. CREDIT AG001 (montant)
             $this->ledger->credit($agenceEmettrice, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit AG001 - Remboursement");
 
-            // Mise à jour des soldes cache APRÈS toutes les écritures
+            // ✅ Mise à jour des soldes cache
             $this->ledger->mettreAJourSoldeCache($agence->id);
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
@@ -195,15 +219,29 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // 6 ÉCRITURES
+            // ============================================================
+            // ✅ 6 ÉCRITURES - ANNULATION
+            // ============================================================
+            
+            // 1. DEBIT AG002 (montant)
             $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION', $transfert->id, $user->id, $code, "Débit AG002 - Annulation");
+            
+            // 2. CREDIT SYSTEM (montant)
             $this->ledger->credit($system, $transfert->montant, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit SYSTEM - Annulation");
+            
+            // 3. DEBIT SYSTEM (total)
             $this->ledger->debit($system, $totalARembourser, 'ANNULATION', $transfert->id, $user->id, $code, "Débit SYSTEM - Remboursement");
+            
+            // 4. CREDIT AG001 (total)
             $this->ledger->credit($agenceEmettrice, $totalARembourser, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit AG001 - Remboursement");
+            
+            // 5. DEBIT FRAIS (frais)
             $this->ledger->debit($fraisAccount, $transfert->frais, 'ANNULATION', $transfert->id, $user->id, $code, "Débit FRAIS - Remboursement");
+            
+            // 6. CREDIT SYSTEM (frais)
             $this->ledger->credit($system, $transfert->frais, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit SYSTEM - Remboursement frais");
 
-            // Mise à jour des soldes cache APRÈS toutes les écritures
+            // ✅ Mise à jour des soldes cache
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
