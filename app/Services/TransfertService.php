@@ -83,29 +83,19 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // ✅ CORRECTION: 1. DEBIT AGENCE SOURCE (montant UNIQUEMENT)
+            // ✅ FLUX CORRECT: 6 ÉCRITURES
+            // 1. DEBIT AGENCE SOURCE (montant + frais = total)
             $this->ledger->debitAgence(
                 $agenceEmettrice,
-                $data['montant'],
+                $total,
                 'ENVOI',
                 $transfert->id,
                 $user->id,
                 $code,
-                "Transfert émis - Montant: {$data['montant']}"
+                "Transfert émis - Total: {$total}"
             );
 
-            // ✅ 2. DEBIT AGENCE SOURCE (frais)
-            $this->ledger->debitAgence(
-                $agenceEmettrice,
-                $frais,
-                'FRAIS',
-                $transfert->id,
-                $user->id,
-                $code,
-                "Frais de transfert - Frais: {$frais}"
-            );
-
-            // ✅ 3. CREDIT SYSTEM (montant + frais)
+            // 2. CREDIT SYSTEM (montant + frais = total)
             $this->ledger->creditSystem(
                 $total,
                 'ENVOI',
@@ -115,7 +105,7 @@ class TransfertService
                 "Réception transfert - Total: {$total}"
             );
 
-            // ✅ 4. DEBIT SYSTEM (montant)
+            // 3. DEBIT SYSTEM (montant)
             $this->ledger->debitSystem(
                 $data['montant'],
                 'RECEPTION',
@@ -125,7 +115,7 @@ class TransfertService
                 "Envoi destinataire - Montant: {$data['montant']}"
             );
 
-            // ✅ 5. CREDIT AGENCE DESTINATION (montant)
+            // 4. CREDIT AGENCE DESTINATION (montant)
             $this->ledger->creditAgence(
                 $agenceDestinataire,
                 $data['montant'],
@@ -136,7 +126,7 @@ class TransfertService
                 "Transfert reçu - Montant: {$data['montant']}"
             );
 
-            // ✅ 6. DEBIT SYSTEM (frais)
+            // 5. DEBIT SYSTEM (frais)
             $this->ledger->debitSystem(
                 $frais,
                 'FRAIS',
@@ -146,7 +136,7 @@ class TransfertService
                 "Frais transfert - Frais: {$frais}"
             );
 
-            // ✅ 7. CREDIT FRAIS (frais)
+            // 6. CREDIT FRAIS (frais)
             $this->ledger->creditFrais(
                 $frais,
                 'FRAIS',
@@ -208,6 +198,7 @@ class TransfertService
                 'utilisateur_retrait_id' => $user->id,
             ]);
 
+            // ✅ RETRAIT: 4 ÉCRITURES
             // 1. DEBIT AGENCE DESTINATION (montant)
             $this->ledger->debitAgence(
                 $agence,
@@ -239,7 +230,7 @@ class TransfertService
                 "Fermeture retrait - Montant: {$transfert->montant}"
             );
 
-            // 4. CREDIT AGENCE ÉMETTRICE (montant - remboursement)
+            // 4. CREDIT AGENCE ÉMETTRICE (montant)
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
             $this->ledger->creditAgence(
                 $agenceEmettrice,
@@ -300,6 +291,7 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
+            // ✅ ANNULATION: 6 ÉCRITURES (inversion complète)
             // 1. DEBIT AGENCE DESTINATION (montant)
             $this->ledger->debitAgence(
                 $agenceDestinataire,
