@@ -48,3 +48,4 @@ class Kernel extends HttpKernel
         'agence' => \App\Http\Middleware\CheckAgenceAccess::class,
     ];
 }
+        'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
