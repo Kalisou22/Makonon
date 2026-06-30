@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Agence;
-use App\Models\Compte;
 use App\Services\LedgerService;
 use App\Services\TransfertService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,14 +13,15 @@ class TransfertTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $user;
-    protected $ag1;
-    protected $ag2;
-
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        
+        $this->user = User::factory()->create([
+            'role' => 'SUPERADMIN',
+            'agence_id' => 1,
+        ]);
+        
         $this->ag1 = Agence::factory()->create(['code' => 'AG001']);
         $this->ag2 = Agence::factory()->create(['code' => 'AG002']);
     }
