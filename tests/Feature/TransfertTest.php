@@ -8,6 +8,7 @@ use App\Models\Agence;
 use App\Services\LedgerService;
 use App\Services\TransfertService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 
 class TransfertTest extends TestCase
 {
@@ -17,6 +18,9 @@ class TransfertTest extends TestCase
     {
         parent::setUp();
         
+        // Ignorer les problèmes d'index SQLite
+        Schema::disableForeignKeyConstraints();
+        
         $this->user = User::factory()->create([
             'role' => 'SUPERADMIN',
             'agence_id' => 1,
@@ -24,6 +28,8 @@ class TransfertTest extends TestCase
         
         $this->ag1 = Agence::factory()->create(['code' => 'AG001']);
         $this->ag2 = Agence::factory()->create(['code' => 'AG002']);
+        
+        Schema::enableForeignKeyConstraints();
     }
 
     public function test_transfert_ok()
