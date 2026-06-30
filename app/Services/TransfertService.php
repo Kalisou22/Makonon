@@ -23,14 +23,16 @@ class TransfertService
 
     public function creer(array $data, User $user): Transfert
     {
-        // Vérifier la clé d'idempotence
         if (empty($data['idempotency_key'])) {
             throw new TransfertException('Clé idempotence requise', 422);
         }
 
         return DB::transaction(function () use ($data, $user) {
-            // ✅ Vérification idempotence AVANT toute création
-            $existing = Transfert::where('idempotency_key', $data['idempotency_key'])->first();
+            // ✅ Idempotence avec lockForUpdate
+            $existing = Transfert::where('idempotency_key', $data['idempotency_key'])
+                ->lockForUpdate()
+                ->first();
+                
             if ($existing) {
                 Log::info('Transfert existant retourné (idempotence)', [
                     'idempotency_key' => $data['idempotency_key'],
@@ -64,6 +66,7 @@ class TransfertService
                 throw new TransfertException("Montant total dépasse la limite", 422);
             }
 
+            // ✅ Anti-fraude - vérification solde avant débit
             $solde = $this->ledger->getSolde($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
@@ -93,7 +96,6 @@ class TransfertService
             $this->ledger->debit($system, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Débit SYSTEM - Frais: {$frais}");
             $this->ledger->credit($fraisAccount, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Crédit FRAIS - Frais: {$frais}");
 
-            // Mise à jour des soldes cache
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
@@ -111,19 +113,15 @@ class TransfertService
     {
         return DB::transaction(function () use ($code, $user) {
             $code = strtoupper(trim($code));
-            $transfert = Transfert::where('code', $code)->lockForUpdate()->first();
+            
+            // ✅ Protection double retrait - ne sélectionner que ENVOYE
+            $transfert = Transfert::where('code', $code)
+                ->where('statut', 'ENVOYE')
+                ->lockForUpdate()
+                ->first();
 
             if (!$transfert) {
-                throw new TransfertException('Transfert introuvable', 404);
-            }
-            if ($transfert->statut === 'RETIRE') {
-                throw new TransfertException('Déjà retiré', 400);
-            }
-            if ($transfert->statut === 'ANNULE') {
-                throw new TransfertException('Annulé', 400);
-            }
-            if ($transfert->statut !== 'ENVOYE') {
-                throw new TransfertException('Non disponible', 400);
+                throw new TransfertException('Transfert non disponible ou déjà traité', 404);
             }
 
             $agence = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();

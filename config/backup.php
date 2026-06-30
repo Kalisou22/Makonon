@@ -24,6 +24,7 @@ return [
             'filename_prefix' => 'makonon-backup-',
             'disks' => [
                 'local',
+                's3',
             ],
         ],
         'temporary_directory' => storage_path('app/backup-temp'),

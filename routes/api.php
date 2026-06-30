@@ -14,14 +14,14 @@ Route::get('/health', function() {
     return response()->json(['status' => 'ok', 'message' => 'API Makonon Transfert']);
 });
 
-// Auth - Rate limit 5/min
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+// Auth - Rate limit via RateLimiter
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Transferts - Rate limit 10/min
+    // Transferts - Rate limit via RateLimiter
     Route::middleware(['throttle:transfert'])->group(function () {
         Route::post('/transferts', [TransfertController::class, 'creer']);
         Route::put('/transferts/retirer/{code}', [TransfertController::class, 'retirer']);
