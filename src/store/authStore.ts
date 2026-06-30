@@ -6,7 +6,8 @@ interface User {
   nom: string;
   email: string;
   role: string;
-  agenceId: number | null;
+  agenceId?: number | null;
+  agence?: { id: number; nom: string } | null;
 }
 
 interface AuthState {
@@ -38,8 +39,6 @@ export const useAuthStore = create<AuthState>()(
       },
       setLoading: (loading) => set({ isLoading: loading }),
     }),
-    {
-      name: 'auth-storage',
-    }
+    { name: 'auth-storage' }
   )
 );
