@@ -3,7 +3,6 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Illuminate\Auth\AuthenticationException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -21,21 +20,21 @@ class Handler extends ExceptionHandler
     public function register(): void
     {
         $this->reportable(function (Throwable $e) {
-            //
+            if (app()->bound('sentry')) {
+                app('sentry')->captureException($e);
+            }
         });
     }
 
-    /**
-     * Convertir les erreurs d'authentification en réponse JSON
-     */
-    protected function unauthenticated($request, AuthenticationException $exception)
+    protected function unauthenticated($request, \Illuminate\Auth\AuthenticationException $exception)
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Non authentifié. Veuillez fournir un token valide.'
+                'success' => false,
+                'message' => 'Non authentifié. Veuillez fournir un token valide.',
+                'errors' => []
             ], 401);
         }
-
         return redirect()->guest($exception->redirectTo() ?? route('login'));
     }
 }

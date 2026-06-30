@@ -14,14 +14,14 @@ class TransfertRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nom_expediteur' => 'required|string|max:100',
+            'nom_expediteur' => 'required|string|max:255',
             'telephone_expediteur' => 'required|string|max:30',
-            'nom_beneficiaire' => 'required|string|max:100',
+            'nom_beneficiaire' => 'required|string|max:255',
             'telephone_beneficiaire' => 'required|string|max:30',
             'montant' => 'required|numeric|min:100|max:999999999.99',
             'agence_envoi_id' => 'required|exists:agences,id',
             'agence_destinataire_id' => 'required|exists:agences,id|different:agence_envoi_id',
-            'idempotency_key' => 'nullable|string|max:100',
+            'idempotency_key' => 'required|string|max:100|unique:transferts,idempotency_key',
         ];
     }
 
@@ -31,6 +31,7 @@ class TransfertRequest extends FormRequest
             'montant.min' => 'Le montant minimum est de 100 GNF',
             'montant.max' => 'Le montant maximum est de 999,999,999.99 GNF',
             'agence_destinataire_id.different' => 'Les agences doivent être différentes',
+            'idempotency_key.unique' => 'Cette opération a déjà été effectuée',
         ];
     }
 }
