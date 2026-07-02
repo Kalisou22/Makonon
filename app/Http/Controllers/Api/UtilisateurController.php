@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Agence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class UtilisateurController extends Controller
 {
@@ -15,24 +15,29 @@ class UtilisateurController extends Controller
         try {
             $query = User::with('agence');
             
-            if ($request->search) {
-                $query->where('nom', 'like', '%' . $request->search . '%')
-                      ->orWhere('email', 'like', '%' . $request->search . '%');
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('nom', 'LIKE', "%{$search}%")
+                      ->orWhere('email', 'LIKE', "%{$search}%");
+                });
             }
             
-            if ($request->role) {
+            if ($request->has('role') && $request->role) {
                 $query->where('role', $request->role);
             }
             
-            if ($request->agence_id) {
+            if ($request->has('agence_id') && $request->agence_id) {
                 $query->where('agence_id', $request->agence_id);
             }
             
-            $perPage = $request->per_page ?? 20;
+            $perPage = $request->input('per_page', 20);
             $utilisateurs = $query->orderBy('created_at', 'desc')->paginate($perPage);
             
             return response()->json($utilisateurs);
+            
         } catch (\Exception $e) {
+            Log::error('Erreur UtilisateurController@index: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Erreur lors de la récupération des utilisateurs',
                 'error' => $e->getMessage()
@@ -45,7 +50,7 @@ class UtilisateurController extends Controller
         try {
             $validated = $request->validate([
                 'nom' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
+                'email' => 'required|email|unique:users',
                 'password' => 'required|string|min:8',
                 'role' => 'required|string|in:SUPERADMIN,ADMIN,RESPONSABLE,AGENT',
                 'agence_id' => 'required|exists:agences,id',
@@ -59,7 +64,9 @@ class UtilisateurController extends Controller
                 'message' => 'Utilisateur créé avec succès',
                 'data' => $user->load('agence')
             ], 201);
+            
         } catch (\Exception $e) {
+            Log::error('Erreur UtilisateurController@store: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Erreur lors de la création',
                 'error' => $e->getMessage()
@@ -103,7 +110,9 @@ class UtilisateurController extends Controller
                 'message' => 'Utilisateur mis à jour avec succès',
                 'data' => $utilisateur->load('agence')
             ]);
+            
         } catch (\Exception $e) {
+            Log::error('Erreur UtilisateurController@update: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Erreur lors de la mise à jour',
                 'error' => $e->getMessage()
@@ -117,6 +126,7 @@ class UtilisateurController extends Controller
             $utilisateur->delete();
             return response()->json(['message' => 'Utilisateur supprimé avec succès']);
         } catch (\Exception $e) {
+            Log::error('Erreur UtilisateurController@destroy: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Erreur lors de la suppression',
                 'error' => $e->getMessage()
