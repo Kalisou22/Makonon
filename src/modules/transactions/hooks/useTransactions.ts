@@ -7,6 +7,7 @@ export const useTransactions = (page: number = 0, size: number = 20) => {
     queryKey: ['transactions', page, size],
     queryFn: () => transactionService.getTransactions(page, size),
     staleTime: 60000,
+    retry: 1,
   });
 };
 
@@ -20,7 +21,8 @@ export const useCreateTransaction = () => {
       toast.success('Transfert créé avec succès');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Erreur lors de la création');
+      const message = error.response?.data?.message || 'Erreur lors de la création';
+      toast.error(message);
     },
   });
 };
@@ -35,7 +37,24 @@ export const useWithdrawTransaction = () => {
       toast.success('Retrait effectué avec succès');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Erreur lors du retrait');
+      const message = error.response?.data?.message || 'Erreur lors du retrait';
+      toast.error(message);
+    },
+  });
+};
+
+export const useCancelTransaction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (code: string) => transactionService.cancelTransaction(code),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      toast.success('Transfert annulé avec succès');
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de l\'annulation';
+      toast.error(message);
     },
   });
 };
