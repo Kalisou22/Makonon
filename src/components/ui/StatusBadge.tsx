@@ -2,33 +2,28 @@ import React from 'react';
 
 interface StatusBadgeProps {
   status: string;
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'success' | 'warning' | 'danger' | 'info' | 'default';
+  className?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md' }) => {
-  const statusMap: Record<string, { label: string; variant: string }> = {
-    ENVOYE: { label: 'ENVOYÉ', variant: 'bg-yellow-100 text-yellow-800' },
-    RETIRE: { label: 'RETIRÉ', variant: 'bg-green-100 text-green-800' },
-    ANNULE: { label: 'ANNULÉ', variant: 'bg-red-100 text-red-800' },
-    EN_ATTENTE: { label: 'EN ATTENTE', variant: 'bg-gray-100 text-gray-800' },
-    SUCCES: { label: 'SUCCÈS', variant: 'bg-green-100 text-green-800' },
-    ECHEC: { label: 'ÉCHEC', variant: 'bg-red-100 text-red-800' },
-  };
-
-  const sizes = {
-    sm: 'px-2 py-0.5 text-xs',
-    md: 'px-3 py-1 text-sm',
-    lg: 'px-4 py-1.5 text-base',
-  };
-
-  const { label, variant } = statusMap[status] || { 
-    label: status, 
-    variant: 'bg-gray-100 text-gray-800' 
+export const StatusBadge: React.FC<StatusBadgeProps> = ({
+  status,
+  variant = 'default',
+  className = '',
+}) => {
+  const variantClasses = {
+    success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    danger: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    info: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    default: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
   };
 
   return (
-    <span className={`inline-flex items-center font-medium rounded-full ${sizes[size]} ${variant}`}>
-      {label}
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variantClasses[variant]} ${className}`}
+    >
+      {status}
     </span>
   );
 };

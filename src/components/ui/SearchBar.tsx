@@ -1,42 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface SearchBarProps {
-  onSearch: (value: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   placeholder?: string;
-  debounce?: number;
   className?: string;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
-  onSearch,
+  value,
+  onChange,
   placeholder = 'Rechercher...',
-  debounce = 300,
   className = '',
 }) => {
-  const [value, setValue] = useState('');
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (timer) clearTimeout(timer);
-    const newTimer = setTimeout(() => {
-      onSearch(value);
-    }, debounce);
-    setTimer(newTimer);
-
-    return () => clearTimeout(newTimer);
-  }, [value]);
-
   return (
     <div className={`relative ${className}`}>
       <input
         type="text"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+        className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md 
+                   bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
       <svg
-        className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+        className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
