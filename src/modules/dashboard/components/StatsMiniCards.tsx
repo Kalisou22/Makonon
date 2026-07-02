@@ -1,53 +1,47 @@
 import React from 'react';
 import { Card } from '../../../components/ui/Card';
-import type { DashboardStats } from '../services/dashboardService';
 
 interface StatsMiniCardsProps {
-  stats: DashboardStats | undefined;
-  isLoading: boolean;
+  stats: {
+    solde_agence: number;
+    transferts_jour: number;
+    clients_jour: number;
+  };
+  isLoading?: boolean;
 }
 
-export const StatsMiniCards: React.FC<StatsMiniCardsProps> = ({ stats, isLoading }) => {
+export const StatsMiniCards: React.FC<StatsMiniCardsProps> = ({ stats, isLoading = false }) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="p-4">
-            <div className="h-12 bg-gray-100 animate-pulse rounded" />
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </Card>
         ))}
       </div>
     );
   }
 
-  const miniCards = [
-    {
-      title: "Aujourd'hui",
-      value: stats?.transactionsAujourdhui || 0,
-      sub: `${(stats?.volumeAujourdhui || 0).toLocaleString('fr-FR')} GNF`,
-      color: 'text-blue-600',
-    },
-    {
-      title: 'Retraits en attente',
-      value: stats?.retraitsEnAttente || 0,
-      sub: `${(stats?.montantEnAttente || 0).toLocaleString('fr-FR')} GNF`,
-      color: 'text-orange-600',
-    },
-    {
-      title: 'Agences actives',
-      value: stats?.agencesActives || 0,
-      sub: `sur ${stats?.totalAgences || 0} totales`,
-      color: 'text-green-600',
-    },
+  const items = [
+    { label: 'Solde agence', value: stats.solde_agence || 0, format: 'GNF' },
+    { label: 'Transferts aujourd\'hui', value: stats.transferts_jour || 0, format: '' },
+    { label: 'Clients aujourd\'hui', value: stats.clients_jour || 0, format: '' },
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {miniCards.map((card, index) => (
-        <Card key={index} hover className="p-4">
-          <p className="text-sm text-gray-500">{card.title}</p>
-          <p className={`text-xl font-bold ${card.color}`}>{card.value.toLocaleString('fr-FR')}</p>
-          <p className="text-xs text-gray-400">{card.sub}</p>
+      {items.map((item) => (
+        <Card key={item.label}>
+          <div>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">
+              {item.format === 'GNF' 
+                ? item.value.toLocaleString('fr-FR') + ' GNF'
+                : item.value
+              }
+            </p>
+          </div>
         </Card>
       ))}
     </div>

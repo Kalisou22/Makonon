@@ -1,84 +1,46 @@
 import React from 'react';
 import { Card } from '../../../components/ui/Card';
-import { Loader } from '../../../components/ui/Loader';
-
-// ✅ Importer le type correctement
-import type { DashboardStats } from '../services/dashboardService';
 
 interface StatsCardsProps {
-  stats: DashboardStats | undefined;
-  isLoading: boolean;
+  stats: {
+    total_transferts: number;
+    total_clients: number;
+    total_agences: number;
+    total_utilisateurs: number;
+  };
+  isLoading?: boolean;
 }
 
-export const StatsCards: React.FC<StatsCardsProps> = ({ stats, isLoading }) => {
+export const StatsCards: React.FC<StatsCardsProps> = ({ stats, isLoading = false }) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-6">
-            <Loader />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </Card>
         ))}
       </div>
     );
   }
 
-  const cards = [
-    {
-      title: 'Transactions',
-      value: stats?.totalTransactions || 0,
-      icon: '💳',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
-    },
-    {
-      title: 'Clients',
-      value: stats?.totalClients || 0,
-      icon: '👤',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
-    },
-    {
-      title: 'Agences',
-      value: stats?.totalAgences || 0,
-      icon: '🏢',
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
-    },
-    {
-      title: 'Volume Total',
-      value: stats?.volumeTotal || 0,
-      icon: '💰',
-      color: 'text-yellow-600',
-      bg: 'bg-yellow-50',
-      format: true,
-    },
+  const items = [
+    { label: 'Transferts', value: stats.total_transferts || 0, icon: '💰' },
+    { label: 'Clients', value: stats.total_clients || 0, icon: '👤' },
+    { label: 'Agences', value: stats.total_agences || 0, icon: '🏢' },
+    { label: 'Utilisateurs', value: stats.total_utilisateurs || 0, icon: '👥' },
   ];
 
-  const formatValue = (value: number) => {
-    if (value >= 1000000) {
-      return (value / 1000000).toFixed(1) + 'M';
-    }
-    if (value >= 1000) {
-      return (value / 1000).toFixed(1) + 'K';
-    }
-    return value.toString();
-  };
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {cards.map((card, index) => (
-        <Card key={index} hover className="p-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {items.map((item) => (
+        <Card key={item.label}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">{card.title}</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {card.format ? formatValue(card.value) : card.value.toLocaleString('fr-FR')}
-              </p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{item.value}</p>
             </div>
-            <div className={`w-12 h-12 rounded-full ${card.bg} flex items-center justify-center text-2xl`}>
-              {card.icon}
-            </div>
+            <span className="text-3xl">{item.icon}</span>
           </div>
         </Card>
       ))}
