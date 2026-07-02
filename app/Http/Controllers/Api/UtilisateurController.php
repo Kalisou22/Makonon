@@ -54,22 +54,17 @@ class UtilisateurController extends Controller
                 'password' => 'required|string|min:8',
                 'role' => 'required|string|in:SUPERADMIN,ADMIN,RESPONSABLE,AGENT',
                 'agence_id' => 'required|exists:agences,id',
-                'telephone' => 'nullable|string|max:30',
                 'actif' => 'boolean'
             ]);
 
-            // Utiliser password_hash au lieu de password
-            $userData = [
+            $user = User::create([
                 'nom' => $validated['nom'],
                 'email' => $validated['email'],
                 'password_hash' => Hash::make($validated['password']),
                 'role' => $validated['role'],
                 'agence_id' => $validated['agence_id'],
-                'telephone' => $validated['telephone'] ?? null,
                 'actif' => $validated['actif'] ?? true
-            ];
-
-            $user = User::create($userData);
+            ]);
             
             return response()->json([
                 'message' => 'Utilisateur créé avec succès',
@@ -106,7 +101,6 @@ class UtilisateurController extends Controller
                 'password' => 'nullable|string|min:8',
                 'role' => 'sometimes|string|in:SUPERADMIN,ADMIN,RESPONSABLE,AGENT',
                 'agence_id' => 'sometimes|exists:agences,id',
-                'telephone' => 'nullable|string|max:30',
                 'actif' => 'boolean'
             ]);
 
@@ -117,7 +111,6 @@ class UtilisateurController extends Controller
             if (isset($validated['password'])) $updateData['password_hash'] = Hash::make($validated['password']);
             if (isset($validated['role'])) $updateData['role'] = $validated['role'];
             if (isset($validated['agence_id'])) $updateData['agence_id'] = $validated['agence_id'];
-            if (isset($validated['telephone'])) $updateData['telephone'] = $validated['telephone'];
             if (isset($validated['actif'])) $updateData['actif'] = $validated['actif'];
 
             $utilisateur->update($updateData);
