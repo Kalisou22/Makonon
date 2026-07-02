@@ -50,15 +50,26 @@ class UtilisateurController extends Controller
         try {
             $validated = $request->validate([
                 'nom' => 'required|string|max:255',
-                'email' => 'required|email|unique:users',
+                'email' => 'required|email|unique:utilisateurs,email',
                 'password' => 'required|string|min:8',
                 'role' => 'required|string|in:SUPERADMIN,ADMIN,RESPONSABLE,AGENT',
                 'agence_id' => 'required|exists:agences,id',
+                'telephone' => 'nullable|string|max:30',
                 'actif' => 'boolean'
             ]);
 
-            $validated['password'] = Hash::make($validated['password']);
-            $user = User::create($validated);
+            // Utiliser password_hash au lieu de password
+            $userData = [
+                'nom' => $validated['nom'],
+                'email' => $validated['email'],
+                'password_hash' => Hash::make($validated['password']),
+                'role' => $validated['role'],
+                'agence_id' => $validated['agence_id'],
+                'telephone' => $validated['telephone'] ?? null,
+                'actif' => $validated['actif'] ?? true
+            ];
+
+            $user = User::create($userData);
             
             return response()->json([
                 'message' => 'Utilisateur créé avec succès',
@@ -91,20 +102,25 @@ class UtilisateurController extends Controller
         try {
             $validated = $request->validate([
                 'nom' => 'sometimes|string|max:255',
-                'email' => 'sometimes|email|unique:users,email,' . $utilisateur->id,
+                'email' => 'sometimes|email|unique:utilisateurs,email,' . $utilisateur->id,
                 'password' => 'nullable|string|min:8',
                 'role' => 'sometimes|string|in:SUPERADMIN,ADMIN,RESPONSABLE,AGENT',
                 'agence_id' => 'sometimes|exists:agences,id',
+                'telephone' => 'nullable|string|max:30',
                 'actif' => 'boolean'
             ]);
 
-            if (isset($validated['password'])) {
-                $validated['password'] = Hash::make($validated['password']);
-            } else {
-                unset($validated['password']);
-            }
+            $updateData = [];
+            
+            if (isset($validated['nom'])) $updateData['nom'] = $validated['nom'];
+            if (isset($validated['email'])) $updateData['email'] = $validated['email'];
+            if (isset($validated['password'])) $updateData['password_hash'] = Hash::make($validated['password']);
+            if (isset($validated['role'])) $updateData['role'] = $validated['role'];
+            if (isset($validated['agence_id'])) $updateData['agence_id'] = $validated['agence_id'];
+            if (isset($validated['telephone'])) $updateData['telephone'] = $validated['telephone'];
+            if (isset($validated['actif'])) $updateData['actif'] = $validated['actif'];
 
-            $utilisateur->update($validated);
+            $utilisateur->update($updateData);
             
             return response()->json([
                 'message' => 'Utilisateur mis à jour avec succès',
