@@ -1,112 +1,129 @@
 import React, { useState } from 'react';
-import { useTransactions, useCreateTransaction, useWithdrawTransaction, useCancelTransaction } from '../hooks/useTransactions';
+import { useTransactions, useWithdrawTransaction, useCancelTransaction, useSoldeAgence } from '../hooks/useTransactions';
 import { TransactionTable } from '../components/TransactionTable';
 import { CreateTransactionModal } from '../components/CreateTransactionModal';
 import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
 import { SearchBar } from '../../../components/ui/SearchBar';
-import { Pagination } from '../../../components/ui/Pagination';
 import { Select } from '../../../components/ui/Select';
-import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
 
 export const TransactionsPage: React.FC = () => {
-  const [page, setPage] = useState(0);
-  const [pageSize] = useState(20);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(20);
   const [search, setSearch] = useState('');
-  const [statutFilter, setStatutFilter] = useState('Tous');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data, isLoading, isError, refetch } = useTransactions(page, pageSize);
+  const filters = {
+    page,
+    per_page: perPage,
+    ...(statusFilter && { statut: statusFilter as 'ENVOYE' | 'RETIRE' | 'ANNULE' }),
+  };
 
-  const createMutation = useCreateTransaction();
+  const { data, isLoading, refetch } = useTransactions(filters);
+  const { data: solde } = useSoldeAgence();
   const withdrawMutation = useWithdrawTransaction();
   const cancelMutation = useCancelTransaction();
 
-  const handleCreate = (formData: any) => {
-    createMutation.mutate(formData);
-  };
-
   const handleWithdraw = (code: string) => {
-    if (window.confirm('Confirmez-vous le retrait de ce transfert ?')) {
+    if (window.confirm('Confirmer le retrait de ce transfert ?')) {
       withdrawMutation.mutate(code);
     }
   };
 
   const handleCancel = (code: string) => {
-    if (window.confirm('Confirmez-vous l\'annulation de ce transfert ?')) {
-      cancelMutation.mutate(code);
+    const motif = window.prompt('Motif de l\'annulation :');
+    if (motif !== null) {
+      cancelMutation.mutate({ code, motif: motif || undefined });
     }
   };
 
-  const filteredData = data?.content?.filter((t) => {
-    if (statutFilter !== 'Tous' && t.statut !== statutFilter) return false;
-    if (search && !t.code?.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  }) || [];
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <Button
-          variant="primary"
-          onClick={() => setIsModalOpen(true)}
-          isLoading={createMutation.isPending}
-        >
+        <div>
+          <h1 className="text-2xl font-bold">Transactions</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            {solde && (
+              <span className="text-green-600 font-medium">
+                Solde agence : {solde.solde.toLocaleString('fr-FR')} GNF
+              </span>
+            )}
+          </p>
+        </div>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
           Nouveau transfert
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="flex flex-1 gap-4 flex-wrap">
-              <SearchBar
-                placeholder="Rechercher par code..."
-                onSearch={setSearch}
-                className="w-full sm:w-64"
-              />
-              <Select
-                options={[
-                  { value: 'Tous', label: 'Tous' },
-                  { value: 'ENVOYE', label: 'ENVOYÉ' },
-                  { value: 'RETIRE', label: 'RETIRÉ' },
-                  { value: 'ANNULE', label: 'ANNULÉ' },
-                ]}
-                value={statutFilter}
-                onChange={(e) => setStatutFilter(e.target.value)}
-                className="w-full sm:w-40"
-              />
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => refetch()}
-            >
-              Actualiser
-            </Button>
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <SearchBar
+              value={search}
+              onChange={handleSearch}
+              placeholder="Rechercher un transfert..."
+            />
           </div>
-        </CardHeader>
-        <CardBody>
-          <TransactionTable
-            data={filteredData}
-            isLoading={isLoading || withdrawMutation.isPending || cancelMutation.isPending}
-            onWithdraw={handleWithdraw}
-            onCancel={handleCancel}
-          />
-        </CardBody>
-      </Card>
+          <div className="w-full md:w-48">
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="ENVOYE">Envoyé</option>
+              <option value="RETIRE">Retiré</option>
+              <option value="ANNULE">Annulé</option>
+            </Select>
+          </div>
+        </div>
 
-      <Pagination
-        currentPage={page + 1}
-        totalPages={data?.totalPages || 1}
-        onPageChange={(newPage) => setPage(newPage - 1)}
-      />
+        <TransactionTable
+          data={data?.data || []}
+          isLoading={isLoading}
+          onWithdraw={handleWithdraw}
+          onCancel={handleCancel}
+        />
+
+        {data && data.last_page > 1 && (
+          <div className="flex justify-between items-center mt-4">
+            <span className="text-sm text-gray-500">
+              Page {data.current_page} sur {data.last_page}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={data.current_page <= 1}
+                onClick={() => setPage(data.current_page - 1)}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={data.current_page >= data.last_page}
+                onClick={() => setPage(data.current_page + 1)}
+              >
+                Suivant
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
 
       <CreateTransactionModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        isLoading={createMutation.isPending}
-        onSubmit={handleCreate}
+        onClose={() => {
+          setIsModalOpen(false);
+          refetch();
+        }}
       />
     </div>
   );

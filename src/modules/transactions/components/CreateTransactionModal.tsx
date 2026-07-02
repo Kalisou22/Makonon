@@ -1,129 +1,135 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import React, { useState } from 'react';
 import { Modal } from '../../../components/ui/Modal';
+import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
-import { Button } from '../../../components/ui/Button';
+import { useCreateTransaction } from '../hooks/useTransactions';
+import { useAgencyStore } from '../../../store/agencyStore';
 import { useAgences } from '../../agences/hooks/useAgences';
-
-const transactionSchema = z.object({
-  montant: z.number({ invalid_type_error: 'Le montant doit être un nombre' })
-    .min(100, 'Montant minimum 100 GNF')
-    .max(999999999.99, 'Montant maximum 999,999,999.99 GNF'),
-  expediteurNom: z.string().min(1, 'Nom requis'),
-  expediteurContact: z.string().min(1, 'Téléphone requis'),
-  beneficiaireNom: z.string().min(1, 'Nom requis'),
-  beneficiaireContact: z.string().min(1, 'Téléphone requis'),
-  agenceReceptionId: z.number().min(1, 'Agence requise'),
-});
-
-type TransactionFormData = z.infer<typeof transactionSchema>;
 
 interface CreateTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  isLoading: boolean;
-  onSubmit: (data: TransactionFormData & { idempotencyKey: string }) => void;
 }
 
-export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({
-  isOpen,
-  onClose,
-  isLoading,
-  onSubmit,
-}) => {
-  const { data: agences, isLoading: agencesLoading } = useAgences();
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<TransactionFormData>({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      montant: undefined,
-      expediteurNom: '',
-      expediteurContact: '',
-      beneficiaireNom: '',
-      beneficiaireContact: '',
-      agenceReceptionId: undefined,
-    },
+export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ isOpen, onClose }) => {
+  const [formData, setFormData] = useState({
+    nom_expediteur: '',
+    telephone_expediteur: '',
+    nom_beneficiaire: '',
+    telephone_beneficiaire: '',
+    montant: '',
+    agence_destinataire_id: '',
   });
 
-  const handleFormSubmit = (data: TransactionFormData) => {
-    const idempotencyKey = `transfert_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-    onSubmit({ ...data, idempotencyKey });
-    reset();
-    onClose();
+  const { agencyId } = useAgencyStore();
+  const createMutation = useCreateTransaction();
+  const { data: agences } = useAgences();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const idempotency_key = `trf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    createMutation.mutate(
+      {
+        nom_expediteur: formData.nom_expediteur,
+        telephone_expediteur: formData.telephone_expediteur,
+        nom_beneficiaire: formData.nom_beneficiaire,
+        telephone_beneficiaire: formData.telephone_beneficiaire,
+        montant: parseFloat(formData.montant),
+        agence_envoi_id: agencyId || 0,
+        agence_destinataire_id: parseInt(formData.agence_destinataire_id),
+        idempotency_key,
+      },
+      {
+        onSuccess: () => {
+          setFormData({
+            nom_expediteur: '',
+            telephone_expediteur: '',
+            nom_beneficiaire: '',
+            telephone_beneficiaire: '',
+            montant: '',
+            agence_destinataire_id: '',
+          });
+          onClose();
+        },
+      }
+    );
   };
 
-  const agenceOptions = agences?.map((agence) => ({
-    value: agence.id,
-    label: agence.nom,
-  })) || [];
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Nouveau transfert" maxWidth="lg">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title="Nouveau Transfert">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-4">
-            <h4 className="font-semibold text-blue-700 text-sm">EXPÉDITEUR</h4>
-            <Input
-              label="Nom complet"
-              placeholder="Nom de l'expéditeur"
-              {...register('expediteurNom')}
-              error={errors.expediteurNom?.message}
-            />
-            <Input
-              label="Téléphone"
-              placeholder="Téléphone de l'expéditeur"
-              {...register('expediteurContact')}
-              error={errors.expediteurContact?.message}
-            />
-          </div>
-          <div className="space-y-4">
-            <h4 className="font-semibold text-blue-700 text-sm">BÉNÉFICIAIRE</h4>
-            <Input
-              label="Nom complet"
-              placeholder="Nom du bénéficiaire"
-              {...register('beneficiaireNom')}
-              error={errors.beneficiaireNom?.message}
-            />
-            <Input
-              label="Téléphone"
-              placeholder="Téléphone du bénéficiaire"
-              {...register('beneficiaireContact')}
-              error={errors.beneficiaireContact?.message}
-            />
-          </div>
+          <Input
+            label="Nom expéditeur"
+            name="nom_expediteur"
+            value={formData.nom_expediteur}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            label="Téléphone expéditeur"
+            name="telephone_expediteur"
+            value={formData.telephone_expediteur}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Nom bénéficiaire"
+            name="nom_beneficiaire"
+            value={formData.nom_beneficiaire}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            label="Téléphone bénéficiaire"
+            name="telephone_beneficiaire"
+            value={formData.telephone_beneficiaire}
+            onChange={handleChange}
+            required
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Montant (GNF)"
+            name="montant"
             type="number"
-            placeholder="1000"
-            {...register('montant', { valueAsNumber: true })}
-            error={errors.montant?.message}
+            value={formData.montant}
+            onChange={handleChange}
+            required
+            min="100"
+            step="100"
           />
           <Select
-            label="Agence de retrait"
-            options={agenceOptions}
-            placeholder="Sélectionner une agence"
-            {...register('agenceReceptionId', { valueAsNumber: true })}
-            error={errors.agenceReceptionId?.message}
-            disabled={agencesLoading}
-          />
+            label="Agence destination"
+            name="agence_destinataire_id"
+            value={formData.agence_destinataire_id}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Sélectionner une agence</option>
+            {agences?.data?.map((agence) => (
+              <option key={agence.id} value={agence.id}>
+                {agence.nom} ({agence.code})
+              </option>
+            ))}
+          </Select>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <div className="flex justify-end gap-3 pt-4 border-t">
           <Button variant="secondary" onClick={onClose} type="button">
             Annuler
           </Button>
-          <Button type="submit" isLoading={isLoading} loadingText="Création...">
+          <Button variant="primary" type="submit" isLoading={createMutation.isPending}>
             Créer le transfert
           </Button>
         </div>
