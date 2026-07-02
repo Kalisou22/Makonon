@@ -1,9 +1,25 @@
 import { axiosInstance } from '../../../core/api/axiosInstance';
+import type { Agence, CreateAgenceData, AgenceFilters } from '../types';
 
 export const agenceService = {
-  getAgences: (page, size) => axiosInstance.get('/agences', { params: { page, size } }),
-  getAgence: (id) => axiosInstance.get(`/agences/${id}`),
-  createAgence: (data) => axiosInstance.post('/agences', data),
-  updateAgence: (id, data) => axiosInstance.put(`/agences/${id}`, data),
-  deleteAgence: (id) => axiosInstance.delete(`/agences/${id}`),
+  getAgences: (params?: AgenceFilters) =>
+    axiosInstance.get<{
+      data: Agence[];
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    }>('/agences', { params }),
+
+  getAgenceById: (id: number) =>
+    axiosInstance.get<{ data: Agence }>(`/agences/${id}`),
+
+  createAgence: (data: CreateAgenceData) =>
+    axiosInstance.post<{ message: string; data: Agence }>('/agences', data),
+
+  updateAgence: (id: number, data: Partial<CreateAgenceData>) =>
+    axiosInstance.put<{ message: string; data: Agence }>(`/agences/${id}`, data),
+
+  deleteAgence: (id: number) =>
+    axiosInstance.delete<{ message: string }>(`/agences/${id}`),
 };

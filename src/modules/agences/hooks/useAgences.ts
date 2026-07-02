@@ -1,60 +1,75 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { agenceService } from '../services/agenceService';
-import type { Agence, CreateAgenceData } from '../../../types';
+import type { Agence, CreateAgenceData, AgenceFilters } from '../types';
 
-export const useAgences = (page = 0, size = 20) => useQuery({
-  queryKey: ['agences', page, size],
-  queryFn: async () => {
-    const res = await agenceService.getAgences(page, size);
-    return res.data;
-  },
-  staleTime: 60000,
-});
+export const useAgences = (filters?: AgenceFilters) => {
+  return useQuery({
+    queryKey: ['agences', filters],
+    queryFn: async () => {
+      const response = await agenceService.getAgences(filters);
+      return response.data;
+    },
+    staleTime: 60000,
+    keepPreviousData: true,
+  });
+};
 
-export const useAgence = (id: number) => useQuery({
-  queryKey: ['agence', id],
-  queryFn: async () => {
-    const res = await agenceService.getAgence(id);
-    return res.data;
-  },
-  enabled: !!id,
-});
+export const useAgence = (id: number) => {
+  return useQuery({
+    queryKey: ['agence', id],
+    queryFn: async () => {
+      const response = await agenceService.getAgenceById(id);
+      return response.data.data;
+    },
+    enabled: !!id,
+    staleTime: 60000,
+  });
+};
 
 export const useCreateAgence = () => {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateAgenceData) => agenceService.createAgence(data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['agences'] });
-      toast.success('Agence créée');
+      queryClient.invalidateQueries({ queryKey: ['agences'] });
+      toast.success('Agence créée avec succès');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'Erreur'),
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la création';
+      toast.error(message);
+    },
   });
 };
 
 export const useUpdateAgence = () => {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: CreateAgenceData }) => 
+    mutationFn: ({ id, data }: { id: number; data: Partial<CreateAgenceData> }) =>
       agenceService.updateAgence(id, data),
-    onSuccess: (_, vars) => {
-      qc.invalidateQueries({ queryKey: ['agences'] });
-      qc.invalidateQueries({ queryKey: ['agence', vars.id] });
-      toast.success('Agence modifiée');
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['agences'] });
+      queryClient.invalidateQueries({ queryKey: ['agence', variables.id] });
+      toast.success('Agence mise à jour avec succès');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'Erreur'),
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la mise à jour';
+      toast.error(message);
+    },
   });
 };
 
 export const useDeleteAgence = () => {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => agenceService.deleteAgence(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['agences'] });
-      toast.success('Agence supprimée');
+      queryClient.invalidateQueries({ queryKey: ['agences'] });
+      toast.success('Agence supprimée avec succès');
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'Erreur'),
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la suppression';
+      toast.error(message);
+    },
   });
 };

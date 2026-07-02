@@ -2,11 +2,9 @@ export interface Client {
   id: number;
   nom: string;
   telephone: string;
-  email?: string;
-  adresse?: string;
-  plafondTransaction?: number;
-  dateCreation: string;
-  lastUpdate?: string;
+  email: string;
+  piece_identite: string;
+  numero_piece: string;
   created_at: string;
   updated_at: string;
 }
@@ -14,15 +12,14 @@ export interface Client {
 export interface CreateClientData {
   nom: string;
   telephone: string;
-  email?: string;
-  adresse?: string;
-  plafondTransaction?: number;
+  email: string;
+  piece_identite: string;
+  numero_piece: string;
 }
 
-export interface ClientResponse {
-  content: Client[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
+export interface ClientFilters {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  telephone?: string;
 }
