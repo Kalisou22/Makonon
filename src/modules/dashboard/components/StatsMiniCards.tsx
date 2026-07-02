@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '../../../components/ui/Card';
-import { DashboardStats } from '../services/dashboardService';
+import type { DashboardStats } from '../services/dashboardService';
 
 interface StatsMiniCardsProps {
   stats: DashboardStats | undefined;
@@ -22,7 +22,7 @@ export const StatsMiniCards: React.FC<StatsMiniCardsProps> = ({ stats, isLoading
 
   const miniCards = [
     {
-      title: 'Aujourd\'hui',
+      title: "Aujourd'hui",
       value: stats?.transactionsAujourdhui || 0,
       sub: `${(stats?.volumeAujourdhui || 0).toLocaleString('fr-FR')} GNF`,
       color: 'text-blue-600',

@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
-import { Agence, CreateAgenceData } from '../services/agenceService';
+import type { Agence } from '../../../types';
 
 const agenceSchema = z.object({
   code: z.string().min(1, 'Code requis').max(20, 'Code trop long'),
@@ -90,63 +90,22 @@ export const AgenceFormModal: React.FC<AgenceFormModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="lg">
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="Code"
-            placeholder="EX: AG003"
-            {...register('code')}
-            error={errors.code?.message}
-          />
-          <Input
-            label="Nom"
-            placeholder="Nom de l'agence"
-            {...register('nom')}
-            error={errors.nom?.message}
-          />
-          <Input
-            label="Adresse"
-            placeholder="Adresse"
-            {...register('adresse')}
-            error={errors.adresse?.message}
-          />
-          <Input
-            label="Téléphone"
-            placeholder="Téléphone"
-            {...register('telephone')}
-            error={errors.telephone?.message}
-          />
-          <Input
-            label="Email"
-            placeholder="Email"
-            type="email"
-            {...register('email')}
-            error={errors.email?.message}
-          />
-          <Input
-            label="Responsable"
-            placeholder="Nom du responsable"
-            {...register('responsable')}
-            error={errors.responsable?.message}
-          />
+          <Input label="Code" placeholder="EX: AG003" {...register('code')} error={errors.code?.message} />
+          <Input label="Nom" placeholder="Nom de l'agence" {...register('nom')} error={errors.nom?.message} />
+          <Input label="Adresse" placeholder="Adresse" {...register('adresse')} error={errors.adresse?.message} />
+          <Input label="Téléphone" placeholder="Téléphone" {...register('telephone')} error={errors.telephone?.message} />
+          <Input label="Email" placeholder="Email" type="email" {...register('email')} error={errors.email?.message} />
+          <Input label="Responsable" placeholder="Nom du responsable" {...register('responsable')} error={errors.responsable?.message} />
         </div>
-
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              {...register('actif')}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
+            <input type="checkbox" {...register('actif')} className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
             <span className="text-sm font-medium text-gray-700">Agence active</span>
           </label>
         </div>
-
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-          <Button variant="secondary" onClick={onClose} type="button">
-            Annuler
-          </Button>
-          <Button type="submit" isLoading={isLoading} loadingText="Enregistrement...">
-            {initialData ? 'Modifier' : 'Créer'}
-          </Button>
+          <Button variant="secondary" onClick={onClose} type="button">Annuler</Button>
+          <Button type="submit" isLoading={isLoading} loadingText="Enregistrement...">{initialData ? 'Modifier' : 'Créer'}</Button>
         </div>
       </form>
     </Modal>

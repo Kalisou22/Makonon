@@ -6,8 +6,8 @@ import { Modal } from '../../../components/ui/Modal';
 import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
 import { Button } from '../../../components/ui/Button';
-import { Utilisateur, CreateUtilisateurData } from '../services/utilisateurService';
 import { useAgences } from '../../agences/hooks/useAgences';
+import type { Utilisateur } from '../../../types';
 
 const utilisateurSchema = z.object({
   nom: z.string().min(1, 'Nom requis'),
@@ -44,7 +44,6 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
     handleSubmit,
     reset,
     watch,
-    setValue,
     formState: { errors },
   } = useForm<UtilisateurFormData>({
     resolver: zodResolver(utilisateurSchema),
@@ -95,11 +94,11 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
   ];
 
   const handleFormSubmit = (data: UtilisateurFormData) => {
-    // Si le mot de passe est vide, ne pas l'envoyer (pour la modification)
-    if (!data.motDePasse) {
-      delete data.motDePasse;
+    const submitData = { ...data };
+    if (!submitData.motDePasse) {
+      delete submitData.motDePasse;
     }
-    onSubmit(data);
+    onSubmit(submitData);
   };
 
   return (

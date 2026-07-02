@@ -6,16 +6,15 @@ import { Button } from '../../../components/ui/Button';
 import { SearchBar } from '../../../components/ui/SearchBar';
 import { Pagination } from '../../../components/ui/Pagination';
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { Agence } from '../services/agenceService';
+import type { Agence } from '../../../types';
 
 export const AgencesPage: React.FC = () => {
   const [page, setPage] = useState(0);
-  const [pageSize] = useState(20);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAgence, setSelectedAgence] = useState<Agence | null>(null);
 
-  const { data, isLoading, refetch } = useAgences(page, pageSize);
+  const { data, isLoading, refetch } = useAgences(page, 20);
   const createMutation = useCreateAgence();
   const updateMutation = useUpdateAgence();
   const deleteMutation = useDeleteAgence();
@@ -26,21 +25,14 @@ export const AgencesPage: React.FC = () => {
   ) || [];
 
   const handleCreate = (formData: any) => {
-    createMutation.mutate(formData, {
-      onSuccess: () => setIsModalOpen(false),
-    });
+    createMutation.mutate(formData, { onSuccess: () => setIsModalOpen(false) });
   };
 
   const handleUpdate = (formData: any) => {
     if (selectedAgence) {
       updateMutation.mutate(
         { id: selectedAgence.id, data: formData },
-        {
-          onSuccess: () => {
-            setIsModalOpen(false);
-            setSelectedAgence(null);
-          },
-        }
+        { onSuccess: () => { setIsModalOpen(false); setSelectedAgence(null); } }
       );
     }
   };
@@ -65,47 +57,21 @@ export const AgencesPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Agences</h1>
-        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-          Nouvelle agence
-        </Button>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>Nouvelle agence</Button>
       </div>
-
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <SearchBar
-              placeholder="Rechercher par nom ou code..."
-              onSearch={setSearch}
-              className="w-full sm:w-64"
-            />
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>
-              Actualiser
-            </Button>
+            <SearchBar placeholder="Rechercher par nom ou code..." onSearch={setSearch} className="w-full sm:w-64" />
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>Actualiser</Button>
           </div>
         </CardHeader>
         <CardBody>
-          <AgenceTable
-            data={filteredData}
-            isLoading={isLoading || deleteMutation.isPending}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          <AgenceTable data={filteredData} isLoading={isLoading || deleteMutation.isPending} onEdit={handleEdit} onDelete={handleDelete} />
         </CardBody>
       </Card>
-
-      <Pagination
-        currentPage={page + 1}
-        totalPages={data?.totalPages || 1}
-        onPageChange={(newPage) => setPage(newPage - 1)}
-      />
-
-      <AgenceFormModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onSubmit={selectedAgence ? handleUpdate : handleCreate}
-        isLoading={createMutation.isPending || updateMutation.isPending}
-        initialData={selectedAgence}
-      />
+      <Pagination currentPage={page + 1} totalPages={data?.totalPages || 1} onPageChange={(newPage) => setPage(newPage - 1)} />
+      <AgenceFormModal isOpen={isModalOpen} onClose={handleModalClose} onSubmit={selectedAgence ? handleUpdate : handleCreate} isLoading={createMutation.isPending || updateMutation.isPending} initialData={selectedAgence} />
     </div>
   );
 };

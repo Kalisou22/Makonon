@@ -1,7 +1,9 @@
 import React from 'react';
 import { Card } from '../../../components/ui/Card';
 import { Loader } from '../../../components/ui/Loader';
-import { DashboardStats } from '../services/dashboardService';
+
+// ✅ Importer le type correctement
+import type { DashboardStats } from '../services/dashboardService';
 
 interface StatsCardsProps {
   stats: DashboardStats | undefined;

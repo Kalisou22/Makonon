@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table } from '../../../components/ui/Table';
 import { Button } from '../../../components/ui/Button';
-import { Client } from '../services/clientService';
+import type { Client } from '../../../types';
 
 interface ClientTableProps {
   data: Client[];
@@ -10,12 +10,7 @@ interface ClientTableProps {
   onDelete: (id: number) => void;
 }
 
-export const ClientTable: React.FC<ClientTableProps> = ({
-  data,
-  isLoading,
-  onEdit,
-  onDelete,
-}) => {
+export const ClientTable: React.FC<ClientTableProps> = ({ data, isLoading, onEdit, onDelete }) => {
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -33,9 +28,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({
     {
       key: 'nom',
       header: 'Nom',
-      render: (item: Client) => (
-        <span className="font-medium">{item.nom}</span>
-      ),
+      render: (item: Client) => <span className="font-medium">{item.nom}</span>,
     },
     {
       key: 'telephone',
@@ -61,7 +54,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({
     {
       key: 'dateCreation',
       header: 'Création',
-      render: (item: Client) => formatDate(item.dateCreation || item.created_at),
+      render: (item: Client) => formatDate(item.dateCreation),
       align: 'center' as const,
     },
     {
@@ -69,18 +62,10 @@ export const ClientTable: React.FC<ClientTableProps> = ({
       header: 'Actions',
       render: (item: Client) => (
         <div className="flex gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => onEdit(item)}
-          >
+          <Button variant="primary" size="sm" onClick={() => onEdit(item)}>
             Modifier
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => onDelete(item.id)}
-          >
+          <Button variant="danger" size="sm" onClick={() => onDelete(item.id)}>
             Supprimer
           </Button>
         </div>

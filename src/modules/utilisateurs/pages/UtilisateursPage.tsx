@@ -7,7 +7,7 @@ import { SearchBar } from '../../../components/ui/SearchBar';
 import { Select } from '../../../components/ui/Select';
 import { Pagination } from '../../../components/ui/Pagination';
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { Utilisateur } from '../services/utilisateurService';
+import type { Utilisateur } from '../../../types';
 
 export const UtilisateursPage: React.FC = () => {
   const [page, setPage] = useState(0);

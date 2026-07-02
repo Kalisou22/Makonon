@@ -22,8 +22,9 @@ export const DashboardPage: React.FC = () => {
     { value: 'year', label: 'Année' },
   ];
 
-  // Calculer le volume total formaté
-  const formatVolume = (value: number) => {
+  // ✅ Format volume avec vérification
+  const formatVolume = (value: number | undefined) => {
+    if (value === undefined || value === null) return '0 GNF';
     if (value >= 1000000000) return (value / 1000000000).toFixed(1) + ' Md GNF';
     if (value >= 1000000) return (value / 1000000).toFixed(1) + ' M GNF';
     return value.toLocaleString('fr-FR') + ' GNF';
@@ -43,13 +44,9 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Statistiques principales */}
       <StatsCards stats={stats} isLoading={statsLoading} />
-
-      {/* Statistiques secondaires */}
       <StatsMiniCards stats={stats} isLoading={statsLoading} />
 
-      {/* Graphique et activité récente */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-4">
@@ -74,14 +71,13 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Volume total */}
       <Card>
         <CardHeader>
           <h3 className="font-semibold text-gray-700">Volume total des transactions</h3>
         </CardHeader>
         <CardBody>
           <p className="text-3xl font-bold text-blue-600">
-            {stats ? formatVolume(stats.volumeTotal) : 'Chargement...'}
+            {formatVolume(stats?.volumeTotal)}
           </p>
           <p className="text-sm text-gray-500 mt-1">
             {stats?.totalTransactions || 0} transactions au total

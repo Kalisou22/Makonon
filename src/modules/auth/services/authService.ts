@@ -19,19 +19,20 @@ interface LoginResponse {
 }
 
 export const authService = {
-  getCsrfCookie: async (): Promise<void> => {
-    await axiosInstance.get('/sanctum/csrf-cookie');
-  },
+  // ✅ Login direct sans CSRF
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    await authService.getCsrfCookie();
-    const response = await axiosInstance.post<LoginResponse>('/auth/login', credentials);
+    const response = await axiosInstance.post<LoginResponse>('/login', credentials);
     return response.data;
   },
+  
+  // ✅ Récupérer l'utilisateur
   getCurrentUser: async (): Promise<User> => {
-    const response = await axiosInstance.get<User>('/auth/me');
+    const response = await axiosInstance.get<User>('/me');
     return response.data;
   },
+  
+  // ✅ Logout
   logout: async (): Promise<void> => {
-    await axiosInstance.post('/auth/logout');
+    await axiosInstance.post('/logout');
   },
 };

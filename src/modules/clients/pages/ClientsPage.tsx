@@ -6,16 +6,15 @@ import { Button } from '../../../components/ui/Button';
 import { SearchBar } from '../../../components/ui/SearchBar';
 import { Pagination } from '../../../components/ui/Pagination';
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { Client } from '../services/clientService';
+import type { Client } from '../../../types';
 
 export const ClientsPage: React.FC = () => {
   const [page, setPage] = useState(0);
-  const [pageSize] = useState(20);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const { data, isLoading, refetch } = useClients(page, pageSize);
+  const { data, isLoading, refetch } = useClients(page, 20);
   const createMutation = useCreateClient();
   const updateMutation = useUpdateClient();
   const deleteMutation = useDeleteClient();
@@ -26,21 +25,14 @@ export const ClientsPage: React.FC = () => {
   ) || [];
 
   const handleCreate = (formData: any) => {
-    createMutation.mutate(formData, {
-      onSuccess: () => setIsModalOpen(false),
-    });
+    createMutation.mutate(formData, { onSuccess: () => setIsModalOpen(false) });
   };
 
   const handleUpdate = (formData: any) => {
     if (selectedClient) {
       updateMutation.mutate(
         { id: selectedClient.id, data: formData },
-        {
-          onSuccess: () => {
-            setIsModalOpen(false);
-            setSelectedClient(null);
-          },
-        }
+        { onSuccess: () => { setIsModalOpen(false); setSelectedClient(null); } }
       );
     }
   };
@@ -65,47 +57,21 @@ export const ClientsPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
-        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-          Nouveau client
-        </Button>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>Nouveau client</Button>
       </div>
-
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <SearchBar
-              placeholder="Rechercher par nom ou téléphone..."
-              onSearch={setSearch}
-              className="w-full sm:w-64"
-            />
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>
-              Actualiser
-            </Button>
+            <SearchBar placeholder="Rechercher par nom ou téléphone..." onSearch={setSearch} className="w-full sm:w-64" />
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>Actualiser</Button>
           </div>
         </CardHeader>
         <CardBody>
-          <ClientTable
-            data={filteredData}
-            isLoading={isLoading || deleteMutation.isPending}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          <ClientTable data={filteredData} isLoading={isLoading || deleteMutation.isPending} onEdit={handleEdit} onDelete={handleDelete} />
         </CardBody>
       </Card>
-
-      <Pagination
-        currentPage={page + 1}
-        totalPages={data?.totalPages || 1}
-        onPageChange={(newPage) => setPage(newPage - 1)}
-      />
-
-      <ClientFormModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onSubmit={selectedClient ? handleUpdate : handleCreate}
-        isLoading={createMutation.isPending || updateMutation.isPending}
-        initialData={selectedClient}
-      />
+      <Pagination currentPage={page + 1} totalPages={data?.totalPages || 1} onPageChange={(newPage) => setPage(newPage - 1)} />
+      <ClientFormModal isOpen={isModalOpen} onClose={handleModalClose} onSubmit={selectedClient ? handleUpdate : handleCreate} isLoading={createMutation.isPending || updateMutation.isPending} initialData={selectedClient} />
     </div>
   );
 };

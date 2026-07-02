@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
 import { Loader } from '../../../components/ui/Loader';
-import { ChartData } from '../services/dashboardService';
+import type { ChartData } from '../services/dashboardService';
 
 interface ChartCardProps {
   data: ChartData | undefined;
@@ -25,7 +25,6 @@ export const ChartCard: React.FC<ChartCardProps> = ({ data, isLoading, title }) 
     );
   }
 
-  // Version simplifiée : affichage des données sous forme de barres
   const maxValue = Math.max(...(data?.datasets[0]?.data || [0]), 1);
 
   return (

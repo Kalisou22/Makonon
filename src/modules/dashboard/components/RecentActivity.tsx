@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
 import { Loader } from '../../../components/ui/Loader';
-import { Activity } from '../services/dashboardService';
+import type { Activity } from '../services/dashboardService';
 
 interface RecentActivityProps {
   activities: Activity[] | undefined;
@@ -42,7 +42,7 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ activities, isLo
     const now = new Date();
     const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
 
-    if (diff < 60) return 'à l\'instant';
+    if (diff < 60) return "à l'instant";
     if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`;
     if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`;
     if (diff < 604800) return `il y a ${Math.floor(diff / 86400)} j`;
