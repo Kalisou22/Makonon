@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
-import { AuditLog } from '../services/auditService';
+import type { AuditLog } from '../services/auditService';
 
 interface AuditDetailModalProps {
   isOpen: boolean;
@@ -9,80 +9,43 @@ interface AuditDetailModalProps {
   log: AuditLog | null;
 }
 
-export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({
-  isOpen,
-  onClose,
-  log,
-}) => {
+export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({ isOpen, onClose, log }) => {
   if (!log) return null;
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Détails du journal" maxWidth="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title="Détails de l'audit">
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-gray-500">ID</label>
-            <p className="mt-1 text-sm">#{log.id}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500">Date</label>
-            <p className="mt-1 text-sm">{formatDate(log.created_at)}</p>
+            <p className="text-gray-900">{log.id}</p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-500">Utilisateur</label>
-            <p className="mt-1 text-sm">{log.utilisateurNom || 'Système'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500">Action</label>
-            <p className="mt-1 text-sm font-medium">{log.action}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500">Entité</label>
-            <p className="mt-1 text-sm">{log.entite} {log.entiteId && `#${log.entiteId}`}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500">IP</label>
-            <p className="mt-1 text-sm">{log.ip || '-'}</p>
+            <p className="text-gray-900">{log.user_name}</p>
           </div>
         </div>
-
-        {log.description && (
+        <div>
+          <label className="text-sm font-medium text-gray-500">Action</label>
+          <p className="text-gray-900">{log.action}</p>
+        </div>
+        <div>
+          <label className="text-sm font-medium text-gray-500">Description</label>
+          <p className="text-gray-900">{log.description}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-500">Description</label>
-            <p className="mt-1 text-sm bg-gray-50 p-3 rounded-lg">{log.description}</p>
+            <label className="text-sm font-medium text-gray-500">IP</label>
+            <p className="text-gray-900">{log.ip_address}</p>
           </div>
-        )}
-
-        {log.oldData && (
           <div>
-            <label className="text-sm font-medium text-gray-500">Anciennes données</label>
-            <pre className="mt-1 text-xs bg-gray-50 p-3 rounded-lg overflow-auto max-h-40">
-              {JSON.stringify(log.oldData, null, 2)}
-            </pre>
+            <label className="text-sm font-medium text-gray-500">Date</label>
+            <p className="text-gray-900">
+              {new Date(log.created_at).toLocaleString('fr-FR')}
+            </p>
           </div>
-        )}
-
-        {log.newData && (
-          <div>
-            <label className="text-sm font-medium text-gray-500">Nouvelles données</label>
-            <pre className="mt-1 text-xs bg-gray-50 p-3 rounded-lg overflow-auto max-h-40">
-              {JSON.stringify(log.newData, null, 2)}
-            </pre>
-          </div>
-        )}
-
-        <div className="flex justify-end pt-4 border-t border-gray-200">
+        </div>
+        <div className="flex justify-end pt-4">
           <Button variant="secondary" onClick={onClose}>
             Fermer
           </Button>

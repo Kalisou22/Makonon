@@ -1,91 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import { useAuditLogs, useDeleteAuditLog } from '../hooks/useAudit';
+import React, { useState } from 'react';
+import { useAuditLogs } from '../hooks/useAudit';
 import { AuditTable } from '../components/AuditTable';
 import { AuditDetailModal } from '../components/AuditDetailModal';
-import { Button } from '../../../components/ui/Button';
+import { Card } from '../../../components/ui/Card';
 import { SearchBar } from '../../../components/ui/SearchBar';
-import { Pagination } from '../../../components/ui/Pagination';
-import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { AuditLog } from '../services/auditService';
+import { Select } from '../../../components/ui/Select';
 
 export const AuditPage: React.FC = () => {
-  const [page, setPage] = useState(0);
-  const [pageSize] = useState(20);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(20);
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [actionFilter, setActionFilter] = useState('');
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(0);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  const { data, isLoading, refetch } = useAuditLogs(page, pageSize, debouncedSearch);
-  const deleteMutation = useDeleteAuditLog();
-
-  const handleDelete = (id: number) => {
-    if (window.confirm('Confirmez-vous la suppression de ce journal ?')) {
-      deleteMutation.mutate(id);
-    }
+  const filters = {
+    page,
+    per_page: perPage,
+    ...(actionFilter && { action: actionFilter }),
   };
 
-  const handleRowClick = (log: AuditLog) => {
+  const { data, isLoading } = useAuditLogs(filters);
+
+  const handleView = (log: any) => {
     setSelectedLog(log);
-    setIsDetailOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleExport = () => {
-    // TODO: Implémenter l'export CSV
-    alert('Export CSV à implémenter');
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Journal d\'audit</h1>
-        <div className="flex gap-3">
-          <Button variant="secondary" size="sm" onClick={handleExport}>
-            Exporter CSV
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => refetch()}>
-            Actualiser
-          </Button>
+        <div>
+          <h1 className="text-2xl font-bold">Journal d'audit</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Consultez l'historique des actions effectuées
+          </p>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <SearchBar
-            placeholder="Rechercher par utilisateur, action, description..."
-            onSearch={setSearch}
-            className="w-full"
-          />
-        </CardHeader>
-        <CardBody>
-          <AuditTable
-            data={data?.content || []}
-            isLoading={isLoading || deleteMutation.isPending}
-            onDelete={handleDelete}
-            onRowClick={handleRowClick}
-          />
-        </CardBody>
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <SearchBar
+              value={search}
+              onChange={handleSearch}
+              placeholder="Rechercher dans l'audit..."
+            />
+          </div>
+          <div className="w-full md:w-48">
+            <Select
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              className="w-full"
+            >
+              <option value="">Toutes les actions</option>
+              <option value="login">Login</option>
+              <option value="logout">Logout</option>
+              <option value="transfert_creation">Création transfert</option>
+              <option value="transfert_retrait">Retrait transfert</option>
+              <option value="transfert_annulation">Annulation transfert</option>
+              <option value="client_creation">Création client</option>
+              <option value="client_modification">Modification client</option>
+              <option value="user_creation">Création utilisateur</option>
+              <option value="user_modification">Modification utilisateur</option>
+            </Select>
+          </div>
+        </div>
+
+        <AuditTable
+          data={data?.data || []}
+          isLoading={isLoading}
+          onView={handleView}
+        />
+
+        {data && data.last_page > 1 && (
+          <div className="flex justify-between items-center mt-4">
+            <span className="text-sm text-gray-500">
+              Page {data.current_page} sur {data.last_page}
+            </span>
+            <div className="flex gap-2">
+              <button
+                className="px-3 py-1 border rounded disabled:opacity-50"
+                disabled={data.current_page <= 1}
+                onClick={() => setPage(data.current_page - 1)}
+              >
+                Précédent
+              </button>
+              <button
+                className="px-3 py-1 border rounded disabled:opacity-50"
+                disabled={data.current_page >= data.last_page}
+                onClick={() => setPage(data.current_page + 1)}
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
-      <Pagination
-        currentPage={page + 1}
-        totalPages={data?.totalPages || 1}
-        onPageChange={(newPage) => setPage(newPage - 1)}
-      />
-
       <AuditDetailModal
-        isOpen={isDetailOpen}
+        isOpen={isModalOpen}
         onClose={() => {
-          setIsDetailOpen(false);
+          setIsModalOpen(false);
           setSelectedLog(null);
         }}
         log={selectedLog}
