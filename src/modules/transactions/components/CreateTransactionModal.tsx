@@ -26,6 +26,11 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
   const createMutation = useCreateTransaction();
   const { data: agences } = useAgences();
 
+  const agenceOptions = agences?.data?.map((agence) => ({
+    value: String(agence.id),
+    label: `${agence.nom} (${agence.code})`
+  })) || [];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const idempotency_key = `trf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -115,14 +120,8 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             value={formData.agence_destinataire_id}
             onChange={handleChange}
             required
-          >
-            <option value="">Sélectionner une agence</option>
-            {agences?.data?.map((agence) => (
-              <option key={agence.id} value={agence.id}>
-                {agence.nom} ({agence.code})
-              </option>
-            ))}
-          </Select>
+            options={agenceOptions}
+          />
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t">

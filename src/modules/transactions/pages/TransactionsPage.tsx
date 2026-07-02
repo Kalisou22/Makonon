@@ -43,6 +43,13 @@ export const TransactionsPage: React.FC = () => {
     setPage(1);
   };
 
+  const statusOptions = [
+    { value: '', label: 'Tous les statuts' },
+    { value: 'ENVOYE', label: 'Envoyé' },
+    { value: 'RETIRE', label: 'Retiré' },
+    { value: 'ANNULE', label: 'Annulé' },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -75,12 +82,8 @@ export const TransactionsPage: React.FC = () => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="ENVOYE">Envoyé</option>
-              <option value="RETIRE">Retiré</option>
-              <option value="ANNULE">Annulé</option>
-            </Select>
+              options={statusOptions}
+            />
           </div>
         </div>
 
