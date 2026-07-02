@@ -105,6 +105,12 @@ class AgenceController extends Controller
     public function destroy(Agence $agence)
     {
         try {
+            if ($agence->utilisateurs()->count() > 0) {
+                return response()->json([
+                    'error' => 'Cette agence a des utilisateurs',
+                    'message' => 'Impossible de supprimer une agence avec des utilisateurs'
+                ], 400);
+            }
             $agence->delete();
             return response()->json(['message' => 'Agence supprimée avec succès']);
         } catch (\Exception $e) {
