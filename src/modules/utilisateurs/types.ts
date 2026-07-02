@@ -3,11 +3,11 @@ export interface Utilisateur {
   nom: string;
   email: string;
   role: string;
-  telephone?: string;
-  agenceId?: number;
+  agence_id: number;
   agence?: {
     id: number;
     nom: string;
+    code: string;
   };
   actif: boolean;
   created_at: string;
@@ -17,16 +17,16 @@ export interface Utilisateur {
 export interface CreateUtilisateurData {
   nom: string;
   email: string;
-  motDePasse?: string;
+  password: string;
   role: string;
-  agenceId?: number;
+  agence_id: number;
   actif?: boolean;
 }
 
-export interface UtilisateurResponse {
-  content: Utilisateur[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
+export interface UtilisateurFilters {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  role?: string;
+  agence_id?: number;
 }
