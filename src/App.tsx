@@ -9,6 +9,7 @@ import { TransactionsPage } from './modules/transactions/pages/TransactionsPage'
 import { AgencesPage } from './modules/agences/pages/AgencesPage';
 import { ClientsPage } from './modules/clients/pages/ClientsPage';
 import { UtilisateursPage } from './modules/utilisateurs/pages/UtilisateursPage';
+import { AuditPage } from './modules/audit/pages/AuditPage';
 import { RoleGuard } from './core/guards/RoleGuard';
 import { Layout } from './layouts/Layout';
 
@@ -65,6 +66,16 @@ function App() {
               <RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN']}>
                 <Layout>
                   <UtilisateursPage />
+                </Layout>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/audit"
+            element={
+              <RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN', 'RESPONSABLE']}>
+                <Layout>
+                  <AuditPage />
                 </Layout>
               </RoleGuard>
             }
