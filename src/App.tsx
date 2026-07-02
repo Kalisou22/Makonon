@@ -6,6 +6,7 @@ import { queryClient } from './core/api/queryClient';
 import { LoginPage } from './modules/auth/pages/LoginPage';
 import { DashboardPage } from './modules/dashboard/pages/DashboardPage';
 import { TransactionsPage } from './modules/transactions/pages/TransactionsPage';
+import { AgencesPage } from './modules/agences/pages/AgencesPage';
 import { RoleGuard } from './core/guards/RoleGuard';
 import { Layout } from './layouts/Layout';
 
@@ -32,6 +33,16 @@ function App() {
               <RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT']}>
                 <Layout>
                   <TransactionsPage />
+                </Layout>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/agences"
+            element={
+              <RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN']}>
+                <Layout>
+                  <AgencesPage />
                 </Layout>
               </RoleGuard>
             }
