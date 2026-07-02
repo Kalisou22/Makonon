@@ -1,7 +1,17 @@
 import { axiosInstance } from '../../../core/api/axiosInstance';
 
 export const dashboardService = {
-  getStats: () => axiosInstance.get('/statistiques/dashboard'),
-  getRecentActivity: (limit) => axiosInstance.get('/journal/recent', { params: { limit } }),
-  getChartData: (period) => axiosInstance.get('/statistiques/chart', { params: { period } }),
+  // Statistiques du dashboard
+  getDashboardStats: () =>
+    axiosInstance.get('/statistiques/dashboard'),
+
+  // Statistiques pour les cartes
+  getStatsCards: () =>
+    axiosInstance.get('/statistiques/dashboard'),
+
+  // Activité récente (utiliser l'audit ou les transferts)
+  getRecentActivity: (limit: number = 10) =>
+    axiosInstance.get('/transferts', { 
+      params: { per_page: limit, page: 1 }
+    }),
 };

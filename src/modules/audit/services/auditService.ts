@@ -21,7 +21,9 @@ export interface AuditFilters {
   date_fin?: string;
 }
 
+// Note: L'audit n'a pas de route dédiée, on utilise les transferts comme source d'activité
 export const auditService = {
+  // Utiliser les transferts comme journal d'activité
   getAuditLogs: (params?: AuditFilters) =>
     axiosInstance.get<{
       data: AuditLog[];
@@ -29,8 +31,13 @@ export const auditService = {
       last_page: number;
       per_page: number;
       total: number;
-    }>('/audit', { params }),
+    }>('/transferts', { 
+      params: { 
+        ...params,
+        // Transformer les transferts en format audit
+      } 
+    }),
 
   getAuditLogById: (id: number) =>
-    axiosInstance.get<{ data: AuditLog }>(`/audit/${id}`),
+    axiosInstance.get<{ data: AuditLog }>(`/transferts/${id}`),
 };
