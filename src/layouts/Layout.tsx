@@ -18,7 +18,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/dashboard', label: 'Dashboard', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/transactions', label: 'Transactions', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/agences', label: 'Agences', roles: ['SUPERADMIN', 'ADMIN'] },
-    { path: '/clients', label: 'Clients', roles: ['SUPERADMIN', 'ADMIN'] },
+    { path: '/clients', label: 'Clients', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/utilisateurs', label: 'Utilisateurs', roles: ['SUPERADMIN', 'ADMIN'] },
     { path: '/audit', label: 'Journal', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE'] },
   ];
