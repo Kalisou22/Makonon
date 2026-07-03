@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useAgencyStore } from '../../store/agencyStore';
 import { useAuthStore } from '../../store/authStore';
 
+// ⚠️ IMPORTANT: Le backend tourne sur le port 8000
 const API_URL = 'http://localhost:8000/api';
 
 export const axiosInstance = axios.create({
@@ -16,6 +17,7 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
+    // ✅ Lire le token depuis localStorage
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,6 +35,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
+      // ✅ Supprimer le token et déconnecter
       localStorage.removeItem('token');
       useAuthStore.getState().logout();
       window.location.href = '/login';

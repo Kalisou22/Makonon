@@ -2,7 +2,7 @@ import { axiosInstance } from '../../../core/api/axiosInstance';
 
 interface LoginCredentials {
   email: string;
-  password: string;  // ✅ Changé de motDePasse à password
+  password: string;
 }
 
 interface User {
@@ -10,17 +10,22 @@ interface User {
   nom: string;
   email: string;
   role: string;
+  agence_id?: number;
   agence?: { id: number; nom: string } | null;
 }
 
 interface LoginResponse {
   token: string;
   user: User;
+  message: string;
 }
 
 export const authService = {
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    const response = await axiosInstance.post<LoginResponse>('/login', credentials);
+    const response = await axiosInstance.post<LoginResponse>('/login', {
+      email: credentials.email,
+      password: credentials.password
+    });
     return response.data;
   },
   

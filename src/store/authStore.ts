@@ -6,7 +6,7 @@ interface User {
   nom: string;
   email: string;
   role: string;
-  agenceId?: number | null;
+  agence_id?: number | null;
   agence?: { id: number; nom: string } | null;
 }
 

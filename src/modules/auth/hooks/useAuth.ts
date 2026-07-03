@@ -23,15 +23,24 @@ export const useAuth = () => {
     mutationFn: authService.login,
     onMutate: () => setLoading(true),
     onSuccess: (data) => {
+      // ✅ Stocker le token dans localStorage ET dans le store
+      localStorage.setItem('token', data.token);
+      
+      // Mettre à jour le store
       setAuth(data.user, data.token);
+      
+      // Stocker l'agence si présente
       if (data.user.agence) {
         setAgency(data.user.agence.id, data.user.agence.nom);
       }
-      toast.success('Connexion réussie');
+      
+      toast.success(data.message || 'Connexion réussie');
       navigate('/dashboard');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Erreur de connexion');
+      const message = error.response?.data?.message || 'Erreur de connexion';
+      toast.error(message);
+      setLoading(false);
     },
     onSettled: () => setLoading(false),
   });
@@ -41,6 +50,7 @@ export const useAuth = () => {
     onSuccess: () => {
       storeLogout();
       clearAgency();
+      localStorage.removeItem('token');
       queryClient.clear();
       toast.success('Déconnexion réussie');
       navigate('/login');
@@ -48,6 +58,7 @@ export const useAuth = () => {
     onError: () => {
       storeLogout();
       clearAgency();
+      localStorage.removeItem('token');
       navigate('/login');
     },
   });
