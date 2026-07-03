@@ -19,7 +19,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   onCancel,
   onView,
 }) => {
-  const formatMontant = (montant: number) => montant.toLocaleString('fr-FR') + ' GNF';
+  const formatMontant = (montant: number) => montant?.toLocaleString('fr-FR') + ' GNF' || '0 GNF';
   const formatDate = (date: string) => {
     if (!date) return '-';
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -41,6 +41,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     };
     return map[statut] || 'info';
   };
+
+  console.log('📊 TransactionTable data:', data);
 
   const columns = [
     {
