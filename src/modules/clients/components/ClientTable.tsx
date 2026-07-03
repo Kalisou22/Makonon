@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table } from '../../../components/ui/Table';
 import { Button } from '../../../components/ui/Button';
-import type { Client } from '../../../types';
+import type { Client } from '../types';
 
 interface ClientTableProps {
   data: Client[];
@@ -17,11 +17,6 @@ export const ClientTable: React.FC<ClientTableProps> = ({ data, isLoading, onEdi
       month: '2-digit',
       year: 'numeric',
     });
-  };
-
-  const formatPlafond = (montant?: number) => {
-    if (!montant) return '-';
-    return montant.toLocaleString('fr-FR') + ' GNF';
   };
 
   const columns = [
@@ -41,20 +36,19 @@ export const ClientTable: React.FC<ClientTableProps> = ({ data, isLoading, onEdi
       render: (item: Client) => item.email || '-',
     },
     {
-      key: 'adresse',
-      header: 'Adresse',
-      render: (item: Client) => item.adresse || '-',
+      key: 'piece_identite',
+      header: 'Pièce',
+      render: (item: Client) => item.piece_identite || '-',
     },
     {
-      key: 'plafondTransaction',
-      header: 'Plafond',
-      render: (item: Client) => formatPlafond(item.plafondTransaction),
-      align: 'right' as const,
+      key: 'numero_piece',
+      header: 'N° Pièce',
+      render: (item: Client) => item.numero_piece || '-',
     },
     {
-      key: 'dateCreation',
+      key: 'created_at',
       header: 'Création',
-      render: (item: Client) => formatDate(item.dateCreation),
+      render: (item: Client) => formatDate(item.created_at),
       align: 'center' as const,
     },
     {

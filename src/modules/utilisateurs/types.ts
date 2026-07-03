@@ -2,14 +2,15 @@ export interface Utilisateur {
   id: number;
   nom: string;
   email: string;
+  telephone: string;
   role: string;
   agence_id: number;
+  actif: boolean;
   agence?: {
     id: number;
     nom: string;
     code: string;
   };
-  actif: boolean;
   created_at: string;
   updated_at: string;
 }

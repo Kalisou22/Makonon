@@ -4,22 +4,22 @@ import { ClientTable } from '../components/ClientTable';
 import { ClientFormModal } from '../components/ClientFormModal';
 import { Button } from '../../../components/ui/Button';
 import { SearchBar } from '../../../components/ui/SearchBar';
-import { Pagination } from '../../../components/ui/Pagination';
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import type { Client } from '../../../types';
+import type { Client } from '../types';
 
 export const ClientsPage: React.FC = () => {
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const { data, isLoading, refetch } = useClients(page, 20);
+  const filters = { page, per_page: 20 };
+  const { data, isLoading, refetch } = useClients(filters);
   const createMutation = useCreateClient();
   const updateMutation = useUpdateClient();
   const deleteMutation = useDeleteClient();
 
-  const filteredData = data?.content?.filter((c) =>
+  const filteredData = data?.data?.filter((c) =>
     c.nom?.toLowerCase().includes(search.toLowerCase()) ||
     c.telephone?.includes(search)
   ) || [];
@@ -57,21 +57,40 @@ export const ClientsPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
-        <Button variant="primary" onClick={() => setIsModalOpen(true)}>Nouveau client</Button>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+          Nouveau client
+        </Button>
       </div>
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <SearchBar placeholder="Rechercher par nom ou téléphone..." onSearch={setSearch} className="w-full sm:w-64" />
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>Actualiser</Button>
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Rechercher par nom ou téléphone..."
+              className="w-full sm:w-64"
+            />
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>
+              Actualiser
+            </Button>
           </div>
         </CardHeader>
         <CardBody>
-          <ClientTable data={filteredData} isLoading={isLoading || deleteMutation.isPending} onEdit={handleEdit} onDelete={handleDelete} />
+          <ClientTable
+            data={filteredData}
+            isLoading={isLoading || deleteMutation.isPending}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
         </CardBody>
       </Card>
-      <Pagination currentPage={page + 1} totalPages={data?.totalPages || 1} onPageChange={(newPage) => setPage(newPage - 1)} />
-      <ClientFormModal isOpen={isModalOpen} onClose={handleModalClose} onSubmit={selectedClient ? handleUpdate : handleCreate} isLoading={createMutation.isPending || updateMutation.isPending} initialData={selectedClient} />
+      <ClientFormModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSubmit={selectedClient ? handleUpdate : handleCreate}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+        initialData={selectedClient}
+      />
     </div>
   );
 };

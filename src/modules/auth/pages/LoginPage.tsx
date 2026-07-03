@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
-  motDePasse: z.string().min(6, 'Mot de passe minimum 6 caractères'),
+  password: z.string().min(6, 'Mot de passe minimum 6 caractères'),  // ✅ Changé de motDePasse à password
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -45,10 +45,10 @@ export const LoginPage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
             <input
               type="password"
-              {...register('motDePasse')}
+              {...register('password')}  // ✅ Changé de motDePasse à password
               className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             />
-            {errors.motDePasse && <p className="mt-1 text-sm text-red-600">{errors.motDePasse.message}</p>}
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}  // ✅ Changé
           </div>
           <button
             type="submit"

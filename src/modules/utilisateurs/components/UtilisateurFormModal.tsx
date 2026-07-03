@@ -7,14 +7,14 @@ import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
 import { Button } from '../../../components/ui/Button';
 import { useAgences } from '../../agences/hooks/useAgences';
-import type { Utilisateur } from '../../../types';
+import type { Utilisateur } from '../types';
 
 const utilisateurSchema = z.object({
   nom: z.string().min(1, 'Nom requis'),
   email: z.string().email('Email invalide'),
-  motDePasse: z.string().min(6, 'Mot de passe minimum 6 caractères').optional().or(z.literal('')),
+  password: z.string().min(6, 'Mot de passe minimum 6 caractères').optional().or(z.literal('')),
   role: z.string().min(1, 'Rôle requis'),
-  agenceId: z.number().optional().nullable(),
+  agence_id: z.number().optional().nullable(),
   actif: z.boolean().default(true),
 });
 
@@ -37,7 +37,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
   initialData,
   title = initialData ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur',
 }) => {
-  const { data: agencesData, isLoading: agencesLoading } = useAgences(0, 100);
+  const { data: agencesData, isLoading: agencesLoading } = useAgences({ per_page: 100 });
 
   const {
     register,
@@ -50,9 +50,9 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
     defaultValues: {
       nom: '',
       email: '',
-      motDePasse: '',
+      password: '',
       role: '',
-      agenceId: null,
+      agence_id: null,
       actif: true,
     },
   });
@@ -64,25 +64,25 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
       reset({
         nom: initialData.nom,
         email: initialData.email,
-        motDePasse: '',
+        password: '',
         role: initialData.role,
-        agenceId: initialData.agenceId || null,
+        agence_id: initialData.agence_id || null,
         actif: initialData.actif,
       });
     } else {
       reset({
         nom: '',
         email: '',
-        motDePasse: '',
+        password: '',
         role: '',
-        agenceId: null,
+        agence_id: null,
         actif: true,
       });
     }
   }, [initialData, reset, isOpen]);
 
-  const agenceOptions = agencesData?.content?.map((agence) => ({
-    value: agence.id,
+  const agenceOptions = agencesData?.data?.map((agence) => ({
+    value: String(agence.id),
     label: agence.nom,
   })) || [];
 
@@ -95,14 +95,14 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
 
   const handleFormSubmit = (data: UtilisateurFormData) => {
     const submitData = { ...data };
-    if (!submitData.motDePasse) {
-      delete submitData.motDePasse;
+    if (!submitData.password) {
+      delete submitData.password;
     }
     onSubmit(submitData);
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -122,23 +122,23 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
             label="Mot de passe"
             placeholder={initialData ? 'Laisser vide pour conserver' : 'Mot de passe'}
             type="password"
-            {...register('motDePasse')}
-            error={errors.motDePasse?.message}
+            {...register('password')}
+            error={errors.password?.message}
           />
           <Select
             label="Rôle"
+            value={selectedRole || ''}
+            onChange={(e) => register('role').onChange(e)}
             options={roleOptions}
-            placeholder="Sélectionner un rôle"
-            {...register('role')}
             error={errors.role?.message}
           />
           {selectedRole !== 'SUPERADMIN' && (
             <Select
               label="Agence"
+              value={String(selectedRole ? agenceOptions.find(a => a.value === String(selectedRole))?.value || '' : '')}
+              onChange={(e) => register('agence_id').onChange(e)}
               options={agenceOptions}
-              placeholder="Sélectionner une agence"
-              {...register('agenceId', { valueAsNumber: true })}
-              error={errors.agenceId?.message}
+              error={errors.agence_id?.message}
               disabled={agencesLoading}
             />
           )}
@@ -159,7 +159,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
           <Button variant="secondary" onClick={onClose} type="button">
             Annuler
           </Button>
-          <Button type="submit" isLoading={isLoading} >
+          <Button type="submit" isLoading={isLoading}>
             {initialData ? 'Modifier' : 'Créer'}
           </Button>
         </div>
