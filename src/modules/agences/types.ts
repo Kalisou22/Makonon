@@ -21,7 +21,7 @@ export interface CreateAgenceData {
   email: string;
   responsable: string;
   devise: string;
-  actif?: boolean;
+  actif: boolean;
 }
 
 export interface AgenceFilters {

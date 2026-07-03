@@ -17,11 +17,38 @@ export interface Transaction {
   utilisateur_envoi_id: number;
   utilisateur_retrait_id: number | null;
   utilisateur_annulation_id: number | null;
-  expediteur?: { id: number; nom: string; telephone: string; email?: string };
-  beneficiaire?: { id: number; nom: string; telephone: string; email?: string };
-  agenceEnvoi?: { id: number; code: string; nom: string };
-  agenceRetrait?: { id: number; code: string; nom: string };
-  utilisateurEnvoi?: { id: number; nom: string; email: string };
+  expediteur?: {
+    id: number;
+    nom: string;
+    telephone: string;
+    email?: string;
+  };
+  beneficiaire?: {
+    id: number;
+    nom: string;
+    telephone: string;
+    email?: string;
+  };
+  agenceEnvoi?: {
+    id: number;
+    code: string;
+    nom: string;
+  };
+  agenceRetrait?: {
+    id: number;
+    code: string;
+    nom: string;
+  };
+  utilisateurEnvoi?: {
+    id: number;
+    nom: string;
+    email: string;
+  };
+  utilisateurRetrait?: {
+    id: number;
+    nom: string;
+    email: string;
+  };
   created_at: string;
   updated_at: string;
 }

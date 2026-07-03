@@ -32,10 +32,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   };
 
   const getStatusVariant = (statut: string) => {
-    const map: Record<string, 'success' | 'warning' | 'danger' | 'info'> = {
-      ENVOYE: 'warning',
+    const map: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
+      EN_ATTENTE: 'warning',
+      ENVOYE: 'info',
       RETIRE: 'success',
       ANNULE: 'danger',
+      EXPIRE: 'default',
     };
     return map[statut] || 'info';
   };
