@@ -41,7 +41,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({ isOpen, onClos
         </div>
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <Button variant="secondary" onClick={onClose} type="button">Annuler</Button>
-          <Button type="submit" isLoading={isLoading} loadingText="Enregistrement...">{initialData ? 'Modifier' : 'Créer'}</Button>
+          <Button type="submit" isLoading={isLoading} >{initialData ? 'Modifier' : 'Créer'}</Button>
         </div>
       </form>
     </Modal>

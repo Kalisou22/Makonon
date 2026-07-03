@@ -159,7 +159,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
           <Button variant="secondary" onClick={onClose} type="button">
             Annuler
           </Button>
-          <Button type="submit" isLoading={isLoading} loadingText="Enregistrement...">
+          <Button type="submit" isLoading={isLoading} >
             {initialData ? 'Modifier' : 'Créer'}
           </Button>
         </div>
