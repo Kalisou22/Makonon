@@ -4,7 +4,7 @@ export interface Transaction {
   montant: number;
   frais: number;
   commission: number;
-  statut: 'ENVOYE' | 'RETIRE' | 'ANNULE';
+  statut: 'EN_ATTENTE' | 'ENVOYE' | 'RETIRE' | 'ANNULE' | 'EXPIRE';
   date_envoi: string;
   date_retrait: string | null;
   date_annulation: string | null;
@@ -17,48 +17,11 @@ export interface Transaction {
   utilisateur_envoi_id: number;
   utilisateur_retrait_id: number | null;
   utilisateur_annulation_id: number | null;
-  expediteur?: {
-    id: number;
-    nom: string;
-    telephone: string;
-    email?: string;
-    piece_identite?: string;
-    numero_piece?: string;
-  };
-  beneficiaire?: {
-    id: number;
-    nom: string;
-    telephone: string;
-    email?: string;
-    piece_identite?: string;
-    numero_piece?: string;
-  };
-  agenceEnvoi?: {
-    id: number;
-    code: string;
-    nom: string;
-    adresse?: string;
-    telephone?: string;
-    email?: string;
-  };
-  agenceRetrait?: {
-    id: number;
-    code: string;
-    nom: string;
-    adresse?: string;
-    telephone?: string;
-    email?: string;
-  };
-  utilisateurEnvoi?: {
-    id: number;
-    nom: string;
-    email: string;
-  };
-  utilisateurRetrait?: {
-    id: number;
-    nom: string;
-    email: string;
-  };
+  expediteur?: { id: number; nom: string; telephone: string; email?: string };
+  beneficiaire?: { id: number; nom: string; telephone: string; email?: string };
+  agenceEnvoi?: { id: number; code: string; nom: string };
+  agenceRetrait?: { id: number; code: string; nom: string };
+  utilisateurEnvoi?: { id: number; nom: string; email: string };
   created_at: string;
   updated_at: string;
 }
@@ -75,7 +38,7 @@ export interface CreateTransactionData {
 }
 
 export interface TransactionFilters {
-  statut?: 'ENVOYE' | 'RETIRE' | 'ANNULE';
+  statut?: 'EN_ATTENTE' | 'ENVOYE' | 'RETIRE' | 'ANNULE' | 'EXPIRE';
   page?: number;
   per_page?: number;
 }

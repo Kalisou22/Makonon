@@ -1,12 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { transactionService } from '../services/transactionService';
-import type {
-  Transaction,
-  CreateTransactionData,
-  TransactionFilters,
-  SoldeAgenceResponse,
-} from '../types';
+import type { CreateTransactionData, TransactionFilters } from '../types';
 
 export const useTransactions = (filters?: TransactionFilters) => {
   return useQuery({
