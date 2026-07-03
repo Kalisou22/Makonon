@@ -18,10 +18,22 @@ export const clientService = {
     axiosInstance.get<{ data: Client }>(`/clients/telephone/${telephone}`),
 
   createClient: (data: CreateClientData) =>
-    axiosInstance.post<{ message: string; data: Client }>('/clients', data),
+    axiosInstance.post<{ message: string; data: Client }>('/clients', {
+      nom: data.nom,
+      telephone: data.telephone,
+      email: data.email || null,
+      piece_identite: data.piece_identite || null,
+      numero_piece: data.numero_piece || null
+    }),
 
   updateClient: (id: number, data: Partial<CreateClientData>) =>
-    axiosInstance.put<{ message: string; data: Client }>(`/clients/${id}`, data),
+    axiosInstance.put<{ message: string; data: Client }>(`/clients/${id}`, {
+      nom: data.nom,
+      telephone: data.telephone,
+      email: data.email || null,
+      piece_identite: data.piece_identite || null,
+      numero_piece: data.numero_piece || null
+    }),
 
   deleteClient: (id: number) =>
     axiosInstance.delete<{ message: string }>(`/clients/${id}`),

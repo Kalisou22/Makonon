@@ -17,7 +17,16 @@ export const transactionService = {
     }>('/transferts', { params }),
 
   createTransaction: (data: CreateTransactionData) =>
-    axiosInstance.post<{ message: string; data: Transaction }>('/transferts', data),
+    axiosInstance.post<{ message: string; data: Transaction }>('/transferts', {
+      nom_expediteur: data.nom_expediteur,
+      telephone_expediteur: data.telephone_expediteur,
+      nom_beneficiaire: data.nom_beneficiaire,
+      telephone_beneficiaire: data.telephone_beneficiaire,
+      montant: data.montant,
+      agence_envoi_id: data.agence_envoi_id,
+      agence_destinataire_id: data.agence_destinataire_id,
+      idempotency_key: data.idempotency_key,
+    }),
 
   withdrawTransaction: (code: string) =>
     axiosInstance.put<{ message: string; data: Transaction }>(`/transferts/retirer/${code}`),

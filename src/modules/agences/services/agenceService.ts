@@ -15,10 +15,28 @@ export const agenceService = {
     axiosInstance.get<{ data: Agence }>(`/agences/${id}`),
 
   createAgence: (data: CreateAgenceData) =>
-    axiosInstance.post<{ message: string; data: Agence }>('/agences', data),
+    axiosInstance.post<{ message: string; data: Agence }>('/agences', {
+      code: data.code,
+      nom: data.nom,
+      adresse: data.adresse || null,
+      telephone: data.telephone || null,
+      email: data.email || null,
+      responsable: data.responsable || null,
+      devise: data.devise || 'GNF',
+      actif: data.actif ?? true
+    }),
 
   updateAgence: (id: number, data: Partial<CreateAgenceData>) =>
-    axiosInstance.put<{ message: string; data: Agence }>(`/agences/${id}`, data),
+    axiosInstance.put<{ message: string; data: Agence }>(`/agences/${id}`, {
+      code: data.code,
+      nom: data.nom,
+      adresse: data.adresse || null,
+      telephone: data.telephone || null,
+      email: data.email || null,
+      responsable: data.responsable || null,
+      devise: data.devise || 'GNF',
+      actif: data.actif ?? true
+    }),
 
   deleteAgence: (id: number) =>
     axiosInstance.delete<{ message: string }>(`/agences/${id}`),

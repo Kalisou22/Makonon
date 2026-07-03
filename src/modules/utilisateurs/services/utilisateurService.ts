@@ -15,10 +15,24 @@ export const utilisateurService = {
     axiosInstance.get<{ data: Utilisateur }>(`/utilisateurs/${id}`),
 
   createUtilisateur: (data: CreateUtilisateurData) =>
-    axiosInstance.post<{ message: string; data: Utilisateur }>('/utilisateurs', data),
+    axiosInstance.post<{ message: string; data: Utilisateur }>('/utilisateurs', {
+      nom: data.nom,
+      email: data.email,
+      password: data.password,
+      role: data.role,
+      agence_id: data.agence_id,
+      actif: data.actif ?? true
+    }),
 
   updateUtilisateur: (id: number, data: Partial<CreateUtilisateurData>) =>
-    axiosInstance.put<{ message: string; data: Utilisateur }>(`/utilisateurs/${id}`, data),
+    axiosInstance.put<{ message: string; data: Utilisateur }>(`/utilisateurs/${id}`, {
+      nom: data.nom,
+      email: data.email,
+      password: data.password,
+      role: data.role,
+      agence_id: data.agence_id,
+      actif: data.actif
+    }),
 
   deleteUtilisateur: (id: number) =>
     axiosInstance.delete<{ message: string }>(`/utilisateurs/${id}`),
