@@ -5,22 +5,30 @@ import { UtilisateurFormModal } from '../components/UtilisateurFormModal';
 import { Button } from '../../../components/ui/Button';
 import { SearchBar } from '../../../components/ui/SearchBar';
 import { Select } from '../../../components/ui/Select';
-import { Pagination } from '../../../components/ui/Pagination';
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import type { Utilisateur } from '../../../types';
+import type { Utilisateur } from '../types';
 
 export const UtilisateursPage: React.FC = () => {
-  const [page, setPage] = useState(0);
-  const [pageSize] = useState(20);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(20);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('Tous');
+  const [roleFilter, setRoleFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUtilisateur, setSelectedUtilisateur] = useState<Utilisateur | null>(null);
 
-  const { data, isLoading, refetch } = useUtilisateurs(page, pageSize, search, roleFilter);
+  const filters = {
+    page,
+    per_page: perPage,
+    ...(search && { search }),
+    ...(roleFilter && { role: roleFilter }),
+  };
+
+  const { data, isLoading, refetch } = useUtilisateurs(filters);
   const createMutation = useCreateUtilisateur();
   const updateMutation = useUpdateUtilisateur();
   const deleteMutation = useDeleteUtilisateur();
+
+  console.log('📊 UtilisateursPage data:', data);
 
   const handleCreate = (formData: any) => {
     createMutation.mutate(formData, {
@@ -59,7 +67,7 @@ export const UtilisateursPage: React.FC = () => {
   };
 
   const roleOptions = [
-    { value: 'Tous', label: 'Tous les rôles' },
+    { value: '', label: 'Tous les rôles' },
     { value: 'SUPERADMIN', label: 'Super Admin' },
     { value: 'ADMIN', label: 'Admin' },
     { value: 'RESPONSABLE', label: 'Responsable' },
@@ -80,15 +88,16 @@ export const UtilisateursPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <div className="flex flex-1 gap-4 flex-wrap">
               <SearchBar
+                value={search}
+                onChange={setSearch}
                 placeholder="Rechercher par nom ou email..."
-                onSearch={setSearch}
                 className="w-full sm:w-64"
               />
               <Select
-                options={roleOptions}
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
                 className="w-full sm:w-40"
+                options={roleOptions}
               />
             </div>
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
@@ -98,19 +107,13 @@ export const UtilisateursPage: React.FC = () => {
         </CardHeader>
         <CardBody>
           <UtilisateurTable
-            data={data?.content || []}
+            data={data?.data || []}
             isLoading={isLoading || deleteMutation.isPending}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
         </CardBody>
       </Card>
-
-      <Pagination
-        currentPage={page + 1}
-        totalPages={data?.totalPages || 1}
-        onPageChange={(newPage) => setPage(newPage - 1)}
-      />
 
       <UtilisateurFormModal
         isOpen={isModalOpen}

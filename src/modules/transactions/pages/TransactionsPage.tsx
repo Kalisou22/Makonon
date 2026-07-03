@@ -25,6 +25,8 @@ export const TransactionsPage: React.FC = () => {
   const withdrawMutation = useWithdrawTransaction();
   const cancelMutation = useCancelTransaction();
 
+  console.log('📊 Transactions data:', data);
+
   const handleWithdraw = (code: string) => {
     if (window.confirm('Confirmer le retrait de ce transfert ?')) {
       withdrawMutation.mutate(code);

@@ -8,6 +8,7 @@ export const useUtilisateurs = (filters?: UtilisateurFilters) => {
     queryKey: ['utilisateurs', filters],
     queryFn: async () => {
       const response = await utilisateurService.getUtilisateurs(filters);
+      console.log('📥 useUtilisateurs response:', response.data);
       return response.data;
     },
     staleTime: 60000,
