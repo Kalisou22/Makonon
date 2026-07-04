@@ -8,21 +8,23 @@ import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
 import type { Client } from '../types';
 
 export const ClientsPage: React.FC = () => {
-  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const filters = { page, per_page: 20 };
-  const { data, isLoading, refetch } = useClients(filters);
+  const { data: clients = [], isLoading, refetch } = useClients();
   const createMutation = useCreateClient();
   const updateMutation = useUpdateClient();
   const deleteMutation = useDeleteClient();
 
-  const filteredData = data?.data?.filter((c) =>
+  // ✅ L'API retourne directement un tableau, pas une structure paginée
+  const clientsArray = Array.isArray(clients) ? clients : clients?.data || [];
+  console.log('📊 ClientsPage clientsArray:', clientsArray);
+
+  const filteredData = clientsArray.filter((c: Client) =>
     c.nom?.toLowerCase().includes(search.toLowerCase()) ||
     c.telephone?.includes(search)
-  ) || [];
+  );
 
   const handleCreate = (formData: any) => {
     createMutation.mutate(formData, { onSuccess: () => setIsModalOpen(false) });
