@@ -83,10 +83,11 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
 
   const agenceOptions = agencesData?.data?.map((agence) => ({
     value: String(agence.id),
-    label: agence.nom,
+    label: `${agence.nom} (${agence.code})`,
   })) || [];
 
   const roleOptions = [
+    { value: '', label: 'Sélectionner un rôle' },
     { value: 'SUPERADMIN', label: 'Super Admin' },
     { value: 'ADMIN', label: 'Admin' },
     { value: 'RESPONSABLE', label: 'Responsable' },
@@ -94,6 +95,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
   ];
 
   const handleFormSubmit = (data: UtilisateurFormData) => {
+    console.log('📤 Envoi du formulaire utilisateur:', data);
     const submitData = { ...data };
     if (!submitData.password) {
       delete submitData.password;
@@ -128,7 +130,9 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
           <Select
             label="Rôle"
             value={selectedRole || ''}
-            onChange={(e) => register('role').onChange(e)}
+            onChange={(e) => {
+              register('role').onChange(e);
+            }}
             options={roleOptions}
             error={errors.role?.message}
           />
@@ -136,7 +140,9 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
             <Select
               label="Agence"
               value={String(selectedRole ? agenceOptions.find(a => a.value === String(selectedRole))?.value || '' : '')}
-              onChange={(e) => register('agence_id').onChange(e)}
+              onChange={(e) => {
+                register('agence_id').onChange(e);
+              }}
               options={agenceOptions}
               error={errors.agence_id?.message}
               disabled={agencesLoading}
