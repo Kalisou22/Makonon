@@ -35,7 +35,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
   onSubmit,
   isLoading,
   initialData,
-  title = initialData ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur',
+  title = initialData ? "Modifier l'utilisateur" : 'Nouvel utilisateur',
 }) => {
   const { data: agencesData, isLoading: agencesLoading } = useAgences({ per_page: 100 });
 
@@ -131,17 +131,21 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
             label="Rôle"
             value={selectedRole || ''}
             onChange={(e) => {
+              const value = e.target.value;
               register('role').onChange(e);
             }}
             options={roleOptions}
             error={errors.role?.message}
           />
-          {selectedRole !== 'SUPERADMIN' && (
+          {selectedRole && selectedRole !== 'SUPERADMIN' && (
             <Select
               label="Agence"
-              value={String(selectedRole ? agenceOptions.find(a => a.value === String(selectedRole))?.value || '' : '')}
+              value={watch('agence_id')?.toString() || ''}
               onChange={(e) => {
-                register('agence_id').onChange(e);
+                const value = e.target.value;
+                register('agence_id').onChange({
+                  target: { name: 'agence_id', value: value ? parseInt(value) : null }
+                });
               }}
               options={agenceOptions}
               error={errors.agence_id?.message}
