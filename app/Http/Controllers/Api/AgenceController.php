@@ -13,8 +13,9 @@ class AgenceController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 20);
-            $agences = Agence::paginate($perPage);
-            
+            $agences = Agence::whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE'])
+                ->paginate($perPage);
+
             return response()->json($agences);
         } catch (\Exception $e) {
             Log::error('Erreur AgenceController@index: ' . $e->getMessage());
@@ -40,7 +41,7 @@ class AgenceController extends Controller
             ]);
 
             $agence = Agence::create($validated);
-            
+
             return response()->json([
                 'message' => 'Agence créée avec succès',
                 'data' => $agence
@@ -86,6 +87,21 @@ class AgenceController extends Controller
     {
         try {
             $agence = Agence::findOrFail($id);
+
+            // Empêcher la suppression des agences système
+            if (in_array($agence->code, ['FRAIS', 'SYSTEM', 'CAISSE'])) {
+                return response()->json([
+                    'message' => 'Impossible de supprimer une agence système'
+                ], 403);
+            }
+
+            // Vérifier si l'agence a des transferts
+            if ($agence->transfertsEnvois()->exists() || $agence->transfertsRetraits()->exists()) {
+                return response()->json([
+                    'message' => 'Impossible de supprimer une agence qui a des transferts'
+                ], 422);
+            }
+
             $agence->delete();
             return response()->json(['message' => 'Agence supprimée avec succès']);
         } catch (\Exception $e) {

@@ -23,12 +23,17 @@ class CheckAgence
             return $next($request);
         }
 
-        // Les autres ne voient que leur agence
+        // Récupérer l'agence depuis la route ou la requête
         $agenceId = $request->route('agenceId') ?? $request->input('agence_id');
-        
+
+        // ✅ SOURCE DE VÉRITÉ = user->agence_id
+        // ✅ Ignorer X-Agency-ID du frontend
+
         if ($agenceId && $user->agence_id != $agenceId) {
             return response()->json([
-                'message' => 'Accès non autorisé à cette agence'
+                'message' => 'Accès non autorisé à cette agence',
+                'user_agence' => $user->agence_id,
+                'requested_agence' => $agenceId
             ], 403);
         }
 
