@@ -10,6 +10,8 @@ interface TransactionTableProps {
   onWithdraw?: (code: string) => void
   onCancel?: (code: string) => void
   onView?: (transaction: Transaction) => void
+  userAgenceId?: number | null
+  userRole?: string
 }
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({
@@ -18,6 +20,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   onWithdraw,
   onCancel,
   onView,
+  userAgenceId,
+  userRole,
 }) => {
   const formatMontant = (montant: number) => {
     return montant?.toLocaleString('fr-FR') + ' GNF' || '0 GNF'
@@ -43,6 +47,43 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       EXPIRE: 'default',
     }
     return map[statut] || 'info'
+  }
+
+  // ✅ Vérifier si l'utilisateur peut retirer ce transfert
+  const canWithdraw = (item: Transaction) => {
+    if (userRole === 'SUPERADMIN') return true
+    // ✅ L'utilisateur doit appartenir à l'agence de retrait
+    // ✅ Le statut doit être ENVOYE (disponible pour retrait)
+    return userAgenceId === item.agence_retrait_id && item.statut === 'ENVOYE'
+  }
+
+  // ✅ Vérifier si l'utilisateur peut annuler ce transfert
+  const canCancel = (item: Transaction) => {
+    if (userRole === 'SUPERADMIN') return true
+    // ✅ L'utilisateur doit appartenir à l'agence d'envoi
+    // ✅ Le statut doit être ENVOYE (pas encore retiré)
+    return userAgenceId === item.agence_envoi_id && item.statut === 'ENVOYE'
+  }
+
+  // ✅ Déterminer le statut affiché en fonction de l'agence
+  const getDisplayStatus = (item: Transaction) => {
+    // ✅ Pour l'agence de destination, ENVOYE s'affiche comme EN ATTENTE
+    if (userAgenceId === item.agence_retrait_id && item.statut === 'ENVOYE') {
+      return { label: 'En attente', variant: 'warning' }
+    }
+    // ✅ Pour l'agence d'envoi, ENVOYE s'affiche comme ENVOYÉ
+    if (userAgenceId === item.agence_envoi_id && item.statut === 'ENVOYE') {
+      return { label: 'Envoyé', variant: 'info' }
+    }
+    // ✅ Pour les autres statuts
+    const statusMap: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'info' | 'default' }> = {
+      EN_ATTENTE: { label: 'En attente', variant: 'warning' },
+      ENVOYE: { label: 'Envoyé', variant: 'info' },
+      RETIRE: { label: 'Retiré', variant: 'success' },
+      ANNULE: { label: 'Annulé', variant: 'danger' },
+      EXPIRE: { label: 'Expiré', variant: 'default' },
+    }
+    return statusMap[item.statut] || { label: item.statut, variant: 'default' }
   }
 
   console.log('📊 TransactionTable data:', data)
@@ -86,9 +127,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     {
       key: 'statut',
       header: 'Statut',
-      render: (item: Transaction) => (
-        <StatusBadge status={item.statut} variant={getStatusVariant(item.statut)} />
-      ),
+      render: (item: Transaction) => {
+        const display = getDisplayStatus(item)
+        return <StatusBadge status={display.label} variant={display.variant} />
+      },
       align: 'center' as const,
     },
     {
@@ -100,25 +142,30 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     {
       key: 'actions',
       header: 'Actions',
-      render: (item: Transaction) => (
-        <div className="flex gap-2 justify-center flex-wrap">
-          {item.statut === 'ENVOYE' && (
-            <>
+      render: (item: Transaction) => {
+        const showWithdraw = canWithdraw(item)
+        const showCancel = canCancel(item)
+
+        return (
+          <div className="flex gap-2 justify-center flex-wrap">
+            {showWithdraw && (
               <Button variant="success" size="sm" onClick={() => onWithdraw?.(item.code)}>
                 Retirer
               </Button>
+            )}
+            {showCancel && (
               <Button variant="danger" size="sm" onClick={() => onCancel?.(item.code)}>
                 Annuler
               </Button>
-            </>
-          )}
-          {onView && (
-            <Button variant="info" size="sm" onClick={() => onView(item)}>
-              Détails
-            </Button>
-          )}
-        </div>
-      ),
+            )}
+            {onView && (
+              <Button variant="info" size="sm" onClick={() => onView(item)}>
+                Détails
+              </Button>
+            )}
+          </div>
+        )
+      },
       align: 'center' as const,
     },
   ]
