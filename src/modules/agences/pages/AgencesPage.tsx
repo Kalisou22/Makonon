@@ -1,68 +1,68 @@
-import React, { useState } from 'react';
-import { useAgences, useCreateAgence, useUpdateAgence, useDeleteAgence } from '../hooks/useAgences';
-import { AgenceTable } from '../components/AgenceTable';
-import { AgenceFormModal } from '../components/AgenceFormModal';
-import { Button } from '../../../components/ui/Button';
-import { SearchBar } from '../../../components/ui/SearchBar';
-import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import type { Agence } from '../types';
+import React, { useState } from 'react'
+import { useAgences, useCreateAgence, useUpdateAgence, useDeleteAgence } from '../hooks/useAgences'
+import { AgenceTable } from '../components/AgenceTable'
+import { AgenceFormModal } from '../components/AgenceFormModal'
+import { Button } from '../../../components/ui/Button'
+import { SearchBar } from '../../../components/ui/SearchBar'
+import { Card, CardHeader, CardBody } from '../../../components/ui/Card'
+import type { Agence } from '../types'
 
 export const AgencesPage: React.FC = () => {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAgence, setSelectedAgence] = useState<Agence | null>(null);
+  const [search, setSearch] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedAgence, setSelectedAgence] = useState<Agence | null>(null)
 
-  const filters = { page, per_page: 20 };
-  const { data, isLoading, refetch } = useAgences(filters);
-  const createMutation = useCreateAgence();
-  const updateMutation = useUpdateAgence();
-  const deleteMutation = useDeleteAgence();
+  const { data, isLoading, refetch } = useAgences({ per_page: 100 })
+  const createMutation = useCreateAgence()
+  const updateMutation = useUpdateAgence()
+  const deleteMutation = useDeleteAgence()
 
-  console.log('📊 AgencesPage data:', data);
+  const agences = data?.data || []
+  console.log('📊 AgencesPage data:', agences)
 
-  const filteredData = data?.data?.filter((a: Agence) =>
+  const filteredData = agences.filter((a: Agence) =>
     a.nom?.toLowerCase().includes(search.toLowerCase()) ||
     a.code?.toLowerCase().includes(search.toLowerCase())
-  ) || [];
+  )
 
   const handleCreate = (formData: any) => {
-    createMutation.mutate(formData, { onSuccess: () => setIsModalOpen(false) });
-  };
+    createMutation.mutate(formData, { onSuccess: () => setIsModalOpen(false) })
+  }
 
   const handleUpdate = (formData: any) => {
     if (selectedAgence) {
       updateMutation.mutate(
         { id: selectedAgence.id, data: formData },
-        { onSuccess: () => { setIsModalOpen(false); setSelectedAgence(null); } }
-      );
+        { onSuccess: () => { setIsModalOpen(false); setSelectedAgence(null) } }
+      )
     }
-  };
+  }
 
   const handleEdit = (agence: Agence) => {
-    setSelectedAgence(agence);
-    setIsModalOpen(true);
-  };
+    setSelectedAgence(agence)
+    setIsModalOpen(true)
+  }
 
   const handleDelete = (id: number) => {
     if (window.confirm('Confirmez-vous la suppression de cette agence ?')) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(id)
     }
-  };
+  }
 
   const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedAgence(null);
-  };
+    setIsModalOpen(false)
+    setSelectedAgence(null)
+  }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Agences</h1>
+        <h1 className="text-2xl font-bold text-primary">Agences</h1>
         <Button variant="primary" onClick={() => setIsModalOpen(true)}>
           Nouvelle agence
         </Button>
       </div>
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -70,7 +70,7 @@ export const AgencesPage: React.FC = () => {
               value={search}
               onChange={setSearch}
               placeholder="Rechercher par nom ou code..."
-              className="w-full sm:w-64"
+              className="w-full sm:w-72"
             />
             <Button variant="secondary" size="sm" onClick={() => refetch()}>
               Actualiser
@@ -86,6 +86,7 @@ export const AgencesPage: React.FC = () => {
           />
         </CardBody>
       </Card>
+
       <AgenceFormModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
@@ -94,5 +95,7 @@ export const AgencesPage: React.FC = () => {
         initialData={selectedAgence}
       />
     </div>
-  );
-};
+  )
+}
+
+export default AgencesPage
