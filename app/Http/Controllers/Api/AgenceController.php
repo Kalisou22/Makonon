@@ -13,21 +13,24 @@ class AgenceController extends Controller
     {
         try {
             $perPage = (int) $request->input('per_page', 20);
-            
+            $user = $request->user();
+
             $query = Agence::query();
-            
-            // Filtrer les agences système
-            $query->whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE']);
-            
+
+            // ✅ SUPERADMIN voit toutes les agences
+            // ✅ Les autres voient uniquement leur agence
+            if ($user && $user->role !== 'SUPERADMIN') {
+                $query->whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE']);
+            }
+
             $agences = $query->orderBy('id')->paginate($perPage);
-            
+
             return response()->json($agences);
         } catch (\Exception $e) {
             Log::error('Erreur AgenceController@index: ' . $e->getMessage() . ' - Ligne: ' . $e->getLine());
             return response()->json([
                 'message' => 'Erreur lors de la récupération des agences',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine()
+                'error' => $e->getMessage()
             ], 500);
         }
     }

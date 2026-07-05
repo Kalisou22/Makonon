@@ -14,7 +14,17 @@ class UtilisateurController extends Controller
     {
         try {
             $perPage = (int) $request->input('per_page', 20);
-            $users = User::with('agence')->paginate($perPage);
+            $user = $request->user();
+
+            $query = User::with('agence');
+
+            // ✅ SUPERADMIN voit tous les utilisateurs
+            // ✅ Les autres voient uniquement les utilisateurs de leur agence
+            if ($user && $user->role !== 'SUPERADMIN' && $user->agence_id) {
+                $query->where('agence_id', $user->agence_id);
+            }
+
+            $users = $query->paginate($perPage);
             return response()->json($users);
         } catch (\Exception $e) {
             Log::error('Erreur UtilisateurController@index: ' . $e->getMessage() . ' - Ligne: ' . $e->getLine());
