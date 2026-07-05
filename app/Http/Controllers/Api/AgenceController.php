@@ -12,46 +12,31 @@ class AgenceController extends Controller
     public function index(Request $request)
     {
         try {
-            $perPage = (int) $request->input('per_page', 20);
             $user = $request->user();
-
-            Log::info('AgenceController@index appelé', [
-                'user_id' => $user?->id,
-                'user_role' => $user?->role,
-                'per_page' => $perPage
-            ]);
-
-            $query = Agence::query();
-
-            // ✅ SUPERADMIN voit toutes les agences (sauf FRAIS, SYSTEM, CAISSE)
-            if ($user && $user->role !== 'SUPERADMIN' && $user->agence_id) {
-                $query->where('id', $user->agence_id);
+            
+            // Vérifier que l'utilisateur est SUPERADMIN ou ADMIN
+            if (!in_array($user->role, ['SUPERADMIN', 'ADMIN'])) {
+                return response()->json(['message' => 'Accès non autorisé'], 403);
             }
-
-            // Toujours exclure les agences système
-            $query->whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE']);
-
-            $agences = $query->orderBy('id')->paginate($perPage);
-
-            Log::info('Agences trouvées: ' . $agences->total());
-
+            
+            $perPage = (int) $request->input('per_page', 20);
+            $agences = Agence::whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE'])
+                ->paginate($perPage);
             return response()->json($agences);
         } catch (\Exception $e) {
-            Log::error('Erreur AgenceController@index: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return response()->json([
-                'message' => 'Erreur lors de la récupération des agences',
-                'error' => $e->getMessage(),
-                'file' => basename($e->getFile()),
-                'line' => $e->getLine()
-            ], 500);
+            Log::error('AgenceController@index: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur'], 500);
         }
     }
 
     public function store(Request $request)
     {
         try {
+            $user = $request->user();
+            if (!in_array($user->role, ['SUPERADMIN', 'ADMIN'])) {
+                return response()->json(['message' => 'Accès non autorisé'], 403);
+            }
+            
             $validated = $request->validate([
                 'code' => 'required|string|unique:agences,code|max:50',
                 'nom' => 'required|string|max:255',
@@ -62,19 +47,11 @@ class AgenceController extends Controller
                 'devise' => 'nullable|string|max:10',
                 'actif' => 'boolean'
             ]);
-
             $agence = Agence::create($validated);
-
-            return response()->json([
-                'message' => 'Agence créée avec succès',
-                'data' => $agence
-            ], 201);
+            return response()->json(['message' => 'Agence créée avec succès', 'data' => $agence], 201);
         } catch (\Exception $e) {
-            Log::error('Erreur AgenceController@store: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Erreur lors de la création',
-                'error' => $e->getMessage()
-            ], 500);
+            Log::error('AgenceController@store: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur'], 500);
         }
     }
 
@@ -91,46 +68,37 @@ class AgenceController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $user = $request->user();
+            if (!in_array($user->role, ['SUPERADMIN', 'ADMIN'])) {
+                return response()->json(['message' => 'Accès non autorisé'], 403);
+            }
+            
             $agence = Agence::findOrFail($id);
             $agence->update($request->all());
-            return response()->json([
-                'message' => 'Agence mise à jour avec succès',
-                'data' => $agence
-            ]);
+            return response()->json(['message' => 'Agence mise à jour avec succès', 'data' => $agence]);
         } catch (\Exception $e) {
-            Log::error('Erreur AgenceController@update: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Erreur lors de la mise à jour',
-                'error' => $e->getMessage()
-            ], 500);
+            Log::error('AgenceController@update: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur'], 500);
         }
     }
 
     public function destroy($id)
     {
         try {
+            $user = $request->user();
+            if (!in_array($user->role, ['SUPERADMIN', 'ADMIN'])) {
+                return response()->json(['message' => 'Accès non autorisé'], 403);
+            }
+            
             $agence = Agence::findOrFail($id);
-
             if (in_array($agence->code, ['FRAIS', 'SYSTEM', 'CAISSE'])) {
-                return response()->json([
-                    'message' => 'Impossible de supprimer une agence système'
-                ], 403);
+                return response()->json(['message' => 'Impossible de supprimer une agence système'], 403);
             }
-
-            if ($agence->transfertsEnvois()->exists() || $agence->transfertsRetraits()->exists()) {
-                return response()->json([
-                    'message' => 'Impossible de supprimer une agence qui a des transferts'
-                ], 422);
-            }
-
             $agence->delete();
             return response()->json(['message' => 'Agence supprimée avec succès']);
         } catch (\Exception $e) {
-            Log::error('Erreur AgenceController@destroy: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Erreur lors de la suppression',
-                'error' => $e->getMessage()
-            ], 500);
+            Log::error('AgenceController@destroy: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur'], 500);
         }
     }
 }

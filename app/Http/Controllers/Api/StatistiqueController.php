@@ -17,7 +17,6 @@ class StatistiqueController extends Controller
     {
         try {
             $user = $request->user();
-
             if (!$user) {
                 return response()->json(['error' => 'Utilisateur non authentifié'], 401);
             }
@@ -38,19 +37,15 @@ class StatistiqueController extends Controller
                 return response()->json($stats);
             }
 
-            // Les autres → stats de leur agence uniquement
+            // ADMIN, RESPONSABLE, AGENT → filtrer par agence
             $agenceId = $user->agence_id;
-
             if (!$agenceId) {
-                return response()->json([
-                    'error' => 'Utilisateur non rattaché à une agence'
-                ], 400);
+                return response()->json(['error' => 'Utilisateur non rattaché à une agence'], 400);
             }
 
             $stats = [
                 'total_transferts' => Transfert::where('agence_envoi_id', $agenceId)
-                    ->orWhere('agence_retrait_id', $agenceId)
-                    ->count(),
+                    ->orWhere('agence_retrait_id', $agenceId)->count(),
                 'transferts_en_attente' => Transfert::where('statut', 'EN_ATTENTE')
                     ->where(function($q) use ($agenceId) {
                         $q->where('agence_envoi_id', $agenceId)
@@ -65,20 +60,14 @@ class StatistiqueController extends Controller
                 'solde_agence' => (float) Ledger::where('agence_id', $agenceId)
                     ->sum(DB::raw("CASE WHEN type = 'CREDIT' THEN montant ELSE -montant END")),
                 'retraits_en_attente' => Transfert::where('statut', 'EN_ATTENTE')
-                    ->where('agence_retrait_id', $agenceId)
-                    ->count(),
+                    ->where('agence_retrait_id', $agenceId)->count(),
                 'montant_en_attente' => (float) Transfert::where('statut', 'EN_ATTENTE')
-                    ->where('agence_retrait_id', $agenceId)
-                    ->sum('montant'),
+                    ->where('agence_retrait_id', $agenceId)->sum('montant'),
             ];
-
             return response()->json($stats);
         } catch (\Exception $e) {
-            Log::error('Erreur dashboard: ' . $e->getMessage() . ' - ' . $e->getLine());
-            return response()->json([
-                'error' => $e->getMessage(),
-                'line' => $e->getLine()
-            ], 500);
+            Log::error('StatistiqueController@dashboard: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
