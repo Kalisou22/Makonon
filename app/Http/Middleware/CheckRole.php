@@ -16,10 +16,10 @@ class CheckRole
             return response()->json(['message' => 'Non authentifié'], 401);
         }
 
-        // ✅ Vérifier que l'utilisateur a un des rôles autorisés
         if (!in_array($user->role, $roles)) {
             return response()->json([
-                'message' => 'Accès non autorisé. Rôle requis: ' . implode(', ', $roles),
+                'message' => 'Accès non autorisé',
+                'required_roles' => $roles,
                 'user_role' => $user->role
             ], 403);
         }
