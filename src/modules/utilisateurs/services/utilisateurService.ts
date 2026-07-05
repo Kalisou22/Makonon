@@ -2,7 +2,6 @@ import { axiosInstance } from '../../../core/api/axiosInstance'
 import type { Utilisateur, CreateUtilisateurData, UtilisateurFilters } from '../types'
 
 export const utilisateurService = {
-  // Liste des utilisateurs (paginée)
   getUtilisateurs: (params?: UtilisateurFilters) =>
     axiosInstance.get<{
       data: Utilisateur[]
@@ -12,33 +11,52 @@ export const utilisateurService = {
       total: number
     }>('/utilisateurs', { params }),
 
-  // Récupérer un utilisateur par ID
   getUtilisateurById: (id: number) =>
     axiosInstance.get<{ data: Utilisateur }>(`/utilisateurs/${id}`),
 
-  // Créer un utilisateur
-  createUtilisateur: (data: CreateUtilisateurData) =>
-    axiosInstance.post<{ message: string; data: Utilisateur }>('/utilisateurs', {
+  createUtilisateur: (data: CreateUtilisateurData) => {
+    // Nettoyer les données avant envoi
+    const payload: any = {
       nom: data.nom,
       email: data.email,
       password: data.password,
       role: data.role,
-      agence_id: data.agence_id || null,
-      actif: data.actif ?? true
-    }),
+      actif: data.actif ?? true,
+    }
 
-  // Modifier un utilisateur
-  updateUtilisateur: (id: number, data: Partial<CreateUtilisateurData>) =>
-    axiosInstance.put<{ message: string; data: Utilisateur }>(`/utilisateurs/${id}`, {
+    // SUPERADMIN n'a pas d'agence
+    if (data.role !== 'SUPERADMIN' && data.agence_id) {
+      payload.agence_id = data.agence_id
+    } else {
+      payload.agence_id = null
+    }
+
+    console.log('📤 Payload création utilisateur:', payload)
+    return axiosInstance.post<{ message: string; data: Utilisateur }>('/utilisateurs', payload)
+  },
+
+  updateUtilisateur: (id: number, data: Partial<CreateUtilisateurData>) => {
+    const payload: any = {
       nom: data.nom,
       email: data.email,
-      password: data.password || undefined,
       role: data.role,
-      agence_id: data.agence_id || null,
-      actif: data.actif ?? true
-    }),
+      actif: data.actif ?? true,
+    }
 
-  // Supprimer un utilisateur
+    if (data.password) {
+      payload.password = data.password
+    }
+
+    if (data.role !== 'SUPERADMIN' && data.agence_id) {
+      payload.agence_id = data.agence_id
+    } else {
+      payload.agence_id = null
+    }
+
+    console.log('📤 Payload modification utilisateur:', payload)
+    return axiosInstance.put<{ message: string; data: Utilisateur }>(`/utilisateurs/${id}`, payload)
+  },
+
   deleteUtilisateur: (id: number) =>
     axiosInstance.delete<{ message: string }>(`/utilisateurs/${id}`),
 }

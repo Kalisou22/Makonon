@@ -31,15 +31,26 @@ export const useUtilisateur = (id: number) => {
 export const useCreateUtilisateur = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: CreateUtilisateurData) => utilisateurService.createUtilisateur(data),
-    onSuccess: () => {
+    mutationFn: (data: CreateUtilisateurData) => {
+      console.log('🔵 Mutation création utilisateur:', data)
+      return utilisateurService.createUtilisateur(data)
+    },
+    onSuccess: (response) => {
+      console.log('✅ Utilisateur créé:', response.data)
       queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
       toast.success('Utilisateur créé avec succès')
     },
     onError: (error: any) => {
       console.error('❌ Erreur création utilisateur:', error.response?.data)
       const message = error.response?.data?.message || 'Erreur lors de la création'
-      toast.error(message)
+      // Afficher les détails de validation si disponibles
+      const errors = error.response?.data?.errors
+      if (errors) {
+        const errorMessages = Object.values(errors).flat().join('\n')
+        toast.error(`Erreur de validation:\n${errorMessages}`)
+      } else {
+        toast.error(message)
+      }
     },
   })
 }
@@ -47,8 +58,10 @@ export const useCreateUtilisateur = () => {
 export const useUpdateUtilisateur = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<CreateUtilisateurData> }) =>
-      utilisateurService.updateUtilisateur(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<CreateUtilisateurData> }) => {
+      console.log('🔵 Mutation modification utilisateur:', { id, data })
+      return utilisateurService.updateUtilisateur(id, data)
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
       queryClient.invalidateQueries({ queryKey: ['utilisateur', variables.id] })
@@ -65,7 +78,10 @@ export const useUpdateUtilisateur = () => {
 export const useDeleteUtilisateur = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => utilisateurService.deleteUtilisateur(id),
+    mutationFn: (id: number) => {
+      console.log('🔵 Mutation suppression utilisateur:', id)
+      return utilisateurService.deleteUtilisateur(id)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
       toast.success('Utilisateur supprimé avec succès')

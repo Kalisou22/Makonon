@@ -64,7 +64,10 @@ export const useUpdateClient = () => {
 export const useDeleteClient = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => clientService.deleteClient(id),
+    mutationFn: (id: number) => {
+      console.log('🔵 Mutation suppression client:', id)
+      return clientService.deleteClient(id)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] })
       toast.success('Client supprimé avec succès')
@@ -72,7 +75,13 @@ export const useDeleteClient = () => {
     onError: (error: any) => {
       console.error('❌ Erreur suppression client:', error.response?.data)
       const message = error.response?.data?.message || 'Erreur lors de la suppression'
-      toast.error(message)
+      
+      // Si le client est lié à des transferts, message spécifique
+      if (error.response?.status === 422 || error.response?.status === 400) {
+        toast.error('Ce client ne peut pas être supprimé car il est lié à des transferts.')
+      } else {
+        toast.error(message)
+      }
     },
   })
 }

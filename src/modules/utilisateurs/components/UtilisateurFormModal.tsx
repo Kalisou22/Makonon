@@ -12,9 +12,9 @@ import type { Utilisateur } from '../types'
 const utilisateurSchema = z.object({
   nom: z.string().min(1, 'Nom requis'),
   email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Mot de passe minimum 6 caractères').optional().or(z.literal('')),
+  password: z.string().min(6, 'Mot de passe minimum 6 caractères'),
   role: z.string().min(1, 'Rôle requis'),
-  agence_id: z.number().optional().nullable(),
+  agence_id: z.number().nullable(),
   actif: z.boolean().default(true),
 })
 
@@ -59,6 +59,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
   })
 
   const selectedRole = watch('role')
+  const isSuperAdmin = selectedRole === 'SUPERADMIN'
 
   useEffect(() => {
     if (initialData) {
@@ -97,10 +98,22 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
 
   const handleFormSubmit = (data: UtilisateurFormData) => {
     console.log('📤 Envoi du formulaire utilisateur:', data)
-    const submitData = { ...data }
-    if (!submitData.password) {
+
+    // Pour SUPERADMIN, agence_id doit être null
+    const submitData = {
+      nom: data.nom,
+      email: data.email,
+      password: data.password,
+      role: data.role,
+      agence_id: data.role === 'SUPERADMIN' ? null : data.agence_id,
+      actif: data.actif,
+    }
+
+    // Si c'est une modification et que le mot de passe est vide, on le retire
+    if (initialData && !submitData.password) {
       delete submitData.password
     }
+
     onSubmit(submitData)
   }
 
@@ -123,7 +136,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
           />
           <Input
             label="Mot de passe"
-            placeholder={initialData ? 'Laisser vide pour conserver' : 'Mot de passe'}
+            placeholder={initialData ? 'Laisser vide pour conserver' : 'Mot de passe (min 6 caractères)'}
             type="password"
             {...register('password')}
             error={errors.password?.message}
@@ -134,26 +147,35 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
             onChange={(e) => {
               const value = e.target.value
               setValue('role', value)
+              if (value === 'SUPERADMIN') {
+                setValue('agence_id', null)
+              }
             }}
             options={roleOptions}
             error={errors.role?.message}
           />
-          {selectedRole && selectedRole !== 'SUPERADMIN' && (
-            <div className="md:col-span-2">
-              <Select
-                label="Agence"
-                value={watch('agence_id')?.toString() || ''}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setValue('agence_id', value ? parseInt(value) : null)
-                }}
-                options={agenceOptions}
-                error={errors.agence_id?.message}
-                disabled={agencesLoading}
-              />
-            </div>
-          )}
         </div>
+
+        {selectedRole && selectedRole !== 'SUPERADMIN' && (
+          <div>
+            <Select
+              label="Agence"
+              value={watch('agence_id')?.toString() || ''}
+              onChange={(e) => {
+                const value = e.target.value
+                setValue('agence_id', value ? parseInt(value) : null)
+              }}
+              options={agenceOptions}
+              error={errors.agence_id?.message}
+              disabled={agencesLoading}
+            />
+            {isSuperAdmin && (
+              <p className="mt-2 text-sm text-text-secondary">
+                Les Super Admins n'ont pas besoin d'être rattachés à une agence.
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">
