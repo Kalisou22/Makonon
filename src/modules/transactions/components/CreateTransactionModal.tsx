@@ -37,10 +37,9 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
     }
   }, [isOpen, refetch])
 
-  // Filtrer les agences disponibles
+  // ✅ Filtrer les agences disponibles (exclure l'agence de l'utilisateur)
   const agenceOptions = agences?.data
     ?.filter((agence: any) => {
-      // ✅ Ne pas montrer l'agence de l'utilisateur comme destination possible
       return agence.id !== userAgenceId
     })
     ?.map((agence: any) => ({
@@ -50,6 +49,12 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.agence_destinataire_id) {
+      alert('Veuillez sélectionner une agence de destination')
+      return
+    }
+
     const idempotency_key = `trf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     createMutation.mutate(
