@@ -17,6 +17,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navLinks = [
     { path: '/dashboard', label: 'TABLEAU DE BORD', icon: '📊', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/transactions', label: 'TRANSACTIONS', icon: '💰', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
+    { path: '/mouvements', label: 'MOUVEMENTS', icon: '💳', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE'] },
     { path: '/clients', label: 'CLIENTS', icon: '👤', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/agences', label: 'AGENCES', icon: '🏢', roles: ['SUPERADMIN', 'ADMIN'] },
     { path: '/utilisateurs', label: 'UTILISATEURS', icon: '👥', roles: ['SUPERADMIN', 'ADMIN'] },
