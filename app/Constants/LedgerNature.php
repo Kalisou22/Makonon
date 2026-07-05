@@ -31,3 +31,5 @@ class LedgerNature
         ];
     }
 }
+    public const DEPOT_CAISSE = 'DEPOT_CAISSE';
+    public const RETRAIT_CAISSE = 'RETRAIT_CAISSE';

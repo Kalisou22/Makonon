@@ -2,14 +2,14 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Utilisateur;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class UtilisateurSeeder extends Seeder
 {
     public function run()
     {
-        Utilisateur::create([
+        User::create([
             'nom' => 'Admin',
             'email' => 'admin@makonon.com',
             'password_hash' => Hash::make('admin123'),
@@ -18,7 +18,7 @@ class UtilisateurSeeder extends Seeder
             'actif' => true
         ]);
 
-        Utilisateur::create([
+        User::create([
             'nom' => 'Agent Conakry',
             'email' => 'agent1@makonon.com',
             'password_hash' => Hash::make('admin123'),
@@ -27,7 +27,7 @@ class UtilisateurSeeder extends Seeder
             'actif' => true
         ]);
 
-        Utilisateur::create([
+        User::create([
             'nom' => 'Agent Conakry 2',
             'email' => 'agent2@makonon.com',
             'password_hash' => Hash::make('admin123'),

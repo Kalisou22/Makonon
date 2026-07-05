@@ -6,9 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Agence extends Model
 {
+    protected $table = 'agences';
+
     protected $fillable = [
-        'code', 'nom', 'adresse', 'telephone', 'email', 
-        'responsable', 'devise', 'solde_cache', 'actif'
+        'code',
+        'nom',
+        'adresse',
+        'telephone',
+        'email',
+        'responsable',
+        'devise',
+        'solde_cache',
+        'actif'
     ];
 
     protected $casts = [
@@ -16,10 +25,6 @@ class Agence extends Model
         'actif' => 'boolean',
     ];
 
-    // ============================================================
-    // RELATIONS
-    // ============================================================
-    
     public function utilisateurs()
     {
         return $this->hasMany(User::class);

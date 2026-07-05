@@ -11,14 +11,25 @@ class CheckAgence
     public function handle(Request $request, Closure $next)
     {
         $user = Auth::user();
-        $agenceId = $request->route('agenceId');
 
         if (!$user) {
-            return response()->json(['message' => 'Non authentifié'], 401);
+            return response()->json([
+                'message' => 'Non authentifié'
+            ], 401);
         }
 
-        if ($user->role !== 'SUPERADMIN' && $user->agence_id != $agenceId) {
-            return response()->json(['message' => 'Accès non autorisé à cette agence'], 403);
+        // SUPERADMIN peut tout voir
+        if ($user->role === 'SUPERADMIN') {
+            return $next($request);
+        }
+
+        // Les autres ne voient que leur agence
+        $agenceId = $request->route('agenceId') ?? $request->input('agence_id');
+        
+        if ($agenceId && $user->agence_id != $agenceId) {
+            return response()->json([
+                'message' => 'Accès non autorisé à cette agence'
+            ], 403);
         }
 
         return $next($request);
