@@ -13,9 +13,17 @@ class AgenceController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 20);
-            $agences = Agence::whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE'])
-                ->paginate($perPage);
-
+            
+            // ✅ Filtrer les agences système pour les non-SUPERADMIN
+            $user = $request->user();
+            $query = Agence::query();
+            
+            if ($user && $user->role !== 'SUPERADMIN') {
+                $query->whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE']);
+            }
+            
+            $agences = $query->orderBy('id')->paginate($perPage);
+            
             return response()->json($agences);
         } catch (\Exception $e) {
             Log::error('Erreur AgenceController@index: ' . $e->getMessage());
@@ -88,14 +96,12 @@ class AgenceController extends Controller
         try {
             $agence = Agence::findOrFail($id);
 
-            // Empêcher la suppression des agences système
             if (in_array($agence->code, ['FRAIS', 'SYSTEM', 'CAISSE'])) {
                 return response()->json([
                     'message' => 'Impossible de supprimer une agence système'
                 ], 403);
             }
 
-            // Vérifier si l'agence a des transferts
             if ($agence->transfertsEnvois()->exists() || $agence->transfertsRetraits()->exists()) {
                 return response()->json([
                     'message' => 'Impossible de supprimer une agence qui a des transferts'
