@@ -1,15 +1,15 @@
-import React from 'react';
-import { Table } from '../../../components/ui/Table';
-import { StatusBadge } from '../../../components/ui/StatusBadge';
-import { Button } from '../../../components/ui/Button';
-import type { Transaction } from '../types';
+import React from 'react'
+import { Table } from '../../../components/ui/Table'
+import { StatusBadge } from '../../../components/ui/StatusBadge'
+import { Button } from '../../../components/ui/Button'
+import type { Transaction } from '../types'
 
 interface TransactionTableProps {
-  data: Transaction[];
-  isLoading: boolean;
-  onWithdraw?: (code: string) => void;
-  onCancel?: (code: string) => void;
-  onView?: (transaction: Transaction) => void;
+  data: Transaction[]
+  isLoading: boolean
+  onWithdraw?: (code: string) => void
+  onCancel?: (code: string) => void
+  onView?: (transaction: Transaction) => void
 }
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({
@@ -19,17 +19,20 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   onCancel,
   onView,
 }) => {
-  const formatMontant = (montant: number) => montant?.toLocaleString('fr-FR') + ' GNF' || '0 GNF';
+  const formatMontant = (montant: number) => {
+    return montant?.toLocaleString('fr-FR') + ' GNF' || '0 GNF'
+  }
+
   const formatDate = (date: string) => {
-    if (!date) return '-';
+    if (!date) return '-'
     return new Date(date).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
-  };
+    })
+  }
 
   const getStatusVariant = (statut: string) => {
     const map: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
@@ -38,39 +41,47 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       RETIRE: 'success',
       ANNULE: 'danger',
       EXPIRE: 'default',
-    };
-    return map[statut] || 'info';
-  };
+    }
+    return map[statut] || 'info'
+  }
 
-  console.log('📊 TransactionTable data:', data);
+  console.log('📊 TransactionTable data:', data)
 
   const columns = [
     {
       key: 'code',
       header: 'Code',
-      render: (item: Transaction) => <span className="font-mono text-sm font-medium">{item.code}</span>,
+      render: (item: Transaction) => (
+        <span className="font-mono text-sm font-bold text-primary">{item.code}</span>
+      ),
     },
     {
       key: 'montant',
       header: 'Montant',
-      render: (item: Transaction) => formatMontant(item.montant),
+      render: (item: Transaction) => (
+        <span className="font-bold text-gray-900">{formatMontant(item.montant)}</span>
+      ),
       align: 'right' as const,
     },
     {
       key: 'frais',
       header: 'Frais',
-      render: (item: Transaction) => formatMontant(item.frais),
+      render: (item: Transaction) => <span className="text-gray-700">{formatMontant(item.frais)}</span>,
       align: 'right' as const,
     },
     {
       key: 'expediteur',
       header: 'Expéditeur',
-      render: (item: Transaction) => item.expediteur?.nom || '-',
+      render: (item: Transaction) => (
+        <span className="text-gray-900">{item.expediteur?.nom || '-'}</span>
+      ),
     },
     {
       key: 'beneficiaire',
       header: 'Bénéficiaire',
-      render: (item: Transaction) => item.beneficiaire?.nom || '-',
+      render: (item: Transaction) => (
+        <span className="text-gray-900">{item.beneficiaire?.nom || '-'}</span>
+      ),
     },
     {
       key: 'statut',
@@ -83,14 +94,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     {
       key: 'date_envoi',
       header: 'Date envoi',
-      render: (item: Transaction) => formatDate(item.date_envoi),
+      render: (item: Transaction) => <span className="text-gray-700">{formatDate(item.date_envoi)}</span>,
       align: 'center' as const,
     },
     {
       key: 'actions',
       header: 'Actions',
       render: (item: Transaction) => (
-        <div className="flex gap-2 justify-center">
+        <div className="flex gap-2 justify-center flex-wrap">
           {item.statut === 'ENVOYE' && (
             <>
               <Button variant="success" size="sm" onClick={() => onWithdraw?.(item.code)}>
@@ -110,7 +121,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       ),
       align: 'center' as const,
     },
-  ];
+  ]
 
-  return <Table columns={columns} data={data} isLoading={isLoading} emptyMessage="Aucune transaction trouvée" />;
-};
+  return (
+    <Table
+      columns={columns}
+      data={data}
+      isLoading={isLoading}
+      emptyMessage="Aucune transaction trouvée"
+    />
+  )
+}
+
+export default TransactionTable

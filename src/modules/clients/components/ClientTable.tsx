@@ -1,64 +1,64 @@
-import React from 'react';
-import { Table } from '../../../components/ui/Table';
-import { Button } from '../../../components/ui/Button';
-import type { Client } from '../types';
+import React from 'react'
+import { Table } from '../../../components/ui/Table'
+import { Button } from '../../../components/ui/Button'
+import type { Client } from '../types'
 
 interface ClientTableProps {
-  data: Client[];
-  isLoading: boolean;
-  onEdit: (client: Client) => void;
-  onDelete: (id: number) => void;
+  data: Client[]
+  isLoading: boolean
+  onEdit: (client: Client) => void
+  onDelete: (id: number) => void
 }
 
 export const ClientTable: React.FC<ClientTableProps> = ({ data, isLoading, onEdit, onDelete }) => {
-  console.log('📊 ClientTable data:', data);
+  console.log('📊 ClientTable data:', data)
 
   const formatDate = (date: string) => {
-    if (!date) return '-';
+    if (!date) return '-'
     return new Date(date).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
-    });
-  };
+    })
+  }
 
   const columns = [
     {
       key: 'nom',
       header: 'Nom',
-      render: (item: Client) => <span className="font-medium">{item.nom}</span>,
+      render: (item: Client) => <span className="font-medium text-gray-900">{item.nom}</span>,
     },
     {
       key: 'telephone',
       header: 'Téléphone',
-      render: (item: Client) => item.telephone,
+      render: (item: Client) => <span className="font-mono text-sm text-gray-700">{item.telephone}</span>,
     },
     {
       key: 'email',
       header: 'Email',
-      render: (item: Client) => item.email || '-',
+      render: (item: Client) => <span className="text-gray-700">{item.email || '-'}</span>,
     },
     {
       key: 'piece_identite',
       header: 'Pièce',
-      render: (item: Client) => item.piece_identite || '-',
+      render: (item: Client) => <span className="text-gray-700">{item.piece_identite || '-'}</span>,
     },
     {
       key: 'numero_piece',
       header: 'N° Pièce',
-      render: (item: Client) => item.numero_piece || '-',
+      render: (item: Client) => <span className="text-gray-700">{item.numero_piece || '-'}</span>,
     },
     {
       key: 'created_at',
       header: 'Création',
-      render: (item: Client) => formatDate(item.created_at),
+      render: (item: Client) => <span className="text-gray-700">{formatDate(item.created_at)}</span>,
       align: 'center' as const,
     },
     {
       key: 'actions',
       header: 'Actions',
       render: (item: Client) => (
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center">
           <Button variant="primary" size="sm" onClick={() => onEdit(item)}>
             Modifier
           </Button>
@@ -69,7 +69,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({ data, isLoading, onEdi
       ),
       align: 'center' as const,
     },
-  ];
+  ]
 
   return (
     <Table
@@ -78,5 +78,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({ data, isLoading, onEdi
       isLoading={isLoading}
       emptyMessage="Aucun client trouvé"
     />
-  );
-};
+  )
+}
+
+export default ClientTable
