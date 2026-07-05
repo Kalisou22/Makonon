@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal } from '../../../components/ui/Modal'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
@@ -6,6 +6,7 @@ import { Select } from '../../../components/ui/Select'
 import { useCreateTransaction } from '../hooks/useTransactions'
 import { useAgencyStore } from '../../../store/agencyStore'
 import { useAgences } from '../../agences/hooks/useAgences'
+import { useAuthStore } from '../../../store/authStore'
 
 interface CreateTransactionModalProps {
   isOpen: boolean
@@ -23,15 +24,29 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
   })
 
   const { agencyId } = useAgencyStore()
+  const { user } = useAuthStore()
   const createMutation = useCreateTransaction()
-  const { data: agences, isLoading: agencesLoading } = useAgences({ per_page: 100 })
+  const { data: agences, isLoading: agencesLoading, refetch } = useAgences({ per_page: 100 })
 
-  const defaultAgenceId = agencyId || agences?.data?.[0]?.id || 4
+  // ✅ Récupérer l'agence de l'utilisateur
+  const userAgenceId = user?.agence_id || agencyId
 
-  const agenceOptions = agences?.data?.map((agence) => ({
-    value: String(agence.id),
-    label: `${agence.code} - ${agence.nom}`,
-  })) || []
+  useEffect(() => {
+    if (isOpen) {
+      refetch()
+    }
+  }, [isOpen, refetch])
+
+  // Filtrer les agences disponibles
+  const agenceOptions = agences?.data
+    ?.filter((agence: any) => {
+      // ✅ Ne pas montrer l'agence de l'utilisateur comme destination possible
+      return agence.id !== userAgenceId
+    })
+    ?.map((agence: any) => ({
+      value: String(agence.id),
+      label: `${agence.code} - ${agence.nom}`
+    })) || []
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,7 +59,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
         nom_beneficiaire: formData.nom_beneficiaire,
         telephone_beneficiaire: formData.telephone_beneficiaire,
         montant: parseFloat(formData.montant),
-        agence_envoi_id: defaultAgenceId,
+        agence_envoi_id: userAgenceId || 0,
         agence_destinataire_id: parseInt(formData.agence_destinataire_id),
         idempotency_key,
       },
@@ -133,7 +148,10 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
         </div>
 
         <div className="text-sm text-text-secondary bg-filter-bg p-3 rounded-lg">
-          Agence d'envoi : <span className="font-semibold text-primary">{defaultAgenceId}</span> (automatique)
+          Agence d'envoi : <span className="font-semibold text-primary">{userAgenceId || 'Non définie'}</span>
+          {user?.role === 'SUPERADMIN' && (
+            <span className="ml-2 text-xs text-warning">(SUPERADMIN - vous pouvez envoyer depuis n'importe quelle agence)</span>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-border">
