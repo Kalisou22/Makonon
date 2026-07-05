@@ -7,8 +7,9 @@ import { RecentActivity } from '../components/RecentActivity'
 export const DashboardPage: React.FC = () => {
   const { data: stats, isLoading } = useDashboardStats()
 
-  console.log('📊 Dashboard stats (raw):', stats)
+  console.log('📊 Dashboard stats (transformées):', stats)
 
+  // Données pour les cartes principales
   const statsData = {
     total_transferts: stats?.total_transferts || 0,
     total_clients: stats?.total_clients || 0,
@@ -16,6 +17,7 @@ export const DashboardPage: React.FC = () => {
     total_utilisateurs: stats?.total_utilisateurs || 0,
   }
 
+  // Données pour les mini-cartes
   const miniStats = {
     solde_agence: stats?.solde_agence || 0,
     transferts_jour: stats?.volume_journalier || 0,
