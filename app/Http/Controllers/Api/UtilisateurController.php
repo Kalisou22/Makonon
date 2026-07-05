@@ -7,18 +7,17 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 
 class UtilisateurController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $perPage = $request->input('per_page', 20);
+            $perPage = (int) $request->input('per_page', 20);
             $users = User::with('agence')->paginate($perPage);
             return response()->json($users);
         } catch (\Exception $e) {
-            Log::error('Erreur UtilisateurController@index: ' . $e->getMessage());
+            Log::error('Erreur UtilisateurController@index: ' . $e->getMessage() . ' - Ligne: ' . $e->getLine());
             return response()->json([
                 'message' => 'Erreur lors de la récupération des utilisateurs',
                 'error' => $e->getMessage()
@@ -53,7 +52,6 @@ class UtilisateurController extends Controller
                 'message' => 'Utilisateur créé avec succès',
                 'data' => $user->load('agence')
             ], 201);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Erreur de validation',
@@ -82,43 +80,19 @@ class UtilisateurController extends Controller
     {
         try {
             $user = User::findOrFail($id);
+            $data = $request->all();
 
-            $rules = [
-                'nom' => 'sometimes|string|max:255',
-                'email' => 'sometimes|email|unique:utilisateurs,email,' . $id,
-                'role' => 'sometimes|string|in:SUPERADMIN,ADMIN,RESPONSABLE,AGENT',
-                'agence_id' => 'nullable|exists:agences,id',
-                'actif' => 'boolean'
-            ];
-
-            if ($request->has('password') && !empty($request->password)) {
-                $rules['password'] = 'string|min:8';
+            if (isset($data['password']) && !empty($data['password'])) {
+                $data['password_hash'] = Hash::make($data['password']);
             }
+            unset($data['password']);
 
-            $validated = $request->validate($rules);
-
-            $userData = [];
-            if (isset($validated['nom'])) $userData['nom'] = $validated['nom'];
-            if (isset($validated['email'])) $userData['email'] = $validated['email'];
-            if (isset($validated['role'])) $userData['role'] = $validated['role'];
-            if (isset($validated['agence_id'])) $userData['agence_id'] = $validated['agence_id'];
-            if (isset($validated['actif'])) $userData['actif'] = $validated['actif'];
-            if (isset($validated['password']) && !empty($validated['password'])) {
-                $userData['password_hash'] = Hash::make($validated['password']);
-            }
-
-            $user->update($userData);
+            $user->update($data);
 
             return response()->json([
                 'message' => 'Utilisateur mis à jour avec succès',
                 'data' => $user->load('agence')
             ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
             Log::error('Erreur UtilisateurController@update: ' . $e->getMessage());
             return response()->json([
@@ -133,7 +107,6 @@ class UtilisateurController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            // Empêcher la suppression du SUPERADMIN
             if ($user->role === 'SUPERADMIN') {
                 return response()->json([
                     'message' => 'Impossible de supprimer le compte SUPERADMIN'
@@ -145,7 +118,6 @@ class UtilisateurController extends Controller
             return response()->json([
                 'message' => 'Utilisateur supprimé avec succès'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Erreur UtilisateurController@destroy: ' . $e->getMessage());
             return response()->json([
