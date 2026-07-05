@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { useAgencyStore } from '../../store/agencyStore';
-import { useAuthStore } from '../../store/authStore';
+import axios from 'axios'
+import { useAgencyStore } from '../../store/agencyStore'
+import { useAuthStore } from '../../store/authStore'
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://localhost:8000/api'
 
 export const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -12,40 +12,64 @@ export const axiosInstance = axios.create({
   },
   withCredentials: true,
   timeout: 30000,
-});
+})
 
+// ===== INTERCEPTEUR REQUÊTE =====
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Récupérer le token depuis localStorage
-    const token = localStorage.getItem('token');
+    // 1. Récupérer le token depuis localStorage
+    const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log('✅ Token ajouté à la requête:', config.url);
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    // 2. Récupérer l'agence depuis le store (persisté)
+    const agencyId = useAgencyStore.getState().agencyId
+
+    // 3. Si pas d'agence dans agencyStore, essayer depuis authStore
+    if (!agencyId) {
+      const user = useAuthStore.getState().user
+      if (user?.agence?.id) {
+        // Mettre à jour agencyStore automatiquement
+        useAgencyStore.getState().setAgency(user.agence.id, user.agence.nom)
+        config.headers['X-Agency-ID'] = String(user.agence.id)
+      } else if (user?.agence_id) {
+        useAgencyStore.getState().setAgency(user.agence_id, 'Agence')
+        config.headers['X-Agency-ID'] = String(user.agence_id)
+      }
     } else {
-      console.warn('⚠️ Pas de token trouvé pour:', config.url);
+      config.headers['X-Agency-ID'] = String(agencyId)
     }
-    
-    const agencyId = useAgencyStore.getState().agencyId;
-    if (agencyId) {
-      config.headers['X-Agency-ID'] = String(agencyId);
-    }
-    return config;
+
+    console.log(`📤 [${config.method?.toUpperCase()}] ${config.url}`, {
+      token: !!token,
+      agencyId: config.headers['X-Agency-ID'],
+    })
+
+    return config
   },
   (error) => Promise.reject(error)
-);
+)
 
+// ===== INTERCEPTEUR RÉPONSE =====
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log('✅ Réponse reçue:', response.config.url, response.status);
-    return response;
+    console.log(`✅ [${response.status}] ${response.config.url}`)
+    return response
   },
   async (error) => {
-    console.error('❌ Erreur API:', error.response?.status, error.response?.data);
+    console.error(`❌ [${error.response?.status}] ${error.config?.url}`, error.response?.data)
+
+    // Si 401 Unauthorized → déconnexion
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+      localStorage.removeItem('token')
+      useAuthStore.getState().logout()
+      useAgencyStore.getState().clearAgency()
+      window.location.href = '/login'
     }
-    return Promise.reject(error);
+
+    return Promise.reject(error)
   }
-);
+)
+
+export default axiosInstance
