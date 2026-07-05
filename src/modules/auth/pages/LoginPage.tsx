@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '../hooks/useAuth'
+import { agenceService } from '../../agences/services/agenceService'
+import type { Agence } from '../../agences/types'
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -14,6 +16,9 @@ type LoginFormData = z.infer<typeof loginSchema>
 export const LoginPage: React.FC = () => {
   const { login, isLoading } = useAuth()
   const [error, setError] = useState<string | null>(null)
+  const [agences, setAgences] = useState<Agence[]>([])
+  const [selectedAgenceId, setSelectedAgenceId] = useState<number | null>(null)
+  const [isLoadingAgences, setIsLoadingAgences] = useState(true)
 
   const {
     register,
@@ -21,22 +26,50 @@ export const LoginPage: React.FC = () => {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: 'admin@makonon.com',
+      password: 'admin123',
+    },
   })
+
+  useEffect(() => {
+    const loadAgences = async () => {
+      try {
+        setIsLoadingAgences(true)
+        const response = await agenceService.getAgences({ per_page: 100 })
+        const agencesList = response.data.data || []
+        // Filtrer les agences système (FRAIS, SYSTEM, CAISSE)
+        const filtered = agencesList.filter((a: Agence) => 
+          !['FRAIS', 'SYSTEM', 'CAISSE'].includes(a.code)
+        )
+        setAgences(filtered)
+        if (filtered.length > 0) {
+          setSelectedAgenceId(filtered[0].id)
+        }
+      } catch (e) {
+        console.error('Erreur chargement agences:', e)
+      } finally {
+        setIsLoadingAgences(false)
+      }
+    }
+    loadAgences()
+  }, [])
 
   const onSubmit = (data: LoginFormData) => {
     setError(null)
+
+    // Si une agence est sélectionnée, on ajoute l'info à l'utilisateur
+    // Le backend utilisera l'agence_id de l'utilisateur
     login(data, {
       onError: (err: any) => {
         setError(err.response?.data?.message || 'Identifiants incorrects')
-      }
+      },
     })
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg">
-      {/* ===== CARTE DE CONNEXION ===== */}
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8 border border-border">
-        {/* Logo */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-black text-primary tracking-wider">
             MAKONON
@@ -47,14 +80,12 @@ export const LoginPage: React.FC = () => {
           <p className="text-text-secondary text-xs mt-4">Connexion sécurisée</p>
         </div>
 
-        {/* Message d'erreur */}
         {error && (
           <div className="mb-4 p-3 bg-danger/10 border border-danger rounded-lg text-danger text-sm text-center font-medium">
             {error}
           </div>
         )}
 
-        {/* Formulaire */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -70,9 +101,7 @@ export const LoginPage: React.FC = () => {
               `}
               placeholder="exemple@email.com"
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-danger">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="mt-1 text-sm text-danger">{errors.email.message}</p>}
           </div>
 
           <div>
@@ -89,12 +118,38 @@ export const LoginPage: React.FC = () => {
               `}
               placeholder="••••••••"
             />
-            {errors.password && (
-              <p className="mt-1 text-sm text-danger">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="mt-1 text-sm text-danger">{errors.password.message}</p>}
           </div>
 
-          {/* Lien mot de passe oublié */}
+          {/* Sélecteur d'agence */}
+          {!isLoadingAgences && agences.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Agence
+              </label>
+              <select
+                value={selectedAgenceId || ''}
+                onChange={(e) => setSelectedAgenceId(Number(e.target.value))}
+                className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm text-gray-900 transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                {agences.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.code} - {a.nom}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-text-secondary">
+                Sélectionnez l'agence avec laquelle vous voulez travailler.
+              </p>
+            </div>
+          )}
+
+          {isLoadingAgences && (
+            <div className="text-center text-sm text-text-secondary">
+              Chargement des agences...
+            </div>
+          )}
+
           <div className="text-right">
             <button
               type="button"
@@ -120,7 +175,6 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Version */}
         <div className="mt-6 text-center text-xs text-text-secondary">
           v2.0.0 © 2026
         </div>
