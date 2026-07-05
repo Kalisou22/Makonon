@@ -48,6 +48,16 @@ export const AgenceTable: React.FC<AgenceTableProps> = ({ data, isLoading, onEdi
       align: 'right' as const,
     },
     {
+      key: 'caisse',
+      header: 'Caisse',
+      render: (item: Agence) => (
+        <span className="text-gray-700">
+          {item.caisse ? '✅' : '❌'}
+        </span>
+      ),
+      align: 'center' as const,
+    },
+    {
       key: 'actif',
       header: 'Statut',
       render: (item: Agence) => (
