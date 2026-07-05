@@ -14,6 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const isActive = (path: string) => location.pathname === path
 
+  // ✅ Navigation basée sur le rôle du backend (source de vérité)
   const navLinks = [
     { path: '/dashboard', label: 'TABLEAU DE BORD', icon: '📊', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/transactions', label: 'TRANSACTIONS', icon: '💰', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
@@ -24,13 +25,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/audit', label: 'JOURNAL', icon: '📋', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE'] },
   ]
 
+  // ✅ Filtrer les liens en fonction du rôle de l'utilisateur
   const visibleLinks = navLinks.filter(link => link.roles.includes(user?.role || ''))
 
   return (
     <div className="min-h-screen bg-bg flex">
       {/* ===== SIDEBAR ===== */}
       <aside className="w-64 min-h-screen bg-[#222D32] flex-shrink-0 flex flex-col">
-        {/* Logo */}
         <div className="py-6 text-center border-b border-[#3A4A52]">
           <h1 className="text-[#0078C8] text-xl font-black tracking-wider">
             MAKONON
@@ -40,7 +41,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </p>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1">
           {visibleLinks.map((link) => (
             <Link
@@ -60,7 +60,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           ))}
         </nav>
 
-        {/* Footer Sidebar */}
         <div className="p-4 border-t border-[#3A4A52]">
           <div className="text-xs text-[#8A9BA5] text-center">
             v2.0.0 © 2026
@@ -70,13 +69,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* ===== MAIN CONTENT ===== */}
       <div className="flex-1 flex flex-col min-h-screen">
-        {/* ===== HEADER ===== */}
         <header className="bg-gradient-to-r from-primary to-primary-light text-white shadow-lg">
           <div className="flex justify-between items-center px-6 py-3">
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium opacity-75">
-                {user?.agenceId ? `Agence #${user.agenceId}` : 'Siège'}
+                {user?.agence_id ? `Agence #${user.agence_id}` : 'Siège'}
               </span>
+              {/* ✅ Afficher l'agence réelle depuis le backend */}
+              {user?.agence && (
+                <span className="text-xs opacity-60">
+                  {user.agence.nom}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium">
@@ -92,7 +96,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* ===== PAGE CONTENT ===== */}
         <main className="flex-1 p-6">
           {children}
         </main>

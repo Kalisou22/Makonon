@@ -26,14 +26,17 @@ export const useAuth = () => {
       // Stocker le token
       localStorage.setItem('token', data.token)
 
-      // Mettre à jour authStore
-      setAuth(data.user, data.token)
+      // ✅ SOURCE DE VÉRITÉ = user du backend
+      const user = data.user
+      setAuth(user, data.token)
 
-      // Mettre à jour agencyStore
-      if (data.user.agence) {
-        setAgency(data.user.agence.id, data.user.agence.nom)
-      } else if (data.user.agence_id) {
-        setAgency(data.user.agence_id, 'Agence')
+      // ✅ Synchronisation automatique avec agencyStore
+      if (user.agence) {
+        setAgency(user.agence.id, user.agence.nom)
+      } else if (user.agence_id) {
+        setAgency(user.agence_id, 'Agence')
+      } else {
+        clearAgency()
       }
 
       toast.success(data.message || 'Connexion réussie')

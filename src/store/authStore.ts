@@ -30,20 +30,32 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       setAuth: (user, token) => {
         localStorage.setItem('token', token)
-        // Si l'utilisateur a une agence, la stocker dans agencyStore
+
+        // ✅ Synchronisation automatique avec agencyStore
         if (user.agence?.id) {
           const { setAgency } = require('./agencyStore').useAgencyStore.getState()
           setAgency(user.agence.id, user.agence.nom)
         } else if (user.agence_id) {
           const { setAgency } = require('./agencyStore').useAgencyStore.getState()
           setAgency(user.agence_id, 'Agence')
+        } else {
+          const { clearAgency } = require('./agencyStore').useAgencyStore.getState()
+          clearAgency()
         }
+
         set({ user, token, isAuthenticated: true })
       },
       setUser: (user) => {
+        // ✅ Synchronisation automatique avec agencyStore
         if (user.agence?.id) {
           const { setAgency } = require('./agencyStore').useAgencyStore.getState()
           setAgency(user.agence.id, user.agence.nom)
+        } else if (user.agence_id) {
+          const { setAgency } = require('./agencyStore').useAgencyStore.getState()
+          setAgency(user.agence_id, 'Agence')
+        } else {
+          const { clearAgency } = require('./agencyStore').useAgencyStore.getState()
+          clearAgency()
         }
         set({ user })
       },
