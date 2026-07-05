@@ -13,14 +13,14 @@ class CheckRole
         $user = Auth::user();
 
         if (!$user) {
-            return response()->json(["message" => "Non authentifié"], 401);
+            return response()->json(['message' => 'Non authentifié'], 401);
         }
 
         if (!in_array($user->role, $roles)) {
             return response()->json([
-                "message" => "Accès non autorisé",
-                "required_roles" => $roles,
-                "user_role" => $user->role
+                'message' => 'Accès non autorisé',
+                'required_roles' => $roles,
+                'user_role' => $user->role
             ], 403);
         }
 
