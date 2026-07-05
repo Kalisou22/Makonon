@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useTransactions, useWithdrawTransaction, useCancelTransaction, useSoldeAgence } from '../hooks/useTransactions'
 import { TransactionTable } from '../components/TransactionTable'
 import { CreateTransactionModal } from '../components/CreateTransactionModal'
@@ -6,12 +6,14 @@ import { Button } from '../../../components/ui/Button'
 import { Card, CardHeader, CardBody } from '../../../components/ui/Card'
 import { SearchBar } from '../../../components/ui/SearchBar'
 import { Select } from '../../../components/ui/Select'
+import { useAuthStore } from '../../../store/authStore'
 
 export const TransactionsPage: React.FC = () => {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const { user } = useAuthStore()
 
   const filters: any = { page, per_page: 20 }
   if (statusFilter) filters.statut = statusFilter
@@ -21,18 +23,28 @@ export const TransactionsPage: React.FC = () => {
   const withdrawMutation = useWithdrawTransaction()
   const cancelMutation = useCancelTransaction()
 
-  console.log('📊 Transactions data:', data)
+  useEffect(() => {
+    refetch()
+  }, [refetch])
 
   const handleWithdraw = (code: string) => {
     if (window.confirm('Confirmer le retrait de ce transfert ?')) {
-      withdrawMutation.mutate(code)
+      withdrawMutation.mutate(code, {
+        onSuccess: () => {
+          refetch()
+        }
+      })
     }
   }
 
   const handleCancel = (code: string) => {
     const motif = window.prompt("Motif de l'annulation :")
     if (motif !== null) {
-      cancelMutation.mutate({ code, motif: motif || undefined })
+      cancelMutation.mutate({ code, motif: motif || undefined }, {
+        onSuccess: () => {
+          refetch()
+        }
+      })
     }
   }
 
@@ -48,6 +60,17 @@ export const TransactionsPage: React.FC = () => {
     { value: 'RETIRE', label: 'Retiré' },
     { value: 'ANNULE', label: 'Annulé' },
   ]
+
+  // ✅ Filtrer les transactions pour l'agence de l'utilisateur
+  const filteredData = data?.data?.filter((t: any) => {
+    if (user?.role !== 'SUPERADMIN' && user?.agence_id) {
+      return t.agence_envoi_id === user.agence_id || t.agence_retrait_id === user.agence_id
+    }
+    return true
+  }) || []
+
+  console.log('📊 TransactionsPage - user:', user)
+  console.log('📊 TransactionsPage - filteredData:', filteredData)
 
   return (
     <div className="space-y-6">
@@ -87,10 +110,12 @@ export const TransactionsPage: React.FC = () => {
         </CardHeader>
         <CardBody>
           <TransactionTable
-            data={data?.data || []}
+            data={filteredData}
             isLoading={isLoading}
             onWithdraw={handleWithdraw}
             onCancel={handleCancel}
+            userAgenceId={user?.agence_id}
+            userRole={user?.role}
           />
 
           {data && data.last_page > 1 && (
@@ -123,7 +148,10 @@ export const TransactionsPage: React.FC = () => {
 
       <CreateTransactionModal
         isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); refetch() }}
+        onClose={() => {
+          setIsModalOpen(false)
+          refetch()
+        }}
       />
     </div>
   )

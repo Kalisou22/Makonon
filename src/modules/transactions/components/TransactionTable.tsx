@@ -51,29 +51,37 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
   // ✅ Vérifier si l'utilisateur peut retirer ce transfert
   const canWithdraw = (item: Transaction) => {
+    // ✅ SUPERADMIN peut tout retirer
     if (userRole === 'SUPERADMIN') return true
+    
     // ✅ L'utilisateur doit appartenir à l'agence de retrait
     // ✅ Le statut doit être ENVOYE (disponible pour retrait)
-    return userAgenceId === item.agence_retrait_id && item.statut === 'ENVOYE'
+    // ✅ Le transfert ne doit pas déjà être retiré ou annulé
+    return userAgenceId === item.agence_retrait_id && 
+           item.statut === 'ENVOYE'
   }
 
   // ✅ Vérifier si l'utilisateur peut annuler ce transfert
   const canCancel = (item: Transaction) => {
+    // ✅ SUPERADMIN peut tout annuler
     if (userRole === 'SUPERADMIN') return true
+    
     // ✅ L'utilisateur doit appartenir à l'agence d'envoi
     // ✅ Le statut doit être ENVOYE (pas encore retiré)
-    return userAgenceId === item.agence_envoi_id && item.statut === 'ENVOYE'
+    // ✅ Le transfert ne doit pas déjà être retiré ou annulé
+    return userAgenceId === item.agence_envoi_id && 
+           item.statut === 'ENVOYE'
   }
 
   // ✅ Déterminer le statut affiché en fonction de l'agence
   const getDisplayStatus = (item: Transaction) => {
     // ✅ Pour l'agence de destination, ENVOYE s'affiche comme EN ATTENTE
     if (userAgenceId === item.agence_retrait_id && item.statut === 'ENVOYE') {
-      return { label: 'En attente', variant: 'warning' }
+      return { label: 'En attente', variant: 'warning' as const }
     }
     // ✅ Pour l'agence d'envoi, ENVOYE s'affiche comme ENVOYÉ
     if (userAgenceId === item.agence_envoi_id && item.statut === 'ENVOYE') {
-      return { label: 'Envoyé', variant: 'info' }
+      return { label: 'Envoyé', variant: 'info' as const }
     }
     // ✅ Pour les autres statuts
     const statusMap: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'info' | 'default' }> = {
@@ -87,6 +95,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   }
 
   console.log('📊 TransactionTable data:', data)
+  console.log('📊 userAgenceId:', userAgenceId)
+  console.log('📊 userRole:', userRole)
 
   const columns = [
     {
@@ -145,6 +155,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       render: (item: Transaction) => {
         const showWithdraw = canWithdraw(item)
         const showCancel = canCancel(item)
+
+        console.log('Actions pour transfert:', {
+          code: item.code,
+          statut: item.statut,
+          userAgenceId,
+          agence_retrait_id: item.agence_retrait_id,
+          agence_envoi_id: item.agence_envoi_id,
+          showWithdraw,
+          showCancel
+        })
 
         return (
           <div className="flex gap-2 justify-center flex-wrap">
