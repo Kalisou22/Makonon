@@ -14,11 +14,10 @@ export const TransactionsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const filters = {
-    page,
-    per_page: perPage,
-    ...(statusFilter && { statut: statusFilter as 'ENVOYE' | 'RETIRE' | 'ANNULE' }),
-  };
+  const filters: any = {};
+  if (page) filters.page = page;
+  if (perPage) filters.per_page = perPage;
+  if (statusFilter) filters.statut = statusFilter;
 
   const { data, isLoading, refetch } = useTransactions(filters);
   const { data: solde } = useSoldeAgence();
@@ -47,6 +46,7 @@ export const TransactionsPage: React.FC = () => {
 
   const statusOptions = [
     { value: '', label: 'Tous les statuts' },
+    { value: 'EN_ATTENTE', label: 'En attente' },
     { value: 'ENVOYE', label: 'Envoyé' },
     { value: 'RETIRE', label: 'Retiré' },
     { value: 'ANNULE', label: 'Annulé' },

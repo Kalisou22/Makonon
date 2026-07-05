@@ -5,12 +5,14 @@ interface StatsMiniCardsProps {
   stats: {
     solde_agence: number;
     transferts_jour: number;
-    clients_jour: number;
+    transferts_attente: number;
   };
   isLoading?: boolean;
 }
 
 export const StatsMiniCards: React.FC<StatsMiniCardsProps> = ({ stats, isLoading = false }) => {
+  console.log('📊 StatsMiniCards:', stats);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -25,8 +27,8 @@ export const StatsMiniCards: React.FC<StatsMiniCardsProps> = ({ stats, isLoading
 
   const items = [
     { label: 'Solde agence', value: stats.solde_agence || 0, format: 'GNF' },
-    { label: 'Transferts aujourd\'hui', value: stats.transferts_jour || 0, format: '' },
-    { label: 'Clients aujourd\'hui', value: stats.clients_jour || 0, format: '' },
+    { label: 'Volume journalier', value: stats.transferts_jour || 0, format: '' },
+    { label: 'En attente', value: stats.transferts_attente || 0, format: '' },
   ];
 
   return (
@@ -37,7 +39,7 @@ export const StatsMiniCards: React.FC<StatsMiniCardsProps> = ({ stats, isLoading
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.label}</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">
               {item.format === 'GNF' 
-                ? item.value.toLocaleString('fr-FR') + ' GNF'
+                ? Number(item.value).toLocaleString('fr-FR') + ' GNF'
                 : item.value
               }
             </p>

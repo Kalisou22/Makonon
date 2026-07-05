@@ -6,19 +6,9 @@ export const useDashboardStats = () => {
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       const response = await dashboardService.getDashboardStats();
+      console.log('📥 Dashboard stats:', response.data);
       return response.data;
     },
     staleTime: 60000,
-  });
-};
-
-export const useRecentActivity = (limit: number = 10) => {
-  return useQuery({
-    queryKey: ['recent-activity', limit],
-    queryFn: async () => {
-      const response = await dashboardService.getRecentActivity(limit);
-      return response.data.data || [];
-    },
-    staleTime: 30000,
   });
 };

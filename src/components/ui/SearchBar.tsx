@@ -1,10 +1,10 @@
-import React from 'react';
+import React from 'react'
 
 interface SearchBarProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  className?: string;
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  className?: string
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -20,12 +20,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md 
-                   bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-full rounded-lg border border-border bg-white px-4 py-2.5 pl-10 text-sm text-gray-900 transition-all duration-200 placeholder:text-text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       />
       <svg
-        className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+        className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-secondary"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -38,5 +36,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         />
       </svg>
     </div>
-  );
-};
+  )
+}
+
+export default SearchBar

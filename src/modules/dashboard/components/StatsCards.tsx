@@ -12,6 +12,8 @@ interface StatsCardsProps {
 }
 
 export const StatsCards: React.FC<StatsCardsProps> = ({ stats, isLoading = false }) => {
+  console.log('📊 StatsCards:', stats);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

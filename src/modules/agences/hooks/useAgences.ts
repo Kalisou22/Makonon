@@ -8,6 +8,7 @@ export const useAgences = (filters?: AgenceFilters) => {
     queryKey: ['agences', filters],
     queryFn: async () => {
       const response = await agenceService.getAgences(filters);
+      console.log('📥 useAgences response:', response.data);
       return response.data;
     },
     staleTime: 60000,

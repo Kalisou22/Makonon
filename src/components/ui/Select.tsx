@@ -1,14 +1,16 @@
-import React from 'react';
+import React from 'react'
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string;
-  options?: Array<{ value: string; label: string }>;
-  children?: React.ReactNode;
+  label?: string
+  options?: Array<{ value: string; label: string }>
+  error?: string
+  children?: React.ReactNode
 }
 
 export const Select: React.FC<SelectProps> = ({
   label,
   options,
+  error,
   children,
   className = '',
   ...props
@@ -16,18 +18,17 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="mb-1 block text-sm font-semibold text-gray-700">
           {label}
+          {props.required && <span className="text-danger ml-0.5">*</span>}
         </label>
       )}
       <select
         className={`
-          w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
-          rounded-md shadow-sm 
-          bg-white dark:bg-gray-700 
-          text-gray-900 dark:text-white
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+          w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-gray-900 transition-all duration-200
+          focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
           disabled:opacity-50 disabled:cursor-not-allowed
+          ${error ? 'border-danger focus:border-danger focus:ring-danger/20' : 'border-border'}
           ${className}
         `}
         {...props}
@@ -42,6 +43,9 @@ export const Select: React.FC<SelectProps> = ({
           children
         )}
       </select>
+      {error && <p className="mt-1 text-sm text-danger">{error}</p>}
     </div>
-  );
-};
+  )
+}
+
+export default Select

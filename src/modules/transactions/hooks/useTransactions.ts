@@ -4,10 +4,19 @@ import { transactionService } from '../services/transactionService';
 import type { CreateTransactionData, TransactionFilters } from '../types';
 
 export const useTransactions = (filters?: TransactionFilters) => {
+  // Nettoyer les filtres pour éviter les valeurs undefined
+  const cleanFilters: Record<string, any> = {};
+  if (filters) {
+    if (filters.page) cleanFilters.page = filters.page;
+    if (filters.per_page) cleanFilters.per_page = filters.per_page;
+    if (filters.statut) cleanFilters.statut = filters.statut;
+  }
+  
   return useQuery({
-    queryKey: ['transactions', filters],
+    queryKey: ['transactions', cleanFilters],
     queryFn: async () => {
-      const response = await transactionService.getTransactions(filters);
+      const response = await transactionService.getTransactions(cleanFilters);
+      console.log('📥 Transactions response:', response.data);
       return response.data;
     },
     staleTime: 60000,
@@ -25,6 +34,7 @@ export const useCreateTransaction = () => {
       toast.success('Transfert créé avec succès');
     },
     onError: (error: any) => {
+      console.error('❌ Erreur création transfert:', error.response?.data);
       const message = error.response?.data?.message || 'Erreur lors de la création';
       toast.error(message);
     },
@@ -41,6 +51,7 @@ export const useWithdrawTransaction = () => {
       toast.success('Retrait effectué avec succès');
     },
     onError: (error: any) => {
+      console.error('❌ Erreur retrait:', error.response?.data);
       const message = error.response?.data?.message || 'Erreur lors du retrait';
       toast.error(message);
     },
@@ -57,6 +68,7 @@ export const useCancelTransaction = () => {
       toast.success('Transfert annulé avec succès');
     },
     onError: (error: any) => {
+      console.error('❌ Erreur annulation:', error.response?.data);
       const message = error.response?.data?.message || "Erreur lors de l'annulation";
       toast.error(message);
     },
@@ -80,6 +92,7 @@ export const useSoldeAgence = () => {
     queryKey: ['solde-agence'],
     queryFn: async () => {
       const response = await transactionService.getSoldeAgence();
+      console.log('📥 Solde agence:', response.data);
       return response.data;
     },
     staleTime: 30000,

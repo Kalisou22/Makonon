@@ -12,6 +12,8 @@ interface AgenceTableProps {
 }
 
 export const AgenceTable: React.FC<AgenceTableProps> = ({ data, isLoading, onEdit, onDelete }) => {
+  console.log('📊 AgenceTable data:', data);
+  
   const columns = [
     {
       key: 'code',
@@ -36,7 +38,7 @@ export const AgenceTable: React.FC<AgenceTableProps> = ({ data, isLoading, onEdi
     {
       key: 'solde_cache',
       header: 'Solde',
-      render: (item: Agence) => <span className="font-medium text-green-600">{item.solde_cache.toLocaleString('fr-FR')} GNF</span>,
+      render: (item: Agence) => <span className="font-medium text-green-600">{item.solde_cache?.toLocaleString('fr-FR') || 0} GNF</span>,
       align: 'right' as const,
     },
     {

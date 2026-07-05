@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
@@ -24,11 +24,16 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
 
   const { agencyId } = useAgencyStore();
   const createMutation = useCreateTransaction();
-  const { data: agences } = useAgences();
+  const { data: agences, isLoading: agencesLoading } = useAgences({ per_page: 100 });
+
+  console.log('📋 Agences disponibles:', agences?.data);
+
+  // Utiliser l'agence de l'utilisateur ou la première agence disponible
+  const defaultAgenceId = agencyId || agences?.data?.[0]?.id || 4;
 
   const agenceOptions = agences?.data?.map((agence) => ({
     value: String(agence.id),
-    label: `${agence.nom} (${agence.code})`
+    label: `${agence.code} - ${agence.nom}`
   })) || [];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,7 +47,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
         nom_beneficiaire: formData.nom_beneficiaire,
         telephone_beneficiaire: formData.telephone_beneficiaire,
         montant: parseFloat(formData.montant),
-        agence_envoi_id: agencyId || 0,
+        agence_envoi_id: defaultAgenceId,
         agence_destinataire_id: parseInt(formData.agence_destinataire_id),
         idempotency_key,
       },
@@ -121,7 +126,12 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             onChange={handleChange}
             required
             options={agenceOptions}
+            disabled={agencesLoading || agenceOptions.length === 0}
           />
+        </div>
+
+        <div className="text-sm text-gray-500">
+          Agence d'envoi: {defaultAgenceId} (automatique)
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t">

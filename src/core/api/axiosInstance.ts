@@ -2,7 +2,6 @@ import axios from 'axios';
 import { useAgencyStore } from '../../store/agencyStore';
 import { useAuthStore } from '../../store/authStore';
 
-// ⚠️ IMPORTANT: Le backend tourne sur le port 8000
 const API_URL = 'http://localhost:8000/api';
 
 export const axiosInstance = axios.create({
@@ -17,11 +16,15 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    // ✅ Lire le token depuis localStorage
+    // Récupérer le token depuis localStorage
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('✅ Token ajouté à la requête:', config.url);
+    } else {
+      console.warn('⚠️ Pas de token trouvé pour:', config.url);
     }
+    
     const agencyId = useAgencyStore.getState().agencyId;
     if (agencyId) {
       config.headers['X-Agency-ID'] = String(agencyId);
@@ -32,10 +35,13 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ Réponse reçue:', response.config.url, response.status);
+    return response;
+  },
   async (error) => {
+    console.error('❌ Erreur API:', error.response?.status, error.response?.data);
     if (error.response?.status === 401) {
-      // ✅ Supprimer le token et déconnecter
       localStorage.removeItem('token');
       useAuthStore.getState().logout();
       window.location.href = '/login';

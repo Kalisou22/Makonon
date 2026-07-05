@@ -1,17 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { clientService } from '../services/clientService';
-import type { Client, CreateClientData, ClientFilters } from '../types';
+import type { Client, CreateClientData } from '../types';
 
-export const useClients = (filters?: ClientFilters) => {
+export const useClients = () => {
   return useQuery({
-    queryKey: ['clients', filters],
+    queryKey: ['clients'],
     queryFn: async () => {
-      const response = await clientService.getClients(filters);
-      return response.data;
+      const response = await clientService.getClients();
+      console.log('📥 useClients response:', response.data);
+      return response.data; // Retourne directement le tableau
     },
     staleTime: 60000,
-    keepPreviousData: true,
   });
 };
 

@@ -11,7 +11,10 @@ interface ClientTableProps {
 }
 
 export const ClientTable: React.FC<ClientTableProps> = ({ data, isLoading, onEdit, onDelete }) => {
+  console.log('📊 ClientTable data:', data);
+
   const formatDate = (date: string) => {
+    if (!date) return '-';
     return new Date(date).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
