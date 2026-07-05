@@ -85,7 +85,6 @@ class TransfertService
                 'montant' => $data['montant'],
                 'frais' => $frais,
                 'commission' => $frais * 0.75,
-                // ✅ STATUT EN_ATTENTE pour que l'agence de destination voie le transfert
                 'statut' => 'EN_ATTENTE',
                 'date_envoi' => now(),
                 'idempotency_key' => $data['idempotency_key'],
@@ -99,6 +98,7 @@ class TransfertService
             $this->ledger->debit($system, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Débit SYSTEM - Frais: {$frais}");
             $this->ledger->credit($fraisAccount, $frais, 'FRAIS', $transfert->id, $user->id, $code, "Crédit FRAIS - Frais: {$frais}");
 
+            // ✅ Mettre à jour les soldes caches
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($agenceDestinataire->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
@@ -111,7 +111,8 @@ class TransfertService
                 'id' => $transfert->id,
                 'code' => $code,
                 'agence_envoi' => $agenceEmettrice->id,
-                'agence_retrait' => $agenceDestinataire->id
+                'agence_retrait' => $agenceDestinataire->id,
+                'montant' => $data['montant']
             ]);
             return $transfert;
         });
@@ -122,28 +123,48 @@ class TransfertService
         return DB::transaction(function () use ($code, $user) {
             $code = strtoupper(trim($code));
 
-            // ✅ UNIQUEMENT les transferts EN_ATTENTE peuvent être retirés
+            // ✅ Chercher UNIQUEMENT les transferts EN_ATTENTE
             $transfert = Transfert::where('code', $code)
                 ->where('statut', 'EN_ATTENTE')
                 ->lockForUpdate()
                 ->first();
 
             if (!$transfert) {
+                Log::warning('Tentative de retrait d\'un transfert non trouvé ou non disponible', [
+                    'code' => $code,
+                    'user_id' => $user->id
+                ]);
                 throw new TransfertException('Transfert non disponible ou déjà traité', 404);
             }
 
+            // ✅ Vérifier que l'utilisateur appartient à l'agence de retrait
             $agence = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
-            $system = $this->ledger->getSystemAccount();
+            if (!$agence) {
+                throw new TransfertException('Agence de retrait non trouvée', 404);
+            }
 
             if ($user->role !== 'SUPERADMIN' && $user->agence_id !== $agence->id) {
+                Log::warning('Tentative de retrait non autorisée', [
+                    'user_id' => $user->id,
+                    'user_agence' => $user->agence_id,
+                    'transfert_agence_retrait' => $transfert->agence_retrait_id
+                ]);
                 throw new TransfertException('Accès interdit: vous ne pouvez pas retirer ce transfert', 403);
             }
 
+            // ✅ Vérifier le solde de l'agence
             $solde = $this->ledger->getSolde($agence->id);
+            Log::info('Vérification solde pour retrait', [
+                'agence_id' => $agence->id,
+                'solde' => $solde,
+                'montant_a_retirer' => $transfert->montant
+            ]);
+
             if ($solde < $transfert->montant) {
                 throw new FondsInsuffisantsException($solde, $transfert->montant);
             }
 
+            // ✅ Mettre à jour le transfert
             $transfert->update([
                 'statut' => 'RETIRE',
                 'date_retrait' => now(),
@@ -151,12 +172,15 @@ class TransfertService
             ]);
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
+            $system = $this->ledger->getSystemAccount();
 
+            // 4 ÉCRITURES
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit AG002 - Retrait");
             $this->ledger->credit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit SYSTEM - Compensation");
             $this->ledger->debit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit SYSTEM - Fermeture");
             $this->ledger->credit($agenceEmettrice, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit AG001 - Remboursement");
 
+            // ✅ Mettre à jour les soldes caches
             $this->ledger->mettreAJourSoldeCache($agence->id);
             $this->ledger->mettreAJourSoldeCache($agenceEmettrice->id);
             $this->ledger->mettreAJourSoldeCache($system->id);
@@ -164,7 +188,12 @@ class TransfertService
             $this->ledger->verifierDoubleEcriture($transfert->id);
             $this->ledger->verifierSystemNul();
 
-            Log::info('Transfert retiré', ['id' => $transfert->id, 'code' => $code]);
+            Log::info('Transfert retiré avec succès', [
+                'id' => $transfert->id,
+                'code' => $code,
+                'agence_retrait' => $agence->id,
+                'utilisateur' => $user->id
+            ]);
             return $transfert;
         });
     }
@@ -174,7 +203,6 @@ class TransfertService
         return DB::transaction(function () use ($code, $user, $motif) {
             $code = strtoupper(trim($code));
 
-            // ✅ UNIQUEMENT les transferts EN_ATTENTE peuvent être annulés
             $transfert = Transfert::where('code', $code)
                 ->where('statut', 'EN_ATTENTE')
                 ->lockForUpdate()

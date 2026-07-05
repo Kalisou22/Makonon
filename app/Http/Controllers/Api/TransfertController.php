@@ -42,7 +42,6 @@ class TransfertController extends Controller
 
             $user = $request->user();
 
-            // ✅ VÉRIFICATION CRITIQUE : L'utilisateur doit appartenir à l'agence d'envoi
             if ($user->role !== 'SUPERADMIN' && $user->agence_id != $validated['agence_envoi_id']) {
                 return response()->json([
                     'message' => 'Accès non autorisé à cette agence',
@@ -76,6 +75,8 @@ class TransfertController extends Controller
     public function retirer(Request $request, string $code)
     {
         try {
+            Log::info('Tentative de retrait', ['code' => $code, 'user' => $request->user()?->id]);
+
             $user = $request->user();
             $transfert = $this->transfertService->retirer($code, $user);
             $this->auditService->logTransfertRetrait($transfert);
@@ -89,6 +90,18 @@ class TransfertController extends Controller
                     'date_retrait' => $transfert->date_retrait,
                 ]
             ]);
+        } catch (\App\Exceptions\TransfertException $e) {
+            Log::warning('⚠️ Erreur retrait: ' . $e->getMessage());
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], $e->getCode());
+        } catch (\App\Exceptions\FondsInsuffisantsException $e) {
+            Log::warning('⚠️ Fonds insuffisants: ' . $e->getMessage());
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => 422
+            ], 422);
         } catch (Throwable $e) {
             Log::error('❌ Erreur retrait: ' . $e->getMessage());
             return response()->json([
