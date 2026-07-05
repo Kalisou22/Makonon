@@ -14,14 +14,14 @@ class AgenceController extends Controller
         try {
             $user = $request->user();
             
-            // Vérifier que l'utilisateur est SUPERADMIN ou ADMIN
-            if (!in_array($user->role, ['SUPERADMIN', 'ADMIN'])) {
-                return response()->json(['message' => 'Accès non autorisé'], 403);
-            }
+            // ✅ SUPERADMIN et ADMIN voient toutes les agences
+            // ✅ RESPONSABLE et AGENT voient toutes les agences (pour les transferts)
+            // ✅ On filtre juste les agences système
+            $query = Agence::whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE']);
             
             $perPage = (int) $request->input('per_page', 20);
-            $agences = Agence::whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE'])
-                ->paginate($perPage);
+            $agences = $query->orderBy('id')->paginate($perPage);
+            
             return response()->json($agences);
         } catch (\Exception $e) {
             Log::error('AgenceController@index: ' . $e->getMessage());
