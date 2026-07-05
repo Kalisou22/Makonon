@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useAgencyStore } from './agencyStore'
 
 export interface User {
   id: number
@@ -33,14 +34,11 @@ export const useAuthStore = create<AuthState>()(
 
         // ✅ Synchronisation automatique avec agencyStore
         if (user.agence?.id) {
-          const { setAgency } = require('./agencyStore').useAgencyStore.getState()
-          setAgency(user.agence.id, user.agence.nom)
+          useAgencyStore.getState().setAgency(user.agence.id, user.agence.nom)
         } else if (user.agence_id) {
-          const { setAgency } = require('./agencyStore').useAgencyStore.getState()
-          setAgency(user.agence_id, 'Agence')
+          useAgencyStore.getState().setAgency(user.agence_id, 'Agence')
         } else {
-          const { clearAgency } = require('./agencyStore').useAgencyStore.getState()
-          clearAgency()
+          useAgencyStore.getState().clearAgency()
         }
 
         set({ user, token, isAuthenticated: true })
@@ -48,21 +46,17 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => {
         // ✅ Synchronisation automatique avec agencyStore
         if (user.agence?.id) {
-          const { setAgency } = require('./agencyStore').useAgencyStore.getState()
-          setAgency(user.agence.id, user.agence.nom)
+          useAgencyStore.getState().setAgency(user.agence.id, user.agence.nom)
         } else if (user.agence_id) {
-          const { setAgency } = require('./agencyStore').useAgencyStore.getState()
-          setAgency(user.agence_id, 'Agence')
+          useAgencyStore.getState().setAgency(user.agence_id, 'Agence')
         } else {
-          const { clearAgency } = require('./agencyStore').useAgencyStore.getState()
-          clearAgency()
+          useAgencyStore.getState().clearAgency()
         }
         set({ user })
       },
       logout: () => {
         localStorage.removeItem('token')
-        const { clearAgency } = require('./agencyStore').useAgencyStore.getState()
-        clearAgency()
+        useAgencyStore.getState().clearAgency()
         set({ user: null, token: null, isAuthenticated: false })
       },
       setLoading: (loading) => set({ isLoading: loading }),

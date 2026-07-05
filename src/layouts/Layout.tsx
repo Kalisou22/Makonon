@@ -9,12 +9,12 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user } = useAuthStore()
-  const { logout } = useAuth()
+  const { logout, isAuthenticated } = useAuth()
   const location = useLocation()
 
   const isActive = (path: string) => location.pathname === path
 
-  // ✅ Navigation basée sur le rôle du backend (source de vérité)
+  // Navigation basée sur le rôle du backend (source de vérité)
   const navLinks = [
     { path: '/dashboard', label: 'TABLEAU DE BORD', icon: '📊', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/transactions', label: 'TRANSACTIONS', icon: '💰', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
@@ -25,8 +25,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/audit', label: 'JOURNAL', icon: '📋', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE'] },
   ]
 
-  // ✅ Filtrer les liens en fonction du rôle de l'utilisateur
   const visibleLinks = navLinks.filter(link => link.roles.includes(user?.role || ''))
+
+  // Gestionnaire de déconnexion
+  const handleLogout = () => {
+    logout()
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-bg flex">
@@ -75,7 +83,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <span className="text-sm font-medium opacity-75">
                 {user?.agence_id ? `Agence #${user.agence_id}` : 'Siège'}
               </span>
-              {/* ✅ Afficher l'agence réelle depuis le backend */}
               {user?.agence && (
                 <span className="text-xs opacity-60">
                   {user.agence.nom}
@@ -87,7 +94,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {user?.nom} ({user?.role})
               </span>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="bg-[#D33333] hover:bg-[#B42828] px-4 py-1.5 rounded-full text-sm font-bold transition-colors"
               >
                 Déconnexion

@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -21,7 +22,7 @@ export const useAuth = () => {
   })
 
   // Mettre à jour le store si l'utilisateur est récupéré
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentUser) {
       setAuth(currentUser, localStorage.getItem('token') || '')
       if (currentUser.agence) {
@@ -30,7 +31,7 @@ export const useAuth = () => {
         setAgency(currentUser.agence_id, 'Agence')
       }
     }
-  }, [currentUser])
+  }, [currentUser, setAuth, setAgency])
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
@@ -58,7 +59,6 @@ export const useAuth = () => {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erreur de connexion'
-      setError(message)
       toast.error(message)
       setLoading(false)
     },
@@ -66,7 +66,14 @@ export const useAuth = () => {
   })
 
   const logoutMutation = useMutation({
-    mutationFn: authService.logout,
+    mutationFn: async () => {
+      try {
+        await authService.logout()
+      } catch (e) {
+        // Ignorer l'erreur de logout (le token est probablement invalide)
+        console.warn('Logout error (ignorée):', e)
+      }
+    },
     onSuccess: () => {
       storeLogout()
       clearAgency()
@@ -79,9 +86,24 @@ export const useAuth = () => {
       storeLogout()
       clearAgency()
       localStorage.removeItem('token')
+      queryClient.clear()
       navigate('/login')
     },
   })
+
+  // Fonction de déconnexion simplifiée
+  const handleLogout = () => {
+    // Nettoyer localement même si l'API échoue
+    storeLogout()
+    clearAgency()
+    localStorage.removeItem('token')
+    queryClient.clear()
+    toast.success('Déconnexion réussie')
+    navigate('/login')
+    
+    // Essayer de déconnecter l'API en arrière-plan
+    authService.logout().catch(() => {})
+  }
 
   return {
     user,
@@ -89,11 +111,8 @@ export const useAuth = () => {
     isAuthenticated: !!localStorage.getItem('token') || isAuthenticated,
     isLoading: loginMutation.isPending || isLoadingUser,
     login: loginMutation.mutate,
-    logout: logoutMutation.mutate,
+    logout: handleLogout,
   }
 }
-
-// Import React pour le useEffect
-import React from 'react'
 
 export default useAuth
