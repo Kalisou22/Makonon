@@ -9,12 +9,11 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user } = useAuthStore()
-  const { logout, isAuthenticated } = useAuth()
+  const { logout } = useAuth()
   const location = useLocation()
 
   const isActive = (path: string) => location.pathname === path
 
-  // Navigation basée sur le rôle du backend (source de vérité)
   const navLinks = [
     { path: '/dashboard', label: 'TABLEAU DE BORD', icon: '📊', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
     { path: '/transactions', label: 'TRANSACTIONS', icon: '💰', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
@@ -26,15 +25,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   ]
 
   const visibleLinks = navLinks.filter(link => link.roles.includes(user?.role || ''))
-
-  // Gestionnaire de déconnexion
-  const handleLogout = () => {
-    logout()
-  }
-
-  if (!isAuthenticated) {
-    return null
-  }
 
   return (
     <div className="min-h-screen bg-bg flex">
@@ -80,10 +70,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <header className="bg-gradient-to-r from-primary to-primary-light text-white shadow-lg">
           <div className="flex justify-between items-center px-6 py-3">
             <div className="flex items-center gap-4">
+              {/* ✅ SUPERADMIN = Siège, sinon Agence #X */}
               <span className="text-sm font-medium opacity-75">
-                {user?.agence_id ? `Agence #${user.agence_id}` : 'Siège'}
+                {user?.role === 'SUPERADMIN' 
+                  ? 'Siège' 
+                  : user?.agence_id 
+                    ? `Agence #${user.agence_id}` 
+                    : 'Siège'
+                }
               </span>
-              {user?.agence && (
+              {user?.agence && user?.role !== 'SUPERADMIN' && (
                 <span className="text-xs opacity-60">
                   {user.agence.nom}
                 </span>
@@ -94,7 +90,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {user?.nom} ({user?.role})
               </span>
               <button
-                onClick={handleLogout}
+                onClick={logout}
                 className="bg-[#D33333] hover:bg-[#B42828] px-4 py-1.5 rounded-full text-sm font-bold transition-colors"
               >
                 Déconnexion
