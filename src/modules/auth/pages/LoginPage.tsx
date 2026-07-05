@@ -14,10 +14,9 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export const LoginPage: React.FC = () => {
-  const { login, isLoading } = useAuth()
+  const { login, isLoading, isAuthenticated } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [agences, setAgences] = useState<Agence[]>([])
-  const [selectedAgenceId, setSelectedAgenceId] = useState<number | null>(null)
   const [isLoadingAgences, setIsLoadingAgences] = useState(true)
 
   const {
@@ -27,27 +26,34 @@ export const LoginPage: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@makonon.com',
-      password: 'admin123',
+      email: '',
+      password: '',
     },
   })
+
+  useEffect(() => {
+    // Si déjà authentifié, rediriger vers dashboard
+    if (isAuthenticated) {
+      window.location.href = '/dashboard'
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     const loadAgences = async () => {
       try {
         setIsLoadingAgences(true)
-        const response = await agenceService.getAgences({ per_page: 100 })
-        const agencesList = response.data.data || []
-        // Filtrer les agences système (FRAIS, SYSTEM, CAISSE)
-        const filtered = agencesList.filter((a: Agence) => 
-          !['FRAIS', 'SYSTEM', 'CAISSE'].includes(a.code)
-        )
-        setAgences(filtered)
-        if (filtered.length > 0) {
-          setSelectedAgenceId(filtered[0].id)
+        // Essayer de charger les agences (optionnel)
+        try {
+          const response = await agenceService.getAgences({ per_page: 100 })
+          const agencesList = response.data.data || []
+          const filtered = agencesList.filter((a: Agence) => 
+            !['FRAIS', 'SYSTEM', 'CAISSE'].includes(a.code)
+          )
+          setAgences(filtered)
+        } catch (e) {
+          // Si les agences ne peuvent pas être chargées, ignorer
+          console.log('Chargement des agences optionnel')
         }
-      } catch (e) {
-        console.error('Erreur chargement agences:', e)
       } finally {
         setIsLoadingAgences(false)
       }
@@ -57,13 +63,11 @@ export const LoginPage: React.FC = () => {
 
   const onSubmit = (data: LoginFormData) => {
     setError(null)
-
-    // Si une agence est sélectionnée, on ajoute l'info à l'utilisateur
-    // Le backend utilisera l'agence_id de l'utilisateur
     login(data, {
       onError: (err: any) => {
-        setError(err.response?.data?.message || 'Identifiants incorrects')
-      },
+        const message = err.response?.data?.message || 'Identifiants incorrects'
+        setError(message)
+      }
     })
   }
 
@@ -120,35 +124,6 @@ export const LoginPage: React.FC = () => {
             />
             {errors.password && <p className="mt-1 text-sm text-danger">{errors.password.message}</p>}
           </div>
-
-          {/* Sélecteur d'agence */}
-          {!isLoadingAgences && agences.length > 0 && (
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Agence
-              </label>
-              <select
-                value={selectedAgenceId || ''}
-                onChange={(e) => setSelectedAgenceId(Number(e.target.value))}
-                className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm text-gray-900 transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                {agences.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.code} - {a.nom}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-text-secondary">
-                Sélectionnez l'agence avec laquelle vous voulez travailler.
-              </p>
-            </div>
-          )}
-
-          {isLoadingAgences && (
-            <div className="text-center text-sm text-text-secondary">
-              Chargement des agences...
-            </div>
-          )}
 
           <div className="text-right">
             <button

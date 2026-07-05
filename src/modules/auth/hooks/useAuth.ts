@@ -8,33 +8,47 @@ import { authService } from '../services/authService'
 export const useAuth = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { setAuth, logout: storeLogout, setLoading, user } = useAuthStore()
+  const { setAuth, logout: storeLogout, setLoading, user, isAuthenticated } = useAuthStore()
   const { setAgency, clearAgency } = useAgencyStore()
 
+  // Récupérer l'utilisateur courant si token présent
   const { data: currentUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: authService.getCurrentUser,
-    enabled: !!localStorage.getItem('token'),
+    enabled: !!localStorage.getItem('token') && !isAuthenticated,
     staleTime: 5 * 60 * 1000,
     retry: false,
   })
+
+  // Mettre à jour le store si l'utilisateur est récupéré
+  React.useEffect(() => {
+    if (currentUser) {
+      setAuth(currentUser, localStorage.getItem('token') || '')
+      if (currentUser.agence) {
+        setAgency(currentUser.agence.id, currentUser.agence.nom)
+      } else if (currentUser.agence_id) {
+        setAgency(currentUser.agence_id, 'Agence')
+      }
+    }
+  }, [currentUser])
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
     onMutate: () => setLoading(true),
     onSuccess: (data) => {
+      console.log('✅ Login réussi:', data.user)
+
       // Stocker le token
       localStorage.setItem('token', data.token)
 
-      // ✅ SOURCE DE VÉRITÉ = user du backend
-      const user = data.user
-      setAuth(user, data.token)
+      // Mettre à jour authStore
+      setAuth(data.user, data.token)
 
-      // ✅ Synchronisation automatique avec agencyStore
-      if (user.agence) {
-        setAgency(user.agence.id, user.agence.nom)
-      } else if (user.agence_id) {
-        setAgency(user.agence_id, 'Agence')
+      // Mettre à jour agencyStore
+      if (data.user.agence) {
+        setAgency(data.user.agence.id, data.user.agence.nom)
+      } else if (data.user.agence_id) {
+        setAgency(data.user.agence_id, 'Agence')
       } else {
         clearAgency()
       }
@@ -44,6 +58,7 @@ export const useAuth = () => {
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erreur de connexion'
+      setError(message)
       toast.error(message)
       setLoading(false)
     },
@@ -71,11 +86,14 @@ export const useAuth = () => {
   return {
     user,
     currentUser,
+    isAuthenticated: !!localStorage.getItem('token') || isAuthenticated,
     isLoading: loginMutation.isPending || isLoadingUser,
     login: loginMutation.mutate,
     logout: logoutMutation.mutate,
-    isAuthenticated: !!localStorage.getItem('token'),
   }
 }
+
+// Import React pour le useEffect
+import React from 'react'
 
 export default useAuth
