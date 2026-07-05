@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '../hooks/useAuth'
-import { agenceService } from '../../agences/services/agenceService'
-import type { Agence } from '../../agences/types'
+import { useNavigate } from 'react-router-dom'
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -16,8 +15,8 @@ type LoginFormData = z.infer<typeof loginSchema>
 export const LoginPage: React.FC = () => {
   const { login, isLoading, isAuthenticated } = useAuth()
   const [error, setError] = useState<string | null>(null)
-  const [agences, setAgences] = useState<Agence[]>([])
-  const [isLoadingAgences, setIsLoadingAgences] = useState(true)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const navigate = useNavigate()
 
   const {
     register,
@@ -31,35 +30,42 @@ export const LoginPage: React.FC = () => {
     },
   })
 
+  // ✅ Vérifier l'authentification UNE SEULE FOIS au montage
   useEffect(() => {
-    // Si déjà authentifié, rediriger vers dashboard
-    if (isAuthenticated) {
-      window.location.href = '/dashboard'
+    const token = localStorage.getItem('token')
+    if (token) {
+      // Vérifier si le token est valide en appelant /me
+      fetch('http://localhost:8000/api/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      })
+        .then((res) => {
+          if (res.ok) {
+            // Token valide → rediriger vers dashboard
+            navigate('/dashboard')
+          } else {
+            // Token invalide → le supprimer
+            localStorage.removeItem('token')
+            setIsCheckingAuth(false)
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('token')
+          setIsCheckingAuth(false)
+        })
+    } else {
+      setIsCheckingAuth(false)
     }
-  }, [isAuthenticated])
+  }, [navigate])
 
+  // ✅ Si isAuthenticated est vrai, rediriger (mais éviter la boucle)
   useEffect(() => {
-    const loadAgences = async () => {
-      try {
-        setIsLoadingAgences(true)
-        // Essayer de charger les agences (optionnel)
-        try {
-          const response = await agenceService.getAgences({ per_page: 100 })
-          const agencesList = response.data.data || []
-          const filtered = agencesList.filter((a: Agence) => 
-            !['FRAIS', 'SYSTEM', 'CAISSE'].includes(a.code)
-          )
-          setAgences(filtered)
-        } catch (e) {
-          // Si les agences ne peuvent pas être chargées, ignorer
-          console.log('Chargement des agences optionnel')
-        }
-      } finally {
-        setIsLoadingAgences(false)
-      }
+    if (isAuthenticated) {
+      navigate('/dashboard')
     }
-    loadAgences()
-  }, [])
+  }, [isAuthenticated, navigate])
 
   const onSubmit = (data: LoginFormData) => {
     setError(null)
@@ -69,6 +75,18 @@ export const LoginPage: React.FC = () => {
         setError(message)
       }
     })
+  }
+
+  // Afficher un loader pendant la vérification
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Vérification de la session...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
