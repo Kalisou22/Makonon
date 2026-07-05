@@ -15,22 +15,36 @@ class AgenceController extends Controller
             $perPage = (int) $request->input('per_page', 20);
             $user = $request->user();
 
+            Log::info('AgenceController@index appelé', [
+                'user_id' => $user?->id,
+                'user_role' => $user?->role,
+                'per_page' => $perPage
+            ]);
+
             $query = Agence::query();
 
-            // ✅ SUPERADMIN voit toutes les agences
-            // ✅ Les autres voient uniquement leur agence
-            if ($user && $user->role !== 'SUPERADMIN') {
-                $query->whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE']);
+            // ✅ SUPERADMIN voit toutes les agences (sauf FRAIS, SYSTEM, CAISSE)
+            if ($user && $user->role !== 'SUPERADMIN' && $user->agence_id) {
+                $query->where('id', $user->agence_id);
             }
+
+            // Toujours exclure les agences système
+            $query->whereNotIn('code', ['FRAIS', 'SYSTEM', 'CAISSE']);
 
             $agences = $query->orderBy('id')->paginate($perPage);
 
+            Log::info('Agences trouvées: ' . $agences->total());
+
             return response()->json($agences);
         } catch (\Exception $e) {
-            Log::error('Erreur AgenceController@index: ' . $e->getMessage() . ' - Ligne: ' . $e->getLine());
+            Log::error('Erreur AgenceController@index: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
             return response()->json([
                 'message' => 'Erreur lors de la récupération des agences',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine()
             ], 500);
         }
     }
