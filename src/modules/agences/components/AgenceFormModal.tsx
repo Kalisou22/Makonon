@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Modal } from '../../../components/ui/Modal';
-import { Input } from '../../../components/ui/Input';
-import { Button } from '../../../components/ui/Button';
-import type { Agence } from '../../../types';
+import React, { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
+import type { Agence } from '../types'
 
 const agenceSchema = z.object({
   code: z.string().min(1, 'Code requis').max(20, 'Code trop long'),
@@ -16,17 +16,17 @@ const agenceSchema = z.object({
   responsable: z.string().optional(),
   devise: z.string().default('GNF'),
   actif: z.boolean().default(true),
-});
+})
 
-type AgenceFormData = z.infer<typeof agenceSchema>;
+type AgenceFormData = z.infer<typeof agenceSchema>
 
 interface AgenceFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: AgenceFormData) => void;
-  isLoading: boolean;
-  initialData?: Agence | null;
-  title?: string;
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (data: AgenceFormData) => void
+  isLoading: boolean
+  initialData?: Agence | null
+  title?: string
 }
 
 export const AgenceFormModal: React.FC<AgenceFormModalProps> = ({
@@ -35,7 +35,7 @@ export const AgenceFormModal: React.FC<AgenceFormModalProps> = ({
   onSubmit,
   isLoading,
   initialData,
-  title = initialData ? 'Modifier l\'agence' : 'Nouvelle agence',
+  title = initialData ? "Modifier l'agence" : 'Nouvelle agence',
 }) => {
   const {
     register,
@@ -54,7 +54,7 @@ export const AgenceFormModal: React.FC<AgenceFormModalProps> = ({
       devise: 'GNF',
       actif: true,
     },
-  });
+  })
 
   useEffect(() => {
     if (initialData) {
@@ -67,7 +67,7 @@ export const AgenceFormModal: React.FC<AgenceFormModalProps> = ({
         responsable: initialData.responsable || '',
         devise: initialData.devise || 'GNF',
         actif: initialData.actif,
-      });
+      })
     } else {
       reset({
         code: '',
@@ -78,36 +78,79 @@ export const AgenceFormModal: React.FC<AgenceFormModalProps> = ({
         responsable: '',
         devise: 'GNF',
         actif: true,
-      });
+      })
     }
-  }, [initialData, reset, isOpen]);
+  }, [initialData, reset, isOpen])
 
   const handleFormSubmit = (data: AgenceFormData) => {
-    onSubmit(data);
-  };
+    onSubmit(data)
+  }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="lg">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input label="Code" placeholder="EX: AG003" {...register('code')} error={errors.code?.message} />
-          <Input label="Nom" placeholder="Nom de l'agence" {...register('nom')} error={errors.nom?.message} />
-          <Input label="Adresse" placeholder="Adresse" {...register('adresse')} error={errors.adresse?.message} />
-          <Input label="Téléphone" placeholder="Téléphone" {...register('telephone')} error={errors.telephone?.message} />
-          <Input label="Email" placeholder="Email" type="email" {...register('email')} error={errors.email?.message} />
-          <Input label="Responsable" placeholder="Nom du responsable" {...register('responsable')} error={errors.responsable?.message} />
+          <Input
+            label="Code"
+            placeholder="EX: AG003"
+            {...register('code')}
+            error={errors.code?.message}
+          />
+          <Input
+            label="Nom"
+            placeholder="Nom de l'agence"
+            {...register('nom')}
+            error={errors.nom?.message}
+          />
+          <Input
+            label="Adresse"
+            placeholder="Adresse"
+            {...register('adresse')}
+            error={errors.adresse?.message}
+          />
+          <Input
+            label="Téléphone"
+            placeholder="Téléphone"
+            {...register('telephone')}
+            error={errors.telephone?.message}
+          />
+          <Input
+            label="Email"
+            placeholder="Email"
+            type="email"
+            {...register('email')}
+            error={errors.email?.message}
+          />
+          <Input
+            label="Responsable"
+            placeholder="Nom du responsable"
+            {...register('responsable')}
+            error={errors.responsable?.message}
+          />
         </div>
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" {...register('actif')} className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+            <input
+              type="checkbox"
+              {...register('actif')}
+              className="w-4 h-4 text-primary border-border rounded focus:ring-primary/20"
+            />
             <span className="text-sm font-medium text-gray-700">Agence active</span>
           </label>
         </div>
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-          <Button variant="secondary" onClick={onClose} type="button">Annuler</Button>
-          <Button type="submit" isLoading={isLoading} >{initialData ? 'Modifier' : 'Créer'}</Button>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-border">
+          <Button variant="secondary" onClick={onClose} type="button">
+            Annuler
+          </Button>
+          <Button type="submit" isLoading={isLoading}>
+            {initialData ? 'Modifier' : 'Créer'}
+          </Button>
         </div>
       </form>
     </Modal>
-  );
-};
+  )
+}
+
+export default AgenceFormModal

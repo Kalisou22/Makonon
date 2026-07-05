@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Modal } from '../../../components/ui/Modal';
-import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
-import { Select } from '../../../components/ui/Select';
-import { useCreateTransaction } from '../hooks/useTransactions';
-import { useAgencyStore } from '../../../store/agencyStore';
-import { useAgences } from '../../agences/hooks/useAgences';
+import React, { useState } from 'react'
+import { Modal } from '../../../components/ui/Modal'
+import { Button } from '../../../components/ui/Button'
+import { Input } from '../../../components/ui/Input'
+import { Select } from '../../../components/ui/Select'
+import { useCreateTransaction } from '../hooks/useTransactions'
+import { useAgencyStore } from '../../../store/agencyStore'
+import { useAgences } from '../../agences/hooks/useAgences'
 
 interface CreateTransactionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ isOpen, onClose }) => {
@@ -20,25 +20,22 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
     telephone_beneficiaire: '',
     montant: '',
     agence_destinataire_id: '',
-  });
+  })
 
-  const { agencyId } = useAgencyStore();
-  const createMutation = useCreateTransaction();
-  const { data: agences, isLoading: agencesLoading } = useAgences({ per_page: 100 });
+  const { agencyId } = useAgencyStore()
+  const createMutation = useCreateTransaction()
+  const { data: agences, isLoading: agencesLoading } = useAgences({ per_page: 100 })
 
-  console.log('📋 Agences disponibles:', agences?.data);
-
-  // Utiliser l'agence de l'utilisateur ou la première agence disponible
-  const defaultAgenceId = agencyId || agences?.data?.[0]?.id || 4;
+  const defaultAgenceId = agencyId || agences?.data?.[0]?.id || 4
 
   const agenceOptions = agences?.data?.map((agence) => ({
     value: String(agence.id),
-    label: `${agence.code} - ${agence.nom}`
-  })) || [];
+    label: `${agence.code} - ${agence.nom}`,
+  })) || []
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const idempotency_key = `trf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    e.preventDefault()
+    const idempotency_key = `trf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     createMutation.mutate(
       {
@@ -60,20 +57,20 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             telephone_beneficiaire: '',
             montant: '',
             agence_destinataire_id: '',
-          });
-          onClose();
+          })
+          onClose()
         },
       }
-    );
-  };
+    )
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Nouveau Transfert">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title="Nouveau Transfert" size="lg">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Nom expéditeur"
@@ -81,6 +78,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             value={formData.nom_expediteur}
             onChange={handleChange}
             required
+            placeholder="Nom de l'expéditeur"
           />
           <Input
             label="Téléphone expéditeur"
@@ -88,6 +86,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             value={formData.telephone_expediteur}
             onChange={handleChange}
             required
+            placeholder="Téléphone"
           />
         </div>
 
@@ -98,6 +97,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             value={formData.nom_beneficiaire}
             onChange={handleChange}
             required
+            placeholder="Nom du bénéficiaire"
           />
           <Input
             label="Téléphone bénéficiaire"
@@ -105,6 +105,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             value={formData.telephone_beneficiaire}
             onChange={handleChange}
             required
+            placeholder="Téléphone"
           />
         </div>
 
@@ -118,6 +119,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
             required
             min="100"
             step="100"
+            placeholder="0"
           />
           <Select
             label="Agence destination"
@@ -130,11 +132,11 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
           />
         </div>
 
-        <div className="text-sm text-gray-500">
-          Agence d'envoi: {defaultAgenceId} (automatique)
+        <div className="text-sm text-text-secondary bg-filter-bg p-3 rounded-lg">
+          Agence d'envoi : <span className="font-semibold text-primary">{defaultAgenceId}</span> (automatique)
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t">
+        <div className="flex justify-end gap-3 pt-4 border-t border-border">
           <Button variant="secondary" onClick={onClose} type="button">
             Annuler
           </Button>
@@ -144,5 +146,7 @@ export const CreateTransactionModal: React.FC<CreateTransactionModalProps> = ({ 
         </div>
       </form>
     </Modal>
-  );
-};
+  )
+}
+
+export default CreateTransactionModal

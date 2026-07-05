@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Modal } from '../../../components/ui/Modal';
-import { Input } from '../../../components/ui/Input';
-import { Button } from '../../../components/ui/Button';
-import type { Client } from '../types';
+import React, { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Button } from '../../../components/ui/Button'
+import type { Client } from '../types'
 
 const clientSchema = z.object({
   nom: z.string().min(1, 'Nom requis'),
@@ -13,17 +13,17 @@ const clientSchema = z.object({
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   piece_identite: z.string().optional(),
   numero_piece: z.string().optional(),
-});
+})
 
-type ClientFormData = z.infer<typeof clientSchema>;
+type ClientFormData = z.infer<typeof clientSchema>
 
 interface ClientFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: ClientFormData) => void;
-  isLoading: boolean;
-  initialData?: Client | null;
-  title?: string;
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (data: ClientFormData) => void
+  isLoading: boolean
+  initialData?: Client | null
+  title?: string
 }
 
 export const ClientFormModal: React.FC<ClientFormModalProps> = ({
@@ -48,7 +48,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
       piece_identite: '',
       numero_piece: '',
     },
-  });
+  })
 
   useEffect(() => {
     if (initialData) {
@@ -58,7 +58,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
         email: initialData.email || '',
         piece_identite: initialData.piece_identite || '',
         numero_piece: initialData.numero_piece || '',
-      });
+      })
     } else {
       reset({
         nom: '',
@@ -66,13 +66,13 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
         email: '',
         piece_identite: '',
         numero_piece: '',
-      });
+      })
     }
-  }, [initialData, reset, isOpen]);
+  }, [initialData, reset, isOpen])
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size="md">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Nom complet"
@@ -106,7 +106,8 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
             error={errors.numero_piece?.message}
           />
         </div>
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-border">
           <Button variant="secondary" onClick={onClose} type="button">
             Annuler
           </Button>
@@ -116,5 +117,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
         </div>
       </form>
     </Modal>
-  );
-};
+  )
+}
+
+export default ClientFormModal

@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Modal } from '../../../components/ui/Modal';
-import { Input } from '../../../components/ui/Input';
-import { Select } from '../../../components/ui/Select';
-import { Button } from '../../../components/ui/Button';
-import { useAgences } from '../../agences/hooks/useAgences';
-import type { Utilisateur } from '../types';
+import React, { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Modal } from '../../../components/ui/Modal'
+import { Input } from '../../../components/ui/Input'
+import { Select } from '../../../components/ui/Select'
+import { Button } from '../../../components/ui/Button'
+import { useAgences } from '../../agences/hooks/useAgences'
+import type { Utilisateur } from '../types'
 
 const utilisateurSchema = z.object({
   nom: z.string().min(1, 'Nom requis'),
@@ -16,17 +16,17 @@ const utilisateurSchema = z.object({
   role: z.string().min(1, 'Rôle requis'),
   agence_id: z.number().optional().nullable(),
   actif: z.boolean().default(true),
-});
+})
 
-type UtilisateurFormData = z.infer<typeof utilisateurSchema>;
+type UtilisateurFormData = z.infer<typeof utilisateurSchema>
 
 interface UtilisateurFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: UtilisateurFormData) => void;
-  isLoading: boolean;
-  initialData?: Utilisateur | null;
-  title?: string;
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (data: UtilisateurFormData) => void
+  isLoading: boolean
+  initialData?: Utilisateur | null
+  title?: string
 }
 
 export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
@@ -37,13 +37,14 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
   initialData,
   title = initialData ? "Modifier l'utilisateur" : 'Nouvel utilisateur',
 }) => {
-  const { data: agencesData, isLoading: agencesLoading } = useAgences({ per_page: 100 });
+  const { data: agencesData, isLoading: agencesLoading } = useAgences({ per_page: 100 })
 
   const {
     register,
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<UtilisateurFormData>({
     resolver: zodResolver(utilisateurSchema),
@@ -55,9 +56,9 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
       agence_id: null,
       actif: true,
     },
-  });
+  })
 
-  const selectedRole = watch('role');
+  const selectedRole = watch('role')
 
   useEffect(() => {
     if (initialData) {
@@ -68,7 +69,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
         role: initialData.role,
         agence_id: initialData.agence_id || null,
         actif: initialData.actif,
-      });
+      })
     } else {
       reset({
         nom: '',
@@ -77,14 +78,14 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
         role: '',
         agence_id: null,
         actif: true,
-      });
+      })
     }
-  }, [initialData, reset, isOpen]);
+  }, [initialData, reset, isOpen])
 
   const agenceOptions = agencesData?.data?.map((agence) => ({
     value: String(agence.id),
     label: `${agence.nom} (${agence.code})`,
-  })) || [];
+  })) || []
 
   const roleOptions = [
     { value: '', label: 'Sélectionner un rôle' },
@@ -92,20 +93,20 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
     { value: 'ADMIN', label: 'Admin' },
     { value: 'RESPONSABLE', label: 'Responsable' },
     { value: 'AGENT', label: 'Agent' },
-  ];
+  ]
 
   const handleFormSubmit = (data: UtilisateurFormData) => {
-    console.log('📤 Envoi du formulaire utilisateur:', data);
-    const submitData = { ...data };
+    console.log('📤 Envoi du formulaire utilisateur:', data)
+    const submitData = { ...data }
     if (!submitData.password) {
-      delete submitData.password;
+      delete submitData.password
     }
-    onSubmit(submitData);
-  };
+    onSubmit(submitData)
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="lg">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Nom complet"
@@ -131,41 +132,41 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
             label="Rôle"
             value={selectedRole || ''}
             onChange={(e) => {
-              const value = e.target.value;
-              register('role').onChange(e);
+              const value = e.target.value
+              setValue('role', value)
             }}
             options={roleOptions}
             error={errors.role?.message}
           />
           {selectedRole && selectedRole !== 'SUPERADMIN' && (
-            <Select
-              label="Agence"
-              value={watch('agence_id')?.toString() || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                register('agence_id').onChange({
-                  target: { name: 'agence_id', value: value ? parseInt(value) : null }
-                });
-              }}
-              options={agenceOptions}
-              error={errors.agence_id?.message}
-              disabled={agencesLoading}
-            />
+            <div className="md:col-span-2">
+              <Select
+                label="Agence"
+                value={watch('agence_id')?.toString() || ''}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setValue('agence_id', value ? parseInt(value) : null)
+                }}
+                options={agenceOptions}
+                error={errors.agence_id?.message}
+                disabled={agencesLoading}
+              />
+            </div>
           )}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
               {...register('actif')}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-primary border-border rounded focus:ring-primary/20"
             />
             <span className="text-sm font-medium text-gray-700">Compte actif</span>
           </label>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <div className="flex justify-end gap-3 pt-4 border-t border-border">
           <Button variant="secondary" onClick={onClose} type="button">
             Annuler
           </Button>
@@ -175,5 +176,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
         </div>
       </form>
     </Modal>
-  );
-};
+  )
+}
+
+export default UtilisateurFormModal
