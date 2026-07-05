@@ -28,11 +28,10 @@ class TransfertService
         }
 
         return DB::transaction(function () use ($data, $user) {
-            // ✅ Idempotence avec lockForUpdate
             $existing = Transfert::where('idempotency_key', $data['idempotency_key'])
                 ->lockForUpdate()
                 ->first();
-                
+
             if ($existing) {
                 Log::info('Transfert existant retourné (idempotence)', [
                     'idempotency_key' => $data['idempotency_key'],
@@ -48,6 +47,11 @@ class TransfertService
 
             if (!$agenceEmettrice || !$agenceDestinataire) {
                 throw new TransfertException('Agence non trouvée', 404);
+            }
+
+            // ✅ VÉRIFICATION CRITIQUE : L'utilisateur doit appartenir à l'agence d'envoi
+            if ($user->role !== 'SUPERADMIN' && $user->agence_id !== $agenceEmettrice->id) {
+                throw new TransfertException('Accès interdit: vous ne pouvez pas créer de transfert depuis cette agence', 403);
             }
 
             $expediteur = Client::firstOrCreate(
@@ -66,7 +70,6 @@ class TransfertService
                 throw new TransfertException("Montant total dépasse la limite", 422);
             }
 
-            // ✅ Anti-fraude - vérification solde avant débit
             $solde = $this->ledger->getSolde($agenceEmettrice->id);
             if ($solde < $total) {
                 throw new FondsInsuffisantsException($solde, $total);
@@ -88,7 +91,6 @@ class TransfertService
                 'idempotency_key' => $data['idempotency_key'],
             ]);
 
-            // 6 ÉCRITURES
             $this->ledger->debit($agenceEmettrice, $total, 'ENVOI', $transfert->id, $user->id, $code, "Débit AG001 - Total: {$total}");
             $this->ledger->credit($system, $total, 'ENVOI', $transfert->id, $user->id, $code, "Crédit SYSTEM - Total: {$total}");
             $this->ledger->debit($system, $data['montant'], 'RECEPTION', $transfert->id, $user->id, $code, "Débit SYSTEM - Montant: {$data['montant']}");
@@ -113,8 +115,7 @@ class TransfertService
     {
         return DB::transaction(function () use ($code, $user) {
             $code = strtoupper(trim($code));
-            
-            // ✅ Protection double retrait - ne sélectionner que ENVOYE
+
             $transfert = Transfert::where('code', $code)
                 ->where('statut', 'ENVOYE')
                 ->lockForUpdate()
@@ -127,8 +128,9 @@ class TransfertService
             $agence = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
             $system = $this->ledger->getSystemAccount();
 
-            if ($user->agence_id !== $agence->id && $user->role !== 'SUPERADMIN') {
-                throw new TransfertException('Accès interdit', 403);
+            // ✅ VÉRIFICATION CRITIQUE : L'utilisateur doit appartenir à l'agence de retrait
+            if ($user->role !== 'SUPERADMIN' && $user->agence_id !== $agence->id) {
+                throw new TransfertException('Accès interdit: vous ne pouvez pas retirer ce transfert', 403);
             }
 
             $solde = $this->ledger->getSolde($agence->id);
@@ -144,7 +146,6 @@ class TransfertService
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
 
-            // 4 ÉCRITURES
             $this->ledger->debit($agence, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit AG002 - Retrait");
             $this->ledger->credit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Crédit SYSTEM - Compensation");
             $this->ledger->debit($system, $transfert->montant, 'RETRAIT', $transfert->id, $user->id, $code, "Débit SYSTEM - Fermeture");
@@ -182,13 +183,15 @@ class TransfertService
             }
 
             $agenceEmettrice = Agence::where('id', $transfert->agence_envoi_id)->lockForUpdate()->first();
+
+            // ✅ VÉRIFICATION CRITIQUE : L'utilisateur doit appartenir à l'agence d'envoi
+            if ($user->role !== 'SUPERADMIN' && $user->agence_id !== $agenceEmettrice->id) {
+                throw new TransfertException('Accès interdit: vous ne pouvez pas annuler ce transfert', 403);
+            }
+
             $agenceDestinataire = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
             $system = $this->ledger->getSystemAccount();
             $fraisAccount = $this->ledger->getFraisAccount();
-
-            if ($user->agence_id !== $agenceEmettrice->id && $user->role !== 'SUPERADMIN') {
-                throw new TransfertException('Accès interdit', 403);
-            }
 
             $totalARembourser = $transfert->montant + $transfert->frais;
             $transfert->update([
@@ -198,7 +201,6 @@ class TransfertService
                 'motif_annulation' => $motif ?? 'Annulation par l\'utilisateur',
             ]);
 
-            // 6 ÉCRITURES
             $this->ledger->debit($agenceDestinataire, $transfert->montant, 'ANNULATION', $transfert->id, $user->id, $code, "Débit AG002 - Annulation");
             $this->ledger->credit($system, $transfert->montant, 'ANNULATION', $transfert->id, $user->id, $code, "Crédit SYSTEM - Annulation");
             $this->ledger->debit($system, $totalARembourser, 'ANNULATION', $transfert->id, $user->id, $code, "Débit SYSTEM - Remboursement");

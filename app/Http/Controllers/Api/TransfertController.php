@@ -41,6 +41,16 @@ class TransfertController extends Controller
             ]);
 
             $user = $request->user();
+
+            // ✅ VÉRIFICATION CRITIQUE : L'utilisateur doit appartenir à l'agence d'envoi
+            if ($user->role !== 'SUPERADMIN' && $user->agence_id != $validated['agence_envoi_id']) {
+                return response()->json([
+                    'message' => 'Accès non autorisé à cette agence',
+                    'user_agence' => $user->agence_id,
+                    'requested_agence' => $validated['agence_envoi_id']
+                ], 403);
+            }
+
             $transfert = $this->transfertService->creer($validated, $user);
             $this->auditService->logTransfertCreation($transfert);
 
@@ -56,7 +66,10 @@ class TransfertController extends Controller
             ], 201);
         } catch (Throwable $e) {
             Log::error('❌ Erreur création transfert: ' . $e->getMessage());
-            return response()->json(['message' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -78,7 +91,10 @@ class TransfertController extends Controller
             ]);
         } catch (Throwable $e) {
             Log::error('❌ Erreur retrait: ' . $e->getMessage());
-            return response()->json(['message' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => 500
+            ], 500);
         }
     }
 
@@ -100,7 +116,10 @@ class TransfertController extends Controller
             ]);
         } catch (Throwable $e) {
             Log::error('❌ Erreur annulation: ' . $e->getMessage());
-            return response()->json(['message' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => 500
+            ], 500);
         }
     }
 
