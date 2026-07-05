@@ -15,7 +15,6 @@ export const utilisateurService = {
     axiosInstance.get<{ data: Utilisateur }>(`/utilisateurs/${id}`),
 
   createUtilisateur: (data: CreateUtilisateurData) => {
-    // Nettoyer les données avant envoi
     const payload: any = {
       nom: data.nom,
       email: data.email,
@@ -24,7 +23,6 @@ export const utilisateurService = {
       actif: data.actif ?? true,
     }
 
-    // SUPERADMIN n'a pas d'agence
     if (data.role !== 'SUPERADMIN' && data.agence_id) {
       payload.agence_id = data.agence_id
     } else {

@@ -12,7 +12,7 @@ import type { Utilisateur } from '../types'
 const utilisateurSchema = z.object({
   nom: z.string().min(1, 'Nom requis'),
   email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Mot de passe minimum 6 caractères'),
+  password: z.string().min(8, 'Mot de passe minimum 8 caractères'),
   role: z.string().min(1, 'Rôle requis'),
   agence_id: z.number().nullable(),
   actif: z.boolean().default(true),
@@ -98,23 +98,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
 
   const handleFormSubmit = (data: UtilisateurFormData) => {
     console.log('📤 Envoi du formulaire utilisateur:', data)
-
-    // Pour SUPERADMIN, agence_id doit être null
-    const submitData = {
-      nom: data.nom,
-      email: data.email,
-      password: data.password,
-      role: data.role,
-      agence_id: data.role === 'SUPERADMIN' ? null : data.agence_id,
-      actif: data.actif,
-    }
-
-    // Si c'est une modification et que le mot de passe est vide, on le retire
-    if (initialData && !submitData.password) {
-      delete submitData.password
-    }
-
-    onSubmit(submitData)
+    onSubmit(data)
   }
 
   return (
@@ -136,7 +120,7 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
           />
           <Input
             label="Mot de passe"
-            placeholder={initialData ? 'Laisser vide pour conserver' : 'Mot de passe (min 6 caractères)'}
+            placeholder={initialData ? 'Laisser vide pour conserver' : 'Mot de passe (8 caractères min)'}
             type="password"
             {...register('password')}
             error={errors.password?.message}
@@ -169,12 +153,13 @@ export const UtilisateurFormModal: React.FC<UtilisateurFormModalProps> = ({
               error={errors.agence_id?.message}
               disabled={agencesLoading}
             />
-            {isSuperAdmin && (
-              <p className="mt-2 text-sm text-text-secondary">
-                Les Super Admins n'ont pas besoin d'être rattachés à une agence.
-              </p>
-            )}
           </div>
+        )}
+
+        {isSuperAdmin && (
+          <p className="text-sm text-text-secondary">
+            Les Super Admins n'ont pas besoin d'être rattachés à une agence.
+          </p>
         )}
 
         <div className="flex items-center gap-3">
