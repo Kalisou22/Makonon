@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\TransfertService;
 use App\Services\LedgerService;
 use App\Services\AuditService;
+use App\Models\Transfert;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -67,6 +68,7 @@ class TransfertController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         } catch (Throwable $e) {
             Log::error('❌ Erreur création transfert: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
@@ -118,7 +120,7 @@ class TransfertController extends Controller
     public function verifier(string $code)
     {
         try {
-            $transfert = \App\Models\Transfert::where('code', $code)
+            $transfert = Transfert::where('code', $code)
                 ->with(['expediteur', 'beneficiaire', 'agenceEnvoi', 'agenceRetrait'])
                 ->first();
 
@@ -161,23 +163,8 @@ class TransfertController extends Controller
             $user = $request->user();
             $perPage = $request->input('per_page', 20);
 
-            $query = \App\Models\Transfert::with([
-                'expediteur' => function($q) {
-                    $q->select('id', 'nom', 'telephone');
-                },
-                'beneficiaire' => function($q) {
-                    $q->select('id', 'nom', 'telephone');
-                },
-                'agenceEnvoi' => function($q) {
-                    $q->select('id', 'code', 'nom');
-                },
-                'agenceRetrait' => function($q) {
-                    $q->select('id', 'code', 'nom');
-                },
-                'utilisateurEnvoi' => function($q) {
-                    $q->select('id', 'nom', 'email');
-                }
-            ]);
+            // ✅ Requête simple sans relations complexes pour éviter les erreurs
+            $query = Transfert::query();
 
             if ($user->role === 'SUPERADMIN') {
                 // SUPERADMIN voit tous les transferts
@@ -186,6 +173,8 @@ class TransfertController extends Controller
                     $q->where('agence_envoi_id', $user->agence_id)
                       ->orWhere('agence_retrait_id', $user->agence_id);
                 });
+            } else {
+                return response()->json(['data' => [], 'total' => 0]);
             }
 
             if ($request->has('statut') && $request->statut) {
@@ -194,9 +183,13 @@ class TransfertController extends Controller
 
             $transferts = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
+            // ✅ Charger les relations manuellement pour éviter les erreurs de select
+            $transferts->load(['expediteur', 'beneficiaire', 'agenceEnvoi', 'agenceRetrait', 'utilisateurEnvoi']);
+
             return response()->json($transferts);
         } catch (\Exception $e) {
             Log::error('❌ Erreur index transferts: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'message' => 'Erreur lors de la récupération des transferts',
                 'error' => $e->getMessage()
