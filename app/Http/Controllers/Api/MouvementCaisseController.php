@@ -131,7 +131,6 @@ class MouvementCaisseController extends Controller
             $mouvement = MouvementCaisse::findOrFail($id);
             $caisse = Caisse::find($mouvement->caisse_id);
 
-            // ✅ Inverser l'effet ledger
             if ($mouvement->type === 'ENTREE') {
                 $this->caisseService->sortie(
                     $caisse->id,
