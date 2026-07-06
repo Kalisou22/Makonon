@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace AppHttpControllersApi;
 
-use App\Http\Controllers\Controller;
-use App\Services\TransfertService;
-use App\Services\LedgerService;
-use App\Services\AuditService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use AppHttpControllersController;
+use AppServicesTransfertService;
+use AppServicesLedgerService;
+use AppServicesAuditService;
+use IlluminateHttpRequest;
+use IlluminateSupportFacadesLog;
 use Throwable;
 
 class TransfertController extends Controller
-{
+{\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
     protected TransfertService $transfertService;
     protected LedgerService $ledgerService;
     protected AuditService $auditService;
@@ -20,194 +20,147 @@ class TransfertController extends Controller
         TransfertService $transfertService,
         LedgerService $ledgerService,
         AuditService $auditService
-    ) {
+    ) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $this->transfertService = $transfertService;
         $this->ledgerService = $ledgerService;
         $this->auditService = $auditService;
-    }
+    
 
     public function creer(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'nom_expediteur' => 'required|string|max:100',
-                'telephone_expediteur' => 'required|string|max:30',
-                'nom_beneficiaire' => 'required|string|max:100',
-                'telephone_beneficiaire' => 'required|string|max:30',
-                'montant' => 'required|numeric|min:100|max:999999999.99',
-                'agence_envoi_id' => 'required|exists:agences,id',
-                'agence_destinataire_id' => 'required|exists:agences,id|different:agence_envoi_id',
-                'idempotency_key' => 'required|string|max:100',
-            ]);
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        try {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            $validated = $request->validate(
+om_expediteur' => 'requiredstringmax:100',
+                'telephone_expediteur' => 'requiredstringmax:30',
+                'nom_beneficiaire' => 'requiredstringmax:100',
+                'telephone_beneficiaire' => 'requiredstringmax:30',
+                'montant' => 'requirednumericmin:100max:999999999.99',
+                'agence_envoi_id' => 'requiredexists:agences,id',
+                'agence_destinataire_id' => 'requiredexists:agences,iddifferent:agence_envoi_id',
+                'idempotency_key' => 'requiredstringmax:100',
+            ser();
 
-            $user = $request->user();
-
-            if ($user->role !== 'SUPERADMIN' && $user->agence_id != $validated['agence_envoi_id']) {
-                return response()->json([
-                    'message' => 'Accès non autorisé à cette agence',
+            if ($user->role !== 'SUPERADMIN' && $user->agence_id != $validatedgence_envoi_id'{\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}}' 
+                return response()->json(
+essage' => 'Accès non autorisé à cette agence',
                     'user_agence' => $user->agence_id,
-                    'requested_agence' => $validated['agence_envoi_id']
-                ], 403);
-            }
+                    'requested_agence' => $validatedgence_envoi_id'
 
             $transfert = $this->transfertService->creer($validated, $user);
             $this->auditService->logTransfertCreation($transfert);
 
-            return response()->json([
-                'message' => 'Transfert créé avec succès',
-                'data' => [
-                    'id' => $transfert->id,
+            return response()->json(
+essage' => 'Transfert créé avec succès',
+                'data' => 
+d' => $transfert->id,
                     'code' => $transfert->code,
                     'montant' => $transfert->montant,
                     'frais' => $transfert->frais,
                     'statut' => $transfert->statut,
-                ]
-            ], 201);
-        } catch (Throwable $e) {
-            Log::error('❌ Erreur création transfert: ' . $e->getMessage());
-            return response()->json([
-                'message' => $e->getMessage(),
-                'code' => 500
-            ], 500);
-        }
-    }
+                 catch (AppExceptionsFondsInsuffisantsException $e) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            return response()->json(essage' => $e->getMessage() catch (Throwable $e) 
+            Log::error(' Erreur création transfert: ' . $e->getMessage());
+            return response()->json(essage' => $e->getMessage()
+    
 
     public function retirer(Request $request, string $code)
-    {
-        try {
-            Log::info('Tentative de retrait', ['code' => $code, 'user' => $request->user()?->id]);
-
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        try {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
             $user = $request->user();
             $transfert = $this->transfertService->retirer($code, $user);
             $this->auditService->logTransfertRetrait($transfert);
 
-            return response()->json([
-                'message' => 'Retrait effectué avec succès',
-                'data' => [
-                    'id' => $transfert->id,
+            return response()->json(
+essage' => 'Retrait effectué avec succès',
+                'data' => 
+d' => $transfert->id,
                     'code' => $transfert->code,
                     'statut' => $transfert->statut,
                     'date_retrait' => $transfert->date_retrait,
-                ]
-            ]);
-        } catch (\App\Exceptions\TransfertException $e) {
-            Log::warning('⚠️ Erreur retrait: ' . $e->getMessage());
-            return response()->json([
-                'message' => $e->getMessage(),
-                'code' => $e->getCode()
-            ], $e->getCode());
-        } catch (\App\Exceptions\FondsInsuffisantsException $e) {
-            Log::warning('⚠️ Fonds insuffisants: ' . $e->getMessage());
-            return response()->json([
-                'message' => $e->getMessage(),
-                'code' => 422
-            ], 422);
-        } catch (Throwable $e) {
-            Log::error('❌ Erreur retrait: ' . $e->getMessage());
-            return response()->json([
-                'message' => $e->getMessage(),
-                'code' => 500
-            ], 500);
-        }
-    }
+                 catch (Throwable $e) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            Log::error(' Erreur retrait: ' . $e->getMessage());
+            return response()->json(essage' => $e->getMessage()
+    
 
     public function annuler(Request $request, string $code)
-    {
-        try {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        try {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
             $user = $request->user();
             $transfert = $this->transfertService->annuler($code, $user, $request->motif);
             $this->auditService->logTransfertAnnulation($transfert, $request->motif ?? 'Annulation par utilisateur');
 
-            return response()->json([
-                'message' => 'Transfert annulé avec succès',
-                'data' => [
-                    'id' => $transfert->id,
+            return response()->json(
+essage' => 'Transfert annulé avec succès',
+                'data' => 
+d' => $transfert->id,
                     'code' => $transfert->code,
                     'statut' => $transfert->statut,
                     'date_annulation' => $transfert->date_annulation,
-                ]
-            ]);
-        } catch (Throwable $e) {
-            Log::error('❌ Erreur annulation: ' . $e->getMessage());
-            return response()->json([
-                'message' => $e->getMessage(),
-                'code' => 500
-            ], 500);
-        }
-    }
+                 catch (Throwable $e) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            Log::error(' Erreur annulation: ' . $e->getMessage());
+            return response()->json(essage' => $e->getMessage()
+    
 
     public function verifier(string $code)
-    {
-        try {
-            $transfert = \App\Models\Transfert::where('code', $code)
-                ->with(['expediteur', 'beneficiaire', 'agenceEnvoi', 'agenceRetrait'])
-                ->first();
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        try {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            $transfert =AppModelsTransfert::where('code', $code)
+                ->with(xpediteur', 'beneficiaire', 'agenceEnvoi', 'agenceRetrait'ransfert) 
+                return response()->json(rror' => 'Transfert introuvable'
 
-            if (!$transfert) {
-                return response()->json(['error' => 'Transfert introuvable'], 404);
-            }
-
-            return response()->json(['data' => $transfert]);
-        } catch (Throwable $e) {
-            Log::error('❌ Erreur verifier: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
+            return response()->json(ata' => $transfert catch (Throwable $e) 
+            Log::error(' Erreur verifier: ' . $e->getMessage());
+            return response()->json(rror' => $e->getMessage()
+    
 
     public function soldeAgence()
-    {
-        try {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        try {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
             $user = auth()->user();
 
-            if ($user->role === 'SUPERADMIN') {
+            if ($user->role === 'SUPERADMIN') {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
                 $solde = $this->ledgerService->getSolde($user->agence_id ?? 4);
-                return response()->json(['solde' => $solde, 'agence_id' => $user->agence_id]);
-            }
+                return response()->json(olde' => $solde, 'agence_id' => $user->agence_id
 
-            if (!$user || !$user->agence_id) {
-                return response()->json(['error' => 'Utilisateur non rattaché à une agence', 'solde' => 0], 403);
-            }
+            if (!$user  !$user->agence_id) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+                return response()->json(rror' => 'Utilisateur non rattaché à une agence', 'solde' => 0
 
             $solde = $this->ledgerService->getSolde($user->agence_id);
-            return response()->json(['solde' => $solde, 'agence_id' => $user->agence_id]);
-        } catch (Throwable $e) {
-            Log::error('❌ Erreur soldeAgence: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage(), 'solde' => 0], 500);
-        }
-    }
+            return response()->json(olde' => $solde, 'agence_id' => $user->agence_id catch (Throwable $e) 
+            Log::error(' Erreur soldeAgence: ' . $e->getMessage());
+            return response()->json(rror' => $e->getMessage(), 'solde' => 0
+    
 
     public function index(Request $request)
-    {
-        try {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        try {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
             $user = $request->user();
             $perPage = $request->input('per_page', 20);
 
-            $query = \App\Models\Transfert::with([
-                'expediteur',
+            $query =AppModelsTransfert::with(
+xpediteur',
                 'beneficiaire',
                 'agenceEnvoi',
                 'agenceRetrait',
                 'utilisateurEnvoi'
-            ]);
-
-            if ($user->role === 'SUPERADMIN') {
+            
                 // SUPERADMIN voit tous les transferts
-            } elseif ($user->agence_id) {
-                $query->where(function ($q) use ($user) {
+             elseif ($user->agence_id) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+                $query->where(function ($q) use ($user) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
                     $q->where('agence_envoi_id', $user->agence_id)
                       ->orWhere('agence_retrait_id', $user->agence_id);
-                });
-            }
+                );
+            
 
-            if ($request->has('statut') && $request->statut) {
+            if ($request->has('statut') && $request->statut) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
                 $query->where('statut', $request->statut);
-            }
+            
 
             $transferts = $query->orderBy('created_at', 'desc')->paginate($perPage);
             return response()->json($transferts);
-        } catch (\Exception $e) {
-            Log::error('❌ Erreur index transferts: ' . $e->getMessage());
-            return response()->json(['message' => 'Erreur lors de la récupération des transferts', 'error' => $e->getMessage()], 500);
-        }
-    }
-}
+         catch (Exception $e) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            Log::error(' Erreur index transferts: ' . $e->getMessage());
+            return response()->json(essage' => 'Erreur lors de la récupération des transferts', 'error' => $e->getMessage() 500);
+        
+    
+

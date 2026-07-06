@@ -1,56 +1,56 @@
 <?php
 
-namespace App\Services;
+namespace AppServices;
 
-use App\Models\Ledger;
-use App\Models\Agence;
-use App\Exceptions\FondsInsuffisantsException;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use AppModelsLedger;
+use AppModelsAgence;
+use AppExceptionsFondsInsuffisantsException;
+use IlluminateSupportFacadesDB;
+use IlluminateSupportFacadesLog;
+use IlluminateSupportStr;
 
 class LedgerService
-{
+{\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
     public const SYSTEM_AGENCE_CODE = 'SYSTEM';
     public const FRAIS_AGENCE_CODE = 'FRAIS';
     public const CAISSE_AGENCE_CODE = 'CAISSE';
 
     public function getSystemAccount(): Agence
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $system = Agence::where('code', self::SYSTEM_AGENCE_CODE)->first();
-        if (!$system) {
-            throw new \RuntimeException("Compte système non trouvé");
-        }
+        if (!$system) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newRuntimeException("Compte système non trouvé");
+        
         return $system;
-    }
+    
 
     public function getFraisAccount(): Agence
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $frais = Agence::where('code', self::FRAIS_AGENCE_CODE)->first();
         if (!$frais) {
-            throw new \RuntimeException("Compte frais non trouvé");
-        }
+            throw newRuntimeException("Compte frais non trouvé");
+        
         return $frais;
-    }
+    
 
     public function getCaisseAccount(): Agence
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $caisse = Agence::where('code', self::CAISSE_AGENCE_CODE)->first();
-        if (!$caisse) {
-            throw new \RuntimeException("Compte caisse non trouvé");
-        }
+        if (!$caisse) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newRuntimeException("Compte caisse non trouvé");
+        
         return $caisse;
-    }
+    
 
     public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $this->validerMontant($montant);
         $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
         $soldeAvant = $this->calculerSoldeReel($agence->id);
         $soldeApres = $soldeAvant + $montant;
 
-        $ledger = Ledger::create([
-            'agence_id' => $agence->id,
+        $ledger = Ledger::create(
+gence_id' => $agence->id,
             'transfert_id' => $transfertId,
             'type' => 'CREDIT',
             'nature' => $nature,
@@ -60,25 +60,96 @@ class LedgerService
             'utilisateur_id' => $utilisateurId,
             'reference' => $reference ?? Str::uuid()->toString(),
             'description' => $description ?? $nature,
-        ]);
-
-        $this->mettreAJourSoldeCache($agence->id);
-        return $ledger;
-    }
+        
 
     public function debit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $this->validerMontant($montant);
         $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
         $soldeAvant = $this->calculerSoldeReel($agence->id);
         $soldeApres = $soldeAvant - $montant;
 
-        if ($soldeApres < 0 && !in_array($agence->code, [self::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE])) {
-            throw new FondsInsuffisantsException($soldeAvant, $montant);
-        }
+        //  PERMETTRE LES SOLDES NEGATIFS POUR LES ANNULATIONS
+cat > app/Services/LedgerService.php << 'EOF'
+<?php
 
-        $ledger = Ledger::create([
-            'agence_id' => $agence->id,
+namespace AppServices;
+
+use AppModelsLedger;
+use AppModelsAgence;
+use AppExceptionsFondsInsuffisantsException;
+use IlluminateSupportFacadesDB;
+use IlluminateSupportFacadesLog;
+use IlluminateSupportStr;
+
+class LedgerService
+{\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+    public const SYSTEM_AGENCE_CODE = 'SYSTEM';
+    public const FRAIS_AGENCE_CODE = 'FRAIS';
+    public const CAISSE_AGENCE_CODE = 'CAISSE';
+
+    public function getSystemAccount(): Agence
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        $system = Agence::where('code', self::SYSTEM_AGENCE_CODE)->first();
+        if (!$system) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newRuntimeException("Compte système non trouvé");
+        
+        return $system;
+    
+
+    public function getFraisAccount(): Agence
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        $frais = Agence::where('code', self::FRAIS_AGENCE_CODE)->first();
+        if (!$frais) {
+            throw newRuntimeException("Compte frais non trouvé");
+        
+        return $frais;
+    
+
+    public function getCaisseAccount(): Agence
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        $caisse = Agence::where('code', self::CAISSE_AGENCE_CODE)->first();
+        if (!$caisse) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newRuntimeException("Compte caisse non trouvé");
+        
+        return $caisse;
+    
+
+    public function credit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        $this->validerMontant($montant);
+        $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+        $soldeAvant = $this->calculerSoldeReel($agence->id);
+        $soldeApres = $soldeAvant + $montant;
+
+        $ledger = Ledger::create(
+gence_id' => $agence->id,
+            'transfert_id' => $transfertId,
+            'type' => 'CREDIT',
+            'nature' => $nature,
+            'montant' => $montant,
+            'solde_avant' => $soldeAvant,
+            'solde_apres' => $soldeApres,
+            'utilisateur_id' => $utilisateurId,
+            'reference' => $reference ?? Str::uuid()->toString(),
+            'description' => $description ?? $nature,
+        
+
+    public function debit(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        $this->validerMontant($montant);
+        $agence = Agence::where('id', $agence->id)->lockForUpdate()->first();
+        $soldeAvant = $this->calculerSoldeReel($agence->id);
+        $soldeApres = $soldeAvant - $montant;
+
+        //  PERMETTRE LES SOLDES NEGATIFS POUR LES ANNULATIONS
+NNULATION', 'ANNULATION_RETRAIT'& $soldeApres < 0 && !in_array($agence->code, elf::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE
+            throw new FondsInsuffisantsException($soldeAvant, $montant);
+        
+
+        $ledger = Ledger::create(
+
+        'agence_id' => $agence->id,
             'transfert_id' => $transfertId,
             'type' => 'DEBIT',
             'nature' => $nature,
@@ -88,49 +159,46 @@ class LedgerService
             'utilisateur_id' => $utilisateurId,
             'reference' => $reference ?? Str::uuid()->toString(),
             'description' => $description ?? $nature,
-        ]);
-
-        $this->mettreAJourSoldeCache($agence->id);
-        return $ledger;
-    }
+        ledger;
+    
 
     public function debitSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         return $this->debit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
+    
 
     public function creditSystem(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         return $this->credit($this->getSystemAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
+    
 
     public function debitFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         return $this->debit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
+    
 
     public function creditFrais(float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         return $this->credit($this->getFraisAccount(), $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
+    
 
     public function debitAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         return $this->debit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
+    
 
     public function creditAgence(Agence $agence, float $montant, string $nature, ?int $transfertId, int $utilisateurId, ?string $reference = null, ?string $description = null): Ledger
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         return $this->credit($agence, $montant, $nature, $transfertId, $utilisateurId, $reference, $description);
-    }
+    
 
     public function getSolde(int $agenceId): float
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         return $this->calculerSoldeReel($agenceId);
-    }
+    
 
     private function calculerSoldeReel(int $agenceId): float
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $result = DB::table('ledger')
             ->where('agence_id', $agenceId)
             ->select(DB::raw('
@@ -140,57 +208,53 @@ class LedgerService
             '))
             ->first();
         return (float) ($result->solde ?? 0);
-    }
+    
 
     public function mettreAJourSoldeCache(int $agenceId): void
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $solde = $this->calculerSoldeReel($agenceId);
-        Agence::where('id', $agenceId)->update(['solde_cache' => $solde]);
-        Log::info("Solde_cache mis à jour", ['agence_id' => $agenceId, 'solde' => $solde]);
-    }
+        Agence::where('id', $agenceId)->update(olde_cache' => $solde'agence_id' => $agenceId, 'solde' => $solde
 
     public function verifierDoubleEcriture(?int $transfertId): void
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         if ($transfertId === null) return;
         $totalDebit = (float) Ledger::where('transfert_id', $transfertId)->where('type', 'DEBIT')->sum('montant');
         $totalCredit = (float) Ledger::where('transfert_id', $transfertId)->where('type', 'CREDIT')->sum('montant');
-        if (abs($totalDebit - $totalCredit) > 0.01) {
-            throw new \RuntimeException("Incohérence ledger: DEBIT={$totalDebit}, CREDIT={$totalCredit}");
-        }
-    }
+        if (abs($totalDebit - $totalCredit) > 0.01) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newRuntimeException("Incohérence ledger: DEBIT=$totalDebit, CREDIT=$totalCredit");
+        
+    
 
     public function verifierSystemNul(): void
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $system = $this->getSystemAccount();
         $solde = $this->getSolde($system->id);
-        if (abs($solde) > 0.01) {
-            throw new \RuntimeException("Solde SYSTEM non nul: {$solde}");
-        }
-    }
+        if (abs($solde) > 0.01) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newRuntimeException("Solde SYSTEM non nul: $solde");
+        
+    
 
     public function verifierSoldeCache(int $agenceId): void
-    {
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
         $agence = Agence::find($agenceId);
         if (!$agence) return;
         $soldeLedger = $this->calculerSoldeReel($agenceId);
         $soldeCache = $agence->solde_cache ?? 0;
-        if (abs($soldeCache - $soldeLedger) > 0.01) {
-            Log::warning("Solde_cache désynchronisé", [
-                'agence' => $agence->code,
+        if (abs($soldeCache - $soldeLedger) > 0.01) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            Log::warning("Solde_cache désynchronisé", 
+gence' => $agence->code,
                 'cache' => $soldeCache,
                 'ledger' => $soldeLedger,
-            ]);
-            $agence->update(['solde_cache' => $soldeLedger]);
-        }
-    }
+            'solde_cache' => $soldeLedger
+    
 
     private function validerMontant(float $montant): void
-    {
-        if ($montant <= 0) {
-            throw new \InvalidArgumentException("Le montant doit être supérieur à 0");
-        }
-        if ($montant > 999999999.99) {
-            throw new \InvalidArgumentException("Montant trop élevé");
-        }
-    }
-}
+    {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+        if ($montant <= 0) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newInvalidArgumentException("Le montant doit être supérieur à 0");
+        
+        if ($montant > 999999999.99) {\,,-,.{e{ditorconfig,nv{,.example}},git{,attributes,ignore},phpunit.result.cache},123456789\,,2\,,3\,,5000\,,987654321\,,A{ccès\ non\ autorisé\,,ppHttpMiddleware{Check{Agence::class\,,Role::class\,},RedirectIfAuthenticated::class\,}},Illuminate{AuthMiddleware{Auth{enticateWithBasicAuth::class\,,orize::class\,},EnsureEmailIsVerified::class\,},RoutingMiddleware{ThrottleRequests::class\,,ValidateSignature::class\,}},README.md,T{est{\,,2\,},ransfert\ {créé\ avec\ succès\,,retiré\ avec\ succès\,}},a{ctif,gence_id,ll_php_files.txt,pp{,_{all_files.txt,config.txt,structure.txt}},rtisan,uth_controller.txt},bootstrap,c{heck_users.php,o{de,mposer{.{json,lock,phar},_info.txt},n{fig,trollers_{existants.txt,list.txt}}}},database{,_config.txt},e{mail,nv_{config.txt,sans_secrets.txt}},ledger_{model.txt,service.txt},m{igrations_{completes.txt,list.txt},odels_{existants.txt,list.txt}},nom,p{a{ckage.json,ssword_hash},hpunit.xml,roject_{analysis,structure.txt},ublic},r{e{quests_{existants.txt,list.txt},sources},o{le,utes{,_{api.txt,complet.txt}}}},s{ervices_{existants.txt,list.txt},t{orage,ructure{.txt,_{complete.txt,detaille.txt,windows.txt}}}},t{\ {Global\"\,,global\ annulation\"\}\'\)},est{-api.php,_a{pi.sh,uth.php},s},r{ans{action_model.txt,fer{_{controller.txt,request.txt},t.json}},ue\,}},user_model.txt,v{endor,ite.config.js},wallet_{controller.txt,model.txt}} 
+            throw newInvalidArgumentException("Montant trop élevé");
+        
+    
+
