@@ -40,5 +40,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'agence' => \App\Http\Middleware\CheckAgence::class,
+        'check.caisse' => \App\Http\Middleware\CheckCaisseConsistency::class,
     ];
 }

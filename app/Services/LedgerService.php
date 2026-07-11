@@ -73,9 +73,8 @@ class LedgerService
         $soldeAvant = $this->calculerSoldeReel($agence->id);
         $soldeApres = $soldeAvant - $montant;
 
-        $isAnnulation = in_array($nature, ['ANNULATION', 'ANNULATION_RETRAIT']);
-        
-        if (!$isAnnulation && $soldeApres < 0 && !in_array($agence->code, [self::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE])) {
+        $isTransfert = in_array($nature, ['TRANSFERT_SORTIE', 'TRANSFERT_ENTREE']);
+        if (!$isTransfert && $soldeApres < 0 && !in_array($agence->code, [self::SYSTEM_AGENCE_CODE, self::FRAIS_AGENCE_CODE, self::CAISSE_AGENCE_CODE])) {
             throw new FondsInsuffisantsException($soldeAvant, $montant);
         }
 

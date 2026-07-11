@@ -21,11 +21,9 @@ class CaisseService
             $caisse = Caisse::lockForUpdate()->findOrFail($caisseId);
             $agence = $caisse->agence;
 
-            // 1. Mettre à jour la caisse
             $caisse->increment('solde_physique', $montant);
             $caisse->increment('solde_comptable', $montant);
 
-            // 2. ✅ CRÉER UNE ÉCRITURE LEDGER
             $this->ledgerService->credit(
                 $agence,
                 $montant,
@@ -36,10 +34,8 @@ class CaisseService
                 "Dépôt en caisse - " . $motif
             );
 
-            // 3. Mettre à jour le solde_cache
             $this->ledgerService->mettreAJourSoldeCache($agence->id);
 
-            // 4. Créer le mouvement de caisse
             return MouvementCaisse::create([
                 'caisse_id' => $caisseId,
                 'type' => 'ENTREE',
@@ -57,22 +53,18 @@ class CaisseService
             $caisse = Caisse::lockForUpdate()->findOrFail($caisseId);
             $agence = $caisse->agence;
 
-            // Vérifier le solde physique
             if ($caisse->solde_physique < $montant) {
                 throw new \Exception("Solde physique insuffisant");
             }
 
-            // Vérifier le solde ledger
             $soldeLedger = $this->ledgerService->getSolde($agence->id);
             if ($soldeLedger < $montant) {
-                throw new \Exception("Solde ledger insuffisant pour cette opération");
+                throw new \Exception("Solde ledger insuffisant");
             }
 
-            // 1. Mettre à jour la caisse
             $caisse->decrement('solde_physique', $montant);
             $caisse->decrement('solde_comptable', $montant);
 
-            // 2. ✅ CRÉER UNE ÉCRITURE LEDGER
             $this->ledgerService->debit(
                 $agence,
                 $montant,
@@ -83,10 +75,8 @@ class CaisseService
                 "Retrait de caisse - " . $motif
             );
 
-            // 3. Mettre à jour le solde_cache
             $this->ledgerService->mettreAJourSoldeCache($agence->id);
 
-            // 4. Créer le mouvement de caisse
             return MouvementCaisse::create([
                 'caisse_id' => $caisseId,
                 'type' => 'SORTIE',

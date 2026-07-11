@@ -14,6 +14,10 @@ class LedgerNature
     public const ENVOI = 'ENVOI';
     public const RECEPTION = 'RECEPTION';
     public const RETRAIT = 'RETRAIT';
+    public const DEPOT_CAISSE = 'DEPOT_CAISSE';
+    public const RETRAIT_CAISSE = 'RETRAIT_CAISSE';
+    public const TRANSFERT_SORTIE = 'TRANSFERT_SORTIE';
+    public const TRANSFERT_ENTREE = 'TRANSFERT_ENTREE';
 
     public static function all(): array
     {
@@ -28,8 +32,10 @@ class LedgerNature
             self::ENVOI,
             self::RECEPTION,
             self::RETRAIT,
+            self::DEPOT_CAISSE,
+            self::RETRAIT_CAISSE,
+            self::TRANSFERT_SORTIE,
+            self::TRANSFERT_ENTREE,
         ];
     }
 }
-    public const DEPOT_CAISSE = 'DEPOT_CAISSE';
-    public const RETRAIT_CAISSE = 'RETRAIT_CAISSE';
