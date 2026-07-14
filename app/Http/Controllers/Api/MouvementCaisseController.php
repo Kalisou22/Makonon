@@ -22,16 +22,16 @@ class MouvementCaisseController extends Controller
     {
         try {
             $user = $request->user();
-            $perPage = $request->input('per_page', 20);
+            $perPage = (int) $request->input('per_page', 20);
 
-            $query = MouvementCaisse::with(['caisse.agence', 'utilisateur']);
+            $query = MouvementCaisse::with(['caisse.agence', 'utilisateur', 'transfert']);
 
             if ($user->role !== 'SUPERADMIN') {
                 $caisse = Caisse::where('agence_id', $user->agence_id)->first();
                 if ($caisse) {
                     $query->where('caisse_id', $caisse->id);
                 } else {
-                    return response()->json(['data' => [], 'total' => 0]);
+                    return response()->json(['data' => [], 'total' => 0, 'current_page' => 1, 'last_page' => 1, 'per_page' => $perPage]);
                 }
             }
 
@@ -55,6 +55,8 @@ class MouvementCaisseController extends Controller
                     'motif' => $m->motif,
                     'montant' => (float) $m->montant,
                     'reference' => $m->reference,
+                    'transfert_id' => $m->transfert_id,
+                    'transfert_code' => $m->transfert->code ?? null,
                     'utilisateur_id' => $m->utilisateur_id,
                     'utilisateur_nom' => $m->utilisateur->nom ?? '-',
                     'date_mouvement' => $m->created_at->toISOString(),
@@ -70,7 +72,8 @@ class MouvementCaisseController extends Controller
                 'total' => $mouvements->total(),
             ]);
         } catch (\Exception $e) {
-            Log::error('Erreur MouvementCaisseController@index: ' . $e->getMessage());
+            Log::error('MouvementCaisseController@index: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -103,7 +106,8 @@ class MouvementCaisseController extends Controller
                     $validated['montant'],
                     $validated['motif'],
                     $user->id,
-                    $validated['reference'] ?? null
+                    $validated['reference'] ?? null,
+                    null
                 );
             } else {
                 $mouvement = $this->caisseService->sortie(
@@ -111,7 +115,8 @@ class MouvementCaisseController extends Controller
                     $validated['montant'],
                     $validated['motif'],
                     $user->id,
-                    $validated['reference'] ?? null
+                    $validated['reference'] ?? null,
+                    null
                 );
             }
 
@@ -120,7 +125,7 @@ class MouvementCaisseController extends Controller
                 'data' => $mouvement
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Erreur MouvementCaisseController@store: ' . $e->getMessage());
+            Log::error('MouvementCaisseController@store: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -129,6 +134,13 @@ class MouvementCaisseController extends Controller
     {
         try {
             $mouvement = MouvementCaisse::findOrFail($id);
+
+            if ($mouvement->transfert_id) {
+                return response()->json([
+                    'error' => 'Impossible de supprimer un mouvement lié à un transfert'
+                ], 422);
+            }
+
             $caisse = Caisse::find($mouvement->caisse_id);
 
             if ($mouvement->type === 'ENTREE') {
@@ -137,7 +149,8 @@ class MouvementCaisseController extends Controller
                     $mouvement->montant,
                     'ANNULATION',
                     auth()->id(),
-                    'Annulation'
+                    'Annulation du mouvement #' . $id,
+                    null
                 );
             } else {
                 $this->caisseService->entree(
@@ -145,7 +158,8 @@ class MouvementCaisseController extends Controller
                     $mouvement->montant,
                     'ANNULATION',
                     auth()->id(),
-                    'Annulation'
+                    'Annulation du mouvement #' . $id,
+                    null
                 );
             }
 
@@ -153,7 +167,7 @@ class MouvementCaisseController extends Controller
 
             return response()->json(['message' => 'Mouvement supprimé avec succès']);
         } catch (\Exception $e) {
-            Log::error('Erreur MouvementCaisseController@destroy: ' . $e->getMessage());
+            Log::error('MouvementCaisseController@destroy: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -162,13 +176,27 @@ class MouvementCaisseController extends Controller
     {
         try {
             $user = $request->user();
-            $agenceId = $request->input('agence_id', $user->agence_id);
+            $agenceId = $request->input('agence_id');
 
-            if ($user->role !== 'SUPERADMIN' && $user->agence_id != $agenceId) {
-                return response()->json(['error' => 'Accès non autorisé'], 403);
+            if ($user->role === 'SUPERADMIN' && !$agenceId) {
+                $caisses = Caisse::with('agence')->get();
+                $result = [];
+                foreach ($caisses as $caisse) {
+                    $solde = $this->caisseService->getSolde($caisse->id);
+                    $result[] = [
+                        'agence_id' => $caisse->agence_id,
+                        'agence_nom' => $caisse->agence->nom,
+                        'solde_physique' => $solde['solde_physique'],
+                        'solde_comptable' => $solde['solde_comptable'],
+                        'solde_ledger' => $solde['solde_ledger'],
+                        'ecart' => $solde['ecart'],
+                        'statut' => $solde['statut'],
+                    ];
+                }
+                return response()->json($result);
             }
 
-            $caisse = Caisse::where('agence_id', $agenceId)->first();
+            $caisse = Caisse::where('agence_id', $agenceId ?? $user->agence_id)->first();
             if (!$caisse) {
                 return response()->json([
                     'solde_physique' => 0,
@@ -181,7 +209,7 @@ class MouvementCaisseController extends Controller
 
             return response()->json($this->caisseService->getSolde($caisse->id));
         } catch (\Exception $e) {
-            Log::error('Erreur MouvementCaisseController@solde: ' . $e->getMessage());
+            Log::error('MouvementCaisseController@solde: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

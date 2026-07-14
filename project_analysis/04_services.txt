@@ -1,7 +1,0 @@
-total 24
-drwxr-xr-x 1 DELL 197121    0 Jun 23 15:27 ./
-drwxr-xr-x 1 DELL 197121    0 Jun 23 15:27 ../
--rw-r--r-- 1 DELL 197121  623 Jun 23 15:28 AuditService.php
--rw-r--r-- 1 DELL 197121 1783 Jun 23 15:28 CaisseService.php
--rw-r--r-- 1 DELL 197121 1702 Jun 23 15:28 LedgerService.php
--rw-r--r-- 1 DELL 197121 5772 Jun 23 15:28 TransfertService.php

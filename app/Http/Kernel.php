@@ -43,3 +43,9 @@ class Kernel extends HttpKernel
         'check.caisse' => \App\Http\Middleware\CheckCaisseConsistency::class,
     ];
 }
+
+    protected $middleware = [
+        \App\Http\Middleware\Cors::class,
+        \Illuminate\Http\Middleware\HandleCors::class,
+        // ... autres middlewares
+    ];

@@ -63,3 +63,69 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/statistiques/dashboard', [StatistiqueController::class, 'dashboard']);
 });
+
+// ✅ Route pour l'audit
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/audit-logs', [App\Http\Controllers\Api\AuditController::class, 'index']);
+});
+
+// ✅ Route pour les statistiques du dashboard
+Route::middleware(['auth:sanctum'])->get('/statistiques/dashboard', [App\Http\Controllers\Api\StatistiqueController::class, 'dashboard']);
+
+// ============================================
+// ROUTES FRAIS
+// ============================================
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/frais/configuration-actuelle', [App\Http\Controllers\Api\FraisController::class, 'configurationActuelle']);
+    Route::get('/frais/historique', [App\Http\Controllers\Api\FraisController::class, 'historique']);
+    Route::post('/frais/calculer', [App\Http\Controllers\Api\FraisController::class, 'calculer']);
+    Route::post('/frais/configurations', [App\Http\Controllers\Api\FraisController::class, 'store']);
+    Route::put('/frais/configurations/{id}/desactiver', [App\Http\Controllers\Api\FraisController::class, 'desactiver']);
+});
+
+// ============================================
+// ROUTES FRAIS
+// ============================================
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/frais/configuration-actuelle', [App\Http\Controllers\Api\FraisController::class, 'configurationActuelle']);
+    Route::get('/frais/historique', [App\Http\Controllers\Api\FraisController::class, 'historique']);
+    Route::post('/frais/calculer', [App\Http\Controllers\Api\FraisController::class, 'calculer']);
+    Route::post('/frais/configurations', [App\Http\Controllers\Api\FraisController::class, 'store']);
+    Route::put('/frais/configurations/{id}/desactiver', [App\Http\Controllers\Api\FraisController::class, 'desactiver']);
+});
+
+// ============================================
+// ROUTES AUDIT
+// ============================================
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/audit-logs', [App\Http\Controllers\Api\AuditController::class, 'index']);
+    Route::get('/audit-logs/{id}', [App\Http\Controllers\Api\AuditController::class, 'show']);
+    Route::get('/audit-actions', [App\Http\Controllers\Api\AuditController::class, 'actions']);
+});
+
+// ============================================
+// ROUTES AUDIT
+// ============================================
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/audit-logs', [App\Http\Controllers\Api\AuditController::class, 'index']);
+    Route::get('/audit-logs/{id}', [App\Http\Controllers\Api\AuditController::class, 'show']);
+    Route::get('/audit-actions', [App\Http\Controllers\Api\AuditController::class, 'actions']);
+});
+
+// ✅ Route de vérification de code (accessible pour les agents)
+Route::middleware(['auth:sanctum'])->get('/transferts/verifier/{code}', [App\Http\Controllers\Api\TransfertController::class, 'verifier']);
+
+// ✅ Route de vérification de code
+Route::middleware(['auth:sanctum'])->get('/transferts/verifier/{code}', [App\Http\Controllers\Api\TransfertController::class, 'verifier']);
+
+// ✅ Route de vérification de code
+Route::middleware(['auth:sanctum'])->get('/transferts/verifier/{code}', [App\Http\Controllers\Api\TransfertController::class, 'verifier']);
+
+// ✅ Route de vérification de code
+Route::middleware(['auth:sanctum'])->get('/transferts/verifier/{code}', [App\Http\Controllers\Api\TransfertController::class, 'verifier']);
+
+// ✅ Route pour les soldes (cash / dette / frais)
+Route::middleware(['auth:sanctum'])->get('/agences/soldes/{agenceId}', function ($agenceId) {
+    $service = app(\App\Services\MouvementService::class);
+    return response()->json($service->getSoldes($agenceId));
+});
