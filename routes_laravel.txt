@@ -1,0 +1,18 @@
+routes/api.php:Route::post('/login', [AuthController::class, 'login']);
+routes/api.php:Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+routes/api.php:Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+routes/api.php:Route::middleware('auth:sanctum')->group(function () {
+routes/api.php:    Route::get('/agences', [AgenceController::class, 'index']);
+routes/api.php:    Route::post('/agences', [AgenceController::class, 'store']);
+routes/api.php:    Route::get('/agences/{id}', [AgenceController::class, 'show']);
+routes/api.php:    Route::put('/agences/{id}', [AgenceController::class, 'update']);
+routes/api.php:    Route::delete('/agences/{id}', [AgenceController::class, 'destroy']);
+routes/api.php:    Route::get('/clients', [ClientController::class, 'index']);
+routes/api.php:    Route::post('/clients', [ClientController::class, 'store']);
+routes/api.php:    Route::get('/clients/{id}', [ClientController::class, 'show']);
+routes/api.php:    Route::put('/clients/{id}', [ClientController::class, 'update']);
+routes/api.php:    Route::delete('/clients/{id}', [ClientController::class, 'destroy']);
+routes/api.php:Route::prefix('transferts')->group(function () {
+routes/api.php:    Route::get('/', [TransfertController::class, 'index']);
+routes/api.php:    Route::post('/', [TransfertController::class, 'store']);
+routes/web.php:Route::get('/', function () {

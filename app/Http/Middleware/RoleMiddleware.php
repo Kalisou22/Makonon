@@ -1,23 +1,19 @@
-<?php
+// app/Http/Middleware/RoleMiddleware.php
+
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, ...$roles)
+    public function handle($request, Closure $next, ...$roles)
     {
         $user = $request->user();
-        
-        if (!$user) {
-            return response()->json(['error' => 'Non authentifié'], 401);
+
+        if (!$user || !in_array($user->role, $roles)) {
+            return response()->json(['message' => 'Accès refusé'], 403);
         }
-        
-        if (!in_array($user->role, $roles)) {
-            return response()->json(['error' => 'Accès refusé - Rôle insuffisant'], 403);
-        }
-        
+
         return $next($request);
     }
 }

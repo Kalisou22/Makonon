@@ -1,0 +1,1101 @@
+./app/Console/Commands/CheckCaisseLedger.php:        $agences = Agence::whereNotIn('code', ['FRAIS', 'SYSTEM'])->get();
+./app/Console/Commands/CheckLedger.php:                ->get();
+./app/Console/Commands/CheckMultiAgences.php:                ->get();
+./app/Console/Commands/SyncCaisseLedger.php:        $agences = Agence::whereNotIn('code', ['FRAIS', 'SYSTEM'])->get();
+./app/Http/Controllers/Api/AuthController.php:            $request->user()->currentAccessToken()->delete();
+./app/Http/Controllers/Api/ClientController.php:            $client->delete();
+./app/Http/Controllers/Api/LedgerController.php:            $perPage = (int) $request->get('per_page', 10);
+./app/Http/Controllers/Api/LedgerController.php:            $perPage = (int) $request->get('per_page', 20);
+./app/Http/Controllers/Api/MouvementCaisseController.php:            $mouvement->delete();
+./app/Http/Controllers/Api/MouvementCaisseController.php:                $caisses = Caisse::with('agence')->get();
+./app/Http/Controllers/Api/StatistiqueController.php:        $agences = Agence::whereNotIn('code', ['SYSTEM', 'FRAIS', 'CAISSE'])->get();
+./app/Http/Controllers/Api/StatistiqueController.php:            ->get()
+./app/Http/Controllers/Api/StatistiqueController.php:            ->get()
+./app/Http/Controllers/Api/UtilisateurController.php:            $user->delete();
+./app/Providers/RouteServiceProvider.php:            Route::middleware('api')
+./app/Providers/RouteServiceProvider.php:            Route::middleware('web')
+./database/migrations/2026_06_28_create_frais_account.php:        Agence::where('code', 'FRAIS')->delete();
+./database/migrations/2026_07_06_000000_create_system_accounts.php:        DB::table('agences')->whereIn('code', ['SYSTEM', 'CAISSE'])->delete();
+./database/seeders/AgenceCompleteSeeder.php:        $agences = DB::table('agences')->get();
+./resources/views/welcome.blade.php:            @if (Route::has('login'))
+./resources/views/welcome.blade.php:                        @if (Route::has('register'))
+./resources/views/welcome.blade.php:        @if (Route::has('login'))
+./routes/api.php:Route::post('/login', [AuthController::class, 'login']);
+./routes/api.php:Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+./routes/api.php:Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+./routes/api.php:Route::middleware('auth:sanctum')->group(function () {
+./routes/api.php:    Route::get('/agences', [AgenceController::class, 'index']);
+./routes/api.php:    Route::post('/agences', [AgenceController::class, 'store']);
+./routes/api.php:    Route::get('/agences/{id}', [AgenceController::class, 'show']);
+./routes/api.php:    Route::put('/agences/{id}', [AgenceController::class, 'update']);
+./routes/api.php:    Route::delete('/agences/{id}', [AgenceController::class, 'destroy']);
+./routes/api.php:    Route::get('/clients', [ClientController::class, 'index']);
+./routes/api.php:    Route::post('/clients', [ClientController::class, 'store']);
+./routes/api.php:    Route::get('/clients/{id}', [ClientController::class, 'show']);
+./routes/api.php:    Route::put('/clients/{id}', [ClientController::class, 'update']);
+./routes/api.php:    Route::delete('/clients/{id}', [ClientController::class, 'destroy']);
+./routes/api.php:Route::prefix('transferts')->group(function () {
+./routes/api.php:    Route::get('/', [TransfertController::class, 'index']);
+./routes/api.php:    Route::post('/', [TransfertController::class, 'store']);
+./routes/web.php:Route::get('/', function () {
+./tests/Feature/ExampleTest.php:        $response = $this->get('/');
+./test_transfert.php:foreach (Agence::whereNotIn('code', ['SYSTEM', 'FRAIS', 'CAISSE'])->get() as $agence) {
+./test_transfert.php:foreach (Agence::whereIn('id', [4, 5])->get() as $agence) {
+./test_transfert.php:foreach (Agence::whereIn('id', [4, 5])->get() as $agence) {
+./test_transfert.php:$ledgerEntries = Ledger::where('transfert_id', $transfert->id)->get();
+./test_transfert.php:foreach (Agence::whereNotIn('code', ['SYSTEM', 'FRAIS', 'CAISSE'])->get() as $a) {
+./vendor/dflydev/dot-access-data/src/Data.php:        $value = $this->get($key);
+./vendor/dflydev/dot-access-data/src/Data.php:        return $this->get($key, null);
+./vendor/fruitcake/php-cors/src/CorsService.php:        $origin = (string) $request->headers->get('Origin');
+./vendor/fruitcake/php-cors/src/CorsService.php:                $response->headers->set('Access-Control-Allow-Origin', (string) $request->headers->get('Origin'));
+./vendor/fruitcake/php-cors/src/CorsService.php:            $allowMethods = strtoupper((string) $request->headers->get('Access-Control-Request-Method'));
+./vendor/fruitcake/php-cors/src/CorsService.php:            $allowHeaders = (string) $request->headers->get('Access-Control-Request-Headers');
+./vendor/fruitcake/php-cors/src/CorsService.php:                    $response->setVary(((string)$response->headers->get('Vary')) . ', ' . $header);
+./vendor/laravel/framework/src/Illuminate/Auth/AuthManager.php:            rehashOnLogin: $this->app['config']->get('hashing.rehash_on_login', true),
+./vendor/laravel/framework/src/Illuminate/Auth/AuthManager.php:            timeboxDuration: $this->app['config']->get('auth.timebox_duration', 200000),
+./vendor/laravel/framework/src/Illuminate/Auth/AuthManager.php:            hashKey: $this->app['config']->get('app.key'),
+./vendor/laravel/framework/src/Illuminate/Auth/AuthServiceProvider.php:                $app['config']->get('auth.password_timeout')
+./vendor/laravel/framework/src/Illuminate/Auth/Middleware/RedirectIfAuthenticated.php:            if (Route::has($uri)) {
+./vendor/laravel/framework/src/Illuminate/Auth/Middleware/RedirectIfAuthenticated.php:        $routes = Route::getRoutes()->get('GET');
+./vendor/laravel/framework/src/Illuminate/Auth/Middleware/RequirePassword.php:        $confirmedAt = Date::now()->unix() - $request->session()->get('auth.password_confirmed_at', 0);
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/CacheTokenRepository.php:        $this->delete($user);
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/CacheTokenRepository.php:        $this->cache->put(
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/CacheTokenRepository.php:        [$record, $createdAt] = $this->cache->get($this->cacheKey($user));
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/CacheTokenRepository.php:        [$record, $createdAt] = $this->cache->get($this->cacheKey($user));
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/DatabaseTokenRepository.php:        return $this->getTable()->where('email', $user->getEmailForPasswordReset())->delete();
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/DatabaseTokenRepository.php:        $this->getTable()->where('created_at', '<', $expiredAt)->delete();
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/PasswordBroker.php:            $this->tokens->delete($user);
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/PasswordBroker.php:        $this->tokens->delete($user);
+./vendor/laravel/framework/src/Illuminate/Auth/Passwords/PasswordBrokerManager.php:            timeboxDuration: $this->app['config']->get('auth.timebox_duration', 200000),
+./vendor/laravel/framework/src/Illuminate/Auth/SessionGuard.php:        $id = $this->session->get($this->getName());
+./vendor/laravel/framework/src/Illuminate/Auth/SessionGuard.php:        if ($recaller = $this->request->cookies->get($this->getRecallerName())) {
+./vendor/laravel/framework/src/Illuminate/Auth/SessionGuard.php:            : $this->session->get($this->getName());
+./vendor/laravel/framework/src/Illuminate/Auth/SessionGuard.php:        $this->session->put($this->getName(), $id);
+./vendor/laravel/framework/src/Illuminate/Broadcasting/Broadcasters/AblyBroadcaster.php:                $this->ably->channels->get($channel)->publish(
+./vendor/laravel/framework/src/Illuminate/Broadcasting/BroadcastManager.php:        return $this->drivers[$name] = $this->get($name);
+./vendor/laravel/framework/src/Illuminate/Broadcasting/BroadcastManager.php:            $this->app['config']->get('database.redis.options.prefix', '')
+./vendor/laravel/framework/src/Illuminate/Bus/Batch.php:        $this->repository->delete($this->id);
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:            $driver = $app->config->get('queue.batching.driver', 'database');
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:                $app->make('db')->connection($app->config->get('queue.batching.database')),
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:                $app->config->get('queue.batching.table', 'job_batches')
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:            $config = $app->config->get('queue.batching');
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:                $app->config->get('app.name'),
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:                $app->config->get('queue.batching.table', 'job_batches'),
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:                ttl: $app->config->get('queue.batching.ttl', null),
+./vendor/laravel/framework/src/Illuminate/Bus/BusServiceProvider.php:                ttlAttribute: $app->config->get('queue.batching.ttl_attribute', 'ttl'),
+./vendor/laravel/framework/src/Illuminate/Bus/DatabaseBatchRepository.php:            ->get()
+./vendor/laravel/framework/src/Illuminate/Bus/DatabaseBatchRepository.php:        $this->connection->table($this->table)->where('id', $batchId)->delete();
+./vendor/laravel/framework/src/Illuminate/Bus/DatabaseBatchRepository.php:            $deleted = $query->limit(1000)->delete();
+./vendor/laravel/framework/src/Illuminate/Bus/DatabaseBatchRepository.php:            $deleted = $query->limit(1000)->delete();
+./vendor/laravel/framework/src/Illuminate/Bus/DatabaseBatchRepository.php:            $deleted = $query->limit(1000)->delete();
+./vendor/laravel/framework/src/Illuminate/Bus/PendingBatch.php:                $repository->delete($batch->id);
+./vendor/laravel/framework/src/Illuminate/Bus/PendingBatch.php:            $batch->delete();
+./vendor/laravel/framework/src/Illuminate/Bus/UniqueLock.php:        return (bool) $cache->lock($this->getKey($job), $uniqueFor)->get();
+./vendor/laravel/framework/src/Illuminate/Cache/ApcStore.php:        return $this->apc->get($this->prefix.$key);
+./vendor/laravel/framework/src/Illuminate/Cache/ApcStore.php:        return $this->apc->put($this->prefix.$key, $value, $seconds);
+./vendor/laravel/framework/src/Illuminate/Cache/ApcStore.php:        return $this->put($key, $value, 0);
+./vendor/laravel/framework/src/Illuminate/Cache/ApcStore.php:        return $this->apc->delete($this->prefix.$key);
+./vendor/laravel/framework/src/Illuminate/Cache/ArrayStore.php:        if (! is_null($existing = $this->get($key))) {
+./vendor/laravel/framework/src/Illuminate/Cache/ArrayStore.php:        return $this->put($key, $value, 0);
+./vendor/laravel/framework/src/Illuminate/Cache/CacheLock.php:        if (! is_null($this->store->get($this->name))) {
+./vendor/laravel/framework/src/Illuminate/Cache/CacheLock.php:            ? $this->store->put($this->name, $this->owner, $this->seconds)
+./vendor/laravel/framework/src/Illuminate/Cache/CacheLock.php:        return $this->store->get($this->name);
+./vendor/laravel/framework/src/Illuminate/Cache/CacheServiceProvider.php:                $app['config']->get('cache.limiter')
+./vendor/laravel/framework/src/Illuminate/Cache/Console/ClearCommand.php:                $this->files->delete($file);
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseLock.php:                    ->delete();
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseLock.php:            ->delete();
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseLock.php:                ->delete();
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseStore.php:            ->get()
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseStore.php:        if (! is_null($this->get($key))) {
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseStore.php:        return $this->put($key, $value, 315360000);
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseStore.php:        ])->all())->delete();
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseStore.php:            ->delete();
+./vendor/laravel/framework/src/Illuminate/Cache/DatabaseStore.php:        $this->table()->delete();
+./vendor/laravel/framework/src/Illuminate/Cache/DynamoDbLock.php:        return $this->dynamo->get($this->name);
+./vendor/laravel/framework/src/Illuminate/Cache/DynamoDbStore.php:        return $this->put($key, $value, Carbon::now()->addYears(5)->getTimestamp());
+./vendor/laravel/framework/src/Illuminate/Cache/FileStore.php:        $result = $this->files->put(
+./vendor/laravel/framework/src/Illuminate/Cache/FileStore.php:            $this->put($key, $newValue, $raw['time'] ?? 0);
+./vendor/laravel/framework/src/Illuminate/Cache/FileStore.php:        return $this->put($key, $value, 0);
+./vendor/laravel/framework/src/Illuminate/Cache/FileStore.php:            return tap($this->files->delete($file), function ($forgotten) use ($key) {
+./vendor/laravel/framework/src/Illuminate/Cache/FileStore.php:                    $this->files->delete($file);
+./vendor/laravel/framework/src/Illuminate/Cache/FileStore.php:            if (is_null($contents = $this->files->get($path, true))) {
+./vendor/laravel/framework/src/Illuminate/Cache/MemcachedLock.php:            return $this->memcached->delete($this->name);
+./vendor/laravel/framework/src/Illuminate/Cache/MemcachedLock.php:        $this->memcached->delete($this->name);
+./vendor/laravel/framework/src/Illuminate/Cache/MemcachedLock.php:        return $this->memcached->get($this->name);
+./vendor/laravel/framework/src/Illuminate/Cache/MemcachedStore.php:        $value = $this->memcached->get($this->prefix.$key);
+./vendor/laravel/framework/src/Illuminate/Cache/MemcachedStore.php:        return $this->put($key, $value, 0);
+./vendor/laravel/framework/src/Illuminate/Cache/MemcachedStore.php:        return $this->memcached->delete($this->prefix.$key);
+./vendor/laravel/framework/src/Illuminate/Cache/MemoizedStore.php:        return $this->cache[$prefixedKey] = $this->repository->get($key);
+./vendor/laravel/framework/src/Illuminate/Cache/MemoizedStore.php:        return $this->repository->put($key, $value, $seconds);
+./vendor/laravel/framework/src/Illuminate/Cache/RateLimiter.php:                fn () => $this->cache->put($key, $amount, $decaySeconds)
+./vendor/laravel/framework/src/Illuminate/Cache/RateLimiter.php:        return $this->withoutSerializationOrCompression(fn () => $this->cache->get($key, 0));
+./vendor/laravel/framework/src/Illuminate/Cache/RateLimiter.php:        return max(0, $this->cache->get($key.':timer') - $this->currentTime());
+./vendor/laravel/framework/src/Illuminate/Cache/RedisLock.php:        return $this->redis->get($this->name);
+./vendor/laravel/framework/src/Illuminate/Cache/RedisStore.php:        $value = $connection->get($this->prefix.$key);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        return ! is_null($this->get($key));
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->store->get($this->itemKey($key));
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        return tap($this->get($key, $default), function () use ($key) {
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $result = $this->store->put($this->itemKey($key), $value, $seconds);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        return $this->put($key, $value, $ttl);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        if (is_null($this->get($key))) {
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:            return $this->put($key, $value, $seconds);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->get($key);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $this->put($key, $value, value($ttl, $value));
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $value = $this->get($key);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:            )->get(function () use ($key, $callback, $created, $ttl) {
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:                if ($created !== $this->get("illuminate:cache:flexible:created:{$key}")) {
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        return $this->get($key);
+./vendor/laravel/framework/src/Illuminate/Cache/Repository.php:        $this->put($key, $value, $this->default);
+./vendor/laravel/framework/src/Illuminate/Cache/RetrievesMultipleKeys.php:            $return[$key] = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Cache/RetrievesMultipleKeys.php:            $result = $this->put($key, $value, $seconds);
+./vendor/laravel/framework/src/Illuminate/Cache/SessionStore.php:        return $this->session->get($this->key, []);
+./vendor/laravel/framework/src/Illuminate/Cache/SessionStore.php:        $item = $this->session->get($this->itemKey($key));
+./vendor/laravel/framework/src/Illuminate/Cache/SessionStore.php:        $this->session->put($this->itemKey($key), [
+./vendor/laravel/framework/src/Illuminate/Cache/SessionStore.php:        if (! is_null($existing = $this->get($key))) {
+./vendor/laravel/framework/src/Illuminate/Cache/SessionStore.php:                $this->session->put($this->itemKey("{$key}.value"), $incremented);
+./vendor/laravel/framework/src/Illuminate/Cache/SessionStore.php:        return $this->put($key, $value, 0);
+./vendor/laravel/framework/src/Illuminate/Cache/SessionStore.php:        $this->session->put($this->key, []);
+./vendor/laravel/framework/src/Illuminate/Cache/TagSet.php:        return $this->store->get($this->tagKey($name)) ?: $this->resetTag($name);
+./vendor/laravel/framework/src/Illuminate/Collections/Collection.php:            return $values->get($middle);
+./vendor/laravel/framework/src/Illuminate/Collections/Collection.php:            $values->get($middle - 1), $values->get($middle),
+./vendor/laravel/framework/src/Illuminate/Collections/Collection.php:        return $this->get($keys->get($position - 1));
+./vendor/laravel/framework/src/Illuminate/Collections/Collection.php:        return $this->get($keys->get($position + 1));
+./vendor/laravel/framework/src/Illuminate/Concurrency/ConcurrencyManager.php:        return $this->app['config']->get(
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        $value = $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        $array = $this->get($key, []);
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        $array = $this->get($key, []);
+./vendor/laravel/framework/src/Illuminate/Config/Repository.php:        return $this->get($key);
+./vendor/laravel/framework/src/Illuminate/Console/CacheCommandMutex.php:            )->get();
+./vendor/laravel/framework/src/Illuminate/Console/CacheCommandMutex.php:            return tap(! $lock->get(), function ($exists) use ($lock) {
+./vendor/laravel/framework/src/Illuminate/Console/ContainerCommandLoader.php:        return $this->container->get($this->commandMap[$name]);
+./vendor/laravel/framework/src/Illuminate/Console/GeneratorCommand.php:        $this->files->put($path, $this->sortImports($this->buildClass($name)));
+./vendor/laravel/framework/src/Illuminate/Console/GeneratorCommand.php:        $stub = $this->files->get($this->getStub());
+./vendor/laravel/framework/src/Illuminate/Console/GeneratorCommand.php:        $provider = $config->get('auth.guards.'.$config->get('auth.defaults.guard').'.provider');
+./vendor/laravel/framework/src/Illuminate/Console/GeneratorCommand.php:        return $config->get("auth.providers.{$provider}.model");
+./vendor/laravel/framework/src/Illuminate/Console/MigrationGeneratorCommand.php:            '{{table}}', $table, $this->files->get($this->migrationStubFile())
+./vendor/laravel/framework/src/Illuminate/Console/MigrationGeneratorCommand.php:        $this->files->put($path, $stub);
+./vendor/laravel/framework/src/Illuminate/Console/Scheduling/CacheEventMutex.php:                ->get(fn () => true);
+./vendor/laravel/framework/src/Illuminate/Console/Scheduling/CacheSchedulingMutex.php:                ->get(fn () => true);
+./vendor/laravel/framework/src/Illuminate/Console/Scheduling/ScheduleInterruptCommand.php:        $this->cache->put('illuminate:schedule:interrupt', true, Date::now()->endOfMinute());
+./vendor/laravel/framework/src/Illuminate/Console/Scheduling/ScheduleRunCommand.php:        return $this->cache->get('illuminate:schedule:interrupt', false);
+./vendor/laravel/framework/src/Illuminate/Container/Attributes/Config.php:        return $container->make('config')->get($attribute->key, $attribute->default);
+./vendor/laravel/framework/src/Illuminate/Container/Attributes/Context.php:            false => $repository->get($attribute->key, $attribute->default),
+./vendor/laravel/framework/src/Illuminate/Container/ContextualBindingBuilder.php:        return $this->give(fn ($container) => $container->get('config')->get($key, $default));
+./vendor/laravel/framework/src/Illuminate/Cookie/CookieServiceProvider.php:            $config = $app->make('config')->get('session');
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:            $results = $this->offset($offset)->limit($limit)->get();
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:                $results = $clone->forPageBeforeId($limit, $lastId, $column)->get();
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:                $results = $clone->forPageAfterId($limit, $lastId, $column)->get();
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:                $results = $this->forPage($page++, $chunkSize)->get();
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:                    $results = $clone->forPageBeforeId($chunkSize, $lastId, $column)->get();
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:                    $results = $clone->forPageAfterId($chunkSize, $lastId, $column)->get();
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:        return $this->limit(1)->get($columns)->first();
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:        $result = $this->limit(2)->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:        return $this->cursorPaginator($this->get($columns), $perPage, $cursor, [
+./vendor/laravel/framework/src/Illuminate/Database/Console/Migrations/MigrateCommand.php:        if ($this->laravel['config']->get("database.connections.{$connection->getName()}.database") !== $connection->getDatabaseName()) {
+./vendor/laravel/framework/src/Illuminate/Database/DatabaseServiceProvider.php:            $locale = $parameters['locale'] ?? $app['config']->get('app.faker_locale', 'en_US');
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php:        return $this->whereKey($ids)->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php:            $this->query->get($columns)->all()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php:            ? $this->forPage($page, $perPage)->get($columns)
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php:        return $this->simplePaginator($this->get($columns), $perPage, $page, [
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php:        return $this->toBase()->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php:        return $this->query->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Collection.php:            ->get()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Collection.php:            $extraAttributes = Arr::only($models->get($model->getKey())->getAttributes(), $attributes);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Collection.php:                ->mergeCasts($models->get($model->getKey())->getCasts());
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Collection.php:            ->get()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php:                : $caster->get($this, $key, $value, $this->attributes);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Factories/Factory.php:        return $this->recycle->get($modelClassName)?->random();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/MassPrunable.php:                : $query->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:        return static::query()->get(
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:        foreach ($instance->whereIn($key, $ids)->get() as $model) {
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:            if ($model->delete()) {
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:        return static::withoutEvents(fn () => $this->delete());
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:        return $this->getConnection()->transaction(fn () => $this->delete());
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:        return $this->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:        $this->setKeysForSaveQuery($this->newModelQuery())->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/ModelInspector.php:        return $this->getCastsWithDates($model)->get($column) ?? null;
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Prunable.php:            : $this->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/BelongsToMany.php:        )->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/BelongsToMany.php:        $results = $this->limit(1)->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/BelongsToMany.php:            ? $this->get()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Concerns/AsPivot.php:        return tap($this->getDeleteQuery()->delete(), function () {
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Concerns/InteractsWithPivotTable.php:            $results = $query->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Concerns/InteractsWithPivotTable.php:            $results += $record->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Concerns/InteractsWithPivotTable.php:            ->get()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/HasMany.php:            ? $this->query->get()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/HasManyThrough.php:            ? $this->get()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php:        $results = $this->limit(1)->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php:        )->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/MorphMany.php:            ? $this->query->get()
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/MorphPivot.php:        return tap($query->delete(), function () {
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/MorphTo.php:        )->get();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Relation.php:            : $this->get();
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Relation.php:        $result = $this->limit(2)->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/Relations/Relation.php:        return $this->query->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/SoftDeletes.php:        return tap($this->delete(), function ($deleted) {
+./vendor/laravel/framework/src/Illuminate/Database/Eloquent/SoftDeletes.php:        foreach ($instance->withTrashed()->whereIn($key, $ids)->get() as $model) {
+./vendor/laravel/framework/src/Illuminate/Database/Migrations/DatabaseMigrationRepository.php:            ->get()
+./vendor/laravel/framework/src/Illuminate/Database/Migrations/DatabaseMigrationRepository.php:            ->get()
+./vendor/laravel/framework/src/Illuminate/Database/Migrations/DatabaseMigrationRepository.php:        return $query->orderBy('migration', 'desc')->get()->all();
+./vendor/laravel/framework/src/Illuminate/Database/Migrations/DatabaseMigrationRepository.php:        $this->table()->where('migration', $migration->migration)->delete();
+./vendor/laravel/framework/src/Illuminate/Database/Migrations/MigrationCreator.php:        $this->files->put(
+./vendor/laravel/framework/src/Illuminate/Database/Migrations/MigrationCreator.php:        return $this->files->get($stub);
+./vendor/laravel/framework/src/Illuminate/Database/Migrations/Migrator.php:        $this->repository->delete($migration);
+./vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:        $results = $total ? $this->forPage($page, $perPage)->get($columns) : new Collection;
+./vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:        return $this->simplePaginator($this->get($columns), $perPage, $page, [
+./vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:                ->get()->all();
+./vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:            ->get()->all();
+./vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:            ->get($columns);
+./vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:        return $this->connection->delete(
+./vendor/laravel/framework/src/Illuminate/Database/Schema/Grammars/MySqlGrammar.php:            && $value = $command->column->get('startingValue', $command->column->get('from'))) {
+./vendor/laravel/framework/src/Illuminate/Database/Schema/Grammars/PostgresGrammar.php:            && $value = $command->column->get('startingValue', $command->column->get('from'))) {
+./vendor/laravel/framework/src/Illuminate/Database/Schema/MySqlSchemaState.php:        $this->files->put($path, preg_replace(
+./vendor/laravel/framework/src/Illuminate/Database/Schema/MySqlSchemaState.php:            $this->files->get($path)
+./vendor/laravel/framework/src/Illuminate/Database/Schema/SqliteSchemaState.php:        $this->files->put($path, $migrations.PHP_EOL);
+./vendor/laravel/framework/src/Illuminate/Database/Schema/SqliteSchemaState.php:            $this->connection->getPdo()->exec($this->files->get($path));
+./vendor/laravel/framework/src/Illuminate/Encryption/EncryptionServiceProvider.php:            $config = $app->make('config')->get('app');
+./vendor/laravel/framework/src/Illuminate/Encryption/EncryptionServiceProvider.php:        $config = $this->app->make('config')->get('app');
+./vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php:        return json_decode($this->get($path, $lock), true, 512, $flags);
+./vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php:            return $this->put($path, $data.$this->get($path));
+./vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php:        return $this->put($path, $data);
+./vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php:                $this->delete($item->getPathname());
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:                $actual = $this->get($path);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:        $content = $this->get($path);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:        $result = $this->put(
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:            return $this->put($path, $data.$separator.$this->get($path));
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:        return $this->put($path, $data);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:            return $this->put($path, $this->get($path).$separator.$data);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:        return $this->put($path, $data);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php:                $this->driver->delete($path);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemManager.php:        return $this->disks[$name] = $this->get($name);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemManager.php:        return $this->disks[$name] = $this->get($name);
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemServiceProvider.php:                Route::get($uri.'/{path}', function (Request $request, string $path) use ($disk, $config, $isProduction) {
+./vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemServiceProvider.php:                Route::put($uri.'/{path}', function (Request $request, string $path) use ($disk, $config, $isProduction) {
+./vendor/laravel/framework/src/Illuminate/Filesystem/ReceiveFile.php:            Storage::disk($this->disk)->put($path, $request->getContent());
+./vendor/laravel/framework/src/Illuminate/Foundation/Application.php:        $viewPath = rtrim($this['config']->get('view.paths')[0], DIRECTORY_SEPARATOR);
+./vendor/laravel/framework/src/Illuminate/Foundation/Application.php:        return (bool) $this['config']->get('app.debug');
+./vendor/laravel/framework/src/Illuminate/Foundation/Application.php:        $providers = (new Collection($this->make('config')->get('app.providers')))
+./vendor/laravel/framework/src/Illuminate/Foundation/Application.php:        return $this['config']->get('app.locale');
+./vendor/laravel/framework/src/Illuminate/Foundation/Application.php:        return $this['config']->get('app.fallback_locale');
+./vendor/laravel/framework/src/Illuminate/Foundation/Application.php:        $previous = $this['config']->get('app.locale');
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:        $options = static::$app['config']->get('logging.deprecations') ?? [];
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:        if ($config->get('logging.channels.deprecations')) {
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:        if (is_array($options = $config->get('logging.deprecations'))) {
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:        $config->set('logging.channels.deprecations', $config->get("logging.channels.{$driver}"));
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:        if ($config->get('logging.channels.null')) {
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/LoadConfiguration.php:        $app->detectEnvironment(fn () => $config->get('app.env', 'production'));
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/LoadConfiguration.php:        date_default_timezone_set($config->get('app.timezone', 'UTC'));
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/RegisterFacades.php:            $app->make('config')->get('app.aliases', []),
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/RegisterProviders.php:                $app->make('config')->get('app.providers') ?? ServiceProvider::defaultProviders()->toArray(),
+./vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/SetRequestForConsole.php:        $uri = $app->make('config')->get('app.url', 'http://localhost');
+./vendor/laravel/framework/src/Illuminate/Foundation/CacheBasedMaintenanceMode.php:        $this->getStore()->put($this->key, $payload);
+./vendor/laravel/framework/src/Illuminate/Foundation/CacheBasedMaintenanceMode.php:        return $this->getStore()->get($this->key);
+./vendor/laravel/framework/src/Illuminate/Foundation/Cloud/FailedJobProvider.php:            ->get($id);
+./vendor/laravel/framework/src/Illuminate/Foundation/Cloud.php:        $host = $app['config']->get('database.connections.pgsql.host', '');
+./vendor/laravel/framework/src/Illuminate/Foundation/Cloud.php:                array_merge($app['config']->get('database.connections.pgsql'), [
+./vendor/laravel/framework/src/Illuminate/Foundation/Cloud.php:                    $app['config']->get('database.connections.pgsql.options', []),
+./vendor/laravel/framework/src/Illuminate/Foundation/Cloud.php:        if (! is_array($app['config']->get('database.connections.pgsql-unpooled'))) {
+./vendor/laravel/framework/src/Illuminate/Foundation/Cloud.php:            $connection = $connection ?? $app['config']->get('database.default');
+./vendor/laravel/framework/src/Illuminate/Foundation/Cloud.php:        if ($app['config']->get('queue.connections.cloud.driver') !== 'cloud') {
+./vendor/laravel/framework/src/Illuminate/Foundation/ComposerScripts.php:        require_once $event->getComposer()->getConfig()->get('vendor-dir').'/autoload.php';
+./vendor/laravel/framework/src/Illuminate/Foundation/ComposerScripts.php:        require_once $event->getComposer()->getConfig()->get('vendor-dir').'/autoload.php';
+./vendor/laravel/framework/src/Illuminate/Foundation/ComposerScripts.php:        require_once $event->getComposer()->getConfig()->get('vendor-dir').'/autoload.php';
+./vendor/laravel/framework/src/Illuminate/Foundation/ComposerScripts.php:            require_once $event->getComposer()->getConfig()->get('vendor-dir').'/autoload.php';
+./vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:                            Route::middleware('api')->prefix($apiPrefix)->group($apiRoute);
+./vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:                    Route::middleware('api')->prefix($apiPrefix)->group($api);
+./vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:                Route::get($health, function () {
+./vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:                            Route::middleware('web')->group($webRoute);
+./vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:                    Route::middleware('web')->group($web);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/BroadcastingInstallCommand.php:        $config = $filesystem->get(app()->configPath('app.php'));
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/ConfigCacheCommand.php:        $this->files->put(
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/ConfigCacheCommand.php:            $this->files->delete($configPath);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/ConfigClearCommand.php:        $this->files->delete($this->laravel->getCachedConfigPath());
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/DocsCommand.php:            $this->cache->put("artisan.docs.{{$this->version()}}.index", $response->collect(), CarbonInterval::months(2));
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/DocsCommand.php:        return $this->http->get("https://laravel.com/docs/{$this->version()}/index.json");
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/DownCommand.php:            $this->laravel->get('events')->dispatch(new MaintenanceModeEnabled());
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/EnvironmentDecryptCommand.php:            $encryptedContents = $this->files->get($encryptedFile);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/EnvironmentDecryptCommand.php:            $this->files->put($outputFile, $decrypted);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/EnvironmentEncryptCommand.php:            $contents = $this->files->get($environmentFile);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/EnvironmentEncryptCommand.php:            $this->files->put($encryptedFile, $encrypted);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/EnvironmentEncryptCommand.php:            $this->files->delete($environmentFile);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/EventClearCommand.php:        $this->files->delete($this->laravel->getCachedEventsPath());
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php:        $this->commandStartedAt->setTimezone($this->app['config']->get('app.timezone') ?? 'UTC');
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php:        return $config->get('app.schedule_timezone', $config->get('app.timezone'));
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php:        return $this->app['config']->get('cache.schedule_store', Env::get('SCHEDULE_CACHE_DRIVER', function () {
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/MailMakeCommand.php:        $this->files->put($path, file_get_contents(__DIR__.'/stubs/markdown.stub'));
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/MailMakeCommand.php:        $this->files->put($path, $stub);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/NotificationMakeCommand.php:        $this->files->put($path, file_get_contents(__DIR__.'/stubs/markdown.stub'));
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/PolicyMakeCommand.php:        $guard = $this->option('guard') ?: $config->get('auth.defaults.guard');
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/PolicyMakeCommand.php:        if (is_null($guardProvider = $config->get('auth.guards.'.$guard.'.provider'))) {
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/PolicyMakeCommand.php:        if (! $config->get('auth.providers.'.$guardProvider.'.model')) {
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/PolicyMakeCommand.php:        return $config->get(
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteCacheCommand.php:        $this->files->put(
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteCacheCommand.php:        $stub = $this->files->get(__DIR__.'/stubs/routes.stub');
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/RouteClearCommand.php:        $this->files->delete($this->laravel->getCachedRoutesPath());
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/StorageLinkCommand.php:                $this->laravel->make('files')->delete($link);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/StorageUnlinkCommand.php:            $this->laravel->make('files')->delete($link);
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/UpCommand.php:            $this->laravel->get('events')->dispatch(new MaintenanceModeDisabled());
+./vendor/laravel/framework/src/Illuminate/Foundation/Console/ViewClearCommand.php:                $this->files->delete($view);
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:            return app('cache')->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:        return app('cache')->put(key($key), array_first($key), ttl: $default);
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:        return app('config')->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:            default => $context->get($key, $default),
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:            $locale ??= app('config')->get('app.faker_locale');
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:            return app('session')->put($key);
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:        return app('session')->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:        return app('translator')->get($key, $replace, $locale);
+./vendor/laravel/framework/src/Illuminate/Foundation/helpers.php:            str_contains($uri, '.') && Route::has($uri) => Uri::route($uri, $parameters, $absolute),
+./vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:        $this->requestStartedAt->setTimezone($this->app['config']->get('app.timezone') ?? 'UTC');
+./vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/HandlePrecognitiveRequests.php:            $response->headers->get('Vary'),
+./vendor/laravel/framework/src/Illuminate/Foundation/MaintenanceModeManager.php:            $this->config->get('app.maintenance.store') ?: $this->config->get('cache.default'),
+./vendor/laravel/framework/src/Illuminate/Foundation/MaintenanceModeManager.php:        return $this->config->get('app.maintenance.driver', 'file');
+./vendor/laravel/framework/src/Illuminate/Foundation/Mix.php:            $customUrl = app('config')->get('app.mix_hot_proxy_url');
+./vendor/laravel/framework/src/Illuminate/Foundation/Mix.php:            if (! app('config')->get('app.debug')) {
+./vendor/laravel/framework/src/Illuminate/Foundation/Mix.php:        return new HtmlString(app('config')->get('app.mix_url').$manifestDirectory.$manifest[$path]);
+./vendor/laravel/framework/src/Illuminate/Foundation/PackageManifest.php:            $installed = json_decode($this->files->get($path), true);
+./vendor/laravel/framework/src/Illuminate/Foundation/Providers/FoundationServiceProvider.php:        $compiledViewPath = $this->app['config']->get('view.compiled');
+./vendor/laravel/framework/src/Illuminate/Foundation/Providers/FoundationServiceProvider.php:                $app['config']->get('app.debug'),
+./vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/InteractsWithSession.php:            $this->app['session']->put($key, $value);
+./vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/InteractsWithViews.php:        ViewFacade::share('errors', (new ViewErrorBag)->put($key, new MessageBag($errors)));
+./vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php:            $response = $this->get($response->headers->get('Location'));
+./vendor/laravel/framework/src/Illuminate/Foundation/Testing/DatabaseTruncation.php:        $migrations = $this->app['config']->get('database.migrations');
+./vendor/laravel/framework/src/Illuminate/Foundation/Testing/WithFaker.php:            $locale ??= $this->app->make('config')->get('app.faker_locale', Factory::DEFAULT_LOCALE);
+./vendor/laravel/framework/src/Illuminate/Hashing/HashManager.php:        return new BcryptHasher($this->config->get('hashing.bcrypt') ?? []);
+./vendor/laravel/framework/src/Illuminate/Hashing/HashManager.php:        return new ArgonHasher($this->config->get('hashing.argon') ?? []);
+./vendor/laravel/framework/src/Illuminate/Hashing/HashManager.php:        return new Argon2IdHasher($this->config->get('hashing.argon') ?? []);
+./vendor/laravel/framework/src/Illuminate/Hashing/HashManager.php:        return $this->config->get('hashing.driver', 'bcrypt');
+./vendor/laravel/framework/src/Illuminate/Http/Concerns/CanBePrecognitive.php:        return $this->attributes->get('precognitive', false);
+./vendor/laravel/framework/src/Illuminate/Http/Concerns/InteractsWithInput.php:        return $this->$source->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php:        $this->cors->setOptions($this->container['config']->get('cors', []));
+./vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php:        $paths = $this->container['config']->get('cors.paths', []);
+./vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustHosts.php:        if ($host = parse_url($this->app['config']->get('app.url'), PHP_URL_HOST)) {
+./vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php:                ? $request->server->get('REMOTE_ADDR')
+./vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php:        $request->setTrustedProxies([$request->server->get('REMOTE_ADDR')], $this->getTrustedHeaderNames());
+./vendor/laravel/framework/src/Illuminate/Http/RedirectResponse.php:        $errors = $this->session->get('errors', new ViewErrorBag);
+./vendor/laravel/framework/src/Illuminate/Http/RedirectResponse.php:            'errors', $errors->put($key, $value)
+./vendor/laravel/framework/src/Illuminate/Http/Request.php:        return $this->headers->get('X-PJAX') == true;
+./vendor/laravel/framework/src/Illuminate/Http/Request.php:        return strcasecmp($this->server->get('HTTP_X_MOZ') ?? '', 'prefetch') === 0 ||
+./vendor/laravel/framework/src/Illuminate/Http/Request.php:               strcasecmp($this->headers->get('Purpose') ?? '', 'prefetch') === 0 ||
+./vendor/laravel/framework/src/Illuminate/Http/Request.php:               strcasecmp($this->headers->get('Sec-Purpose') ?? '', 'prefetch') === 0;
+./vendor/laravel/framework/src/Illuminate/Http/Request.php:        return $this->headers->get('User-Agent');
+./vendor/laravel/framework/src/Illuminate/Http/Request.php:        $currentAcceptHeader = $this->headers->get('Accept');
+./vendor/laravel/framework/src/Illuminate/Log/Context/ContextLogProcessor.php:            ...$app->get(ContextRepository::class)->all(),
+./vendor/laravel/framework/src/Illuminate/Log/Context/Repository.php:        return tap($this->get($key, $default), function () use ($key) {
+./vendor/laravel/framework/src/Illuminate/Log/Context/Repository.php:            return $this->get($key);
+./vendor/laravel/framework/src/Illuminate/Log/Context/Repository.php:            (int) $this->get($key, 0) + $amount,
+./vendor/laravel/framework/src/Illuminate/Log/LogManager.php:        return $this->get('ondemand', $config);
+./vendor/laravel/framework/src/Illuminate/Log/LogManager.php:        return $this->get($this->parseDriver($driver));
+./vendor/laravel/framework/src/Illuminate/Mail/Attachment.php:            return $dataStrategy(fn () => $file->get(), $attachment);
+./vendor/laravel/framework/src/Illuminate/Mail/Attachment.php:            return $dataStrategy(fn () => $storage->get($path), $attachment);
+./vendor/laravel/framework/src/Illuminate/Mail/Mailable.php:            $markdown->theme($this->theme ?: Container::getInstance()->get(ConfigRepository::class)->get(
+./vendor/laravel/framework/src/Illuminate/Mail/Mailable.php:                $storage->get($attachment['path']),
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:        return $this->mailers[$name] = $this->get($name);
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:            $config['path'] ?? $this->app['config']->get('mail.sendmail')
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:            $this->app['config']->get('services.ses', []),
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:            $this->app['config']->get('services.ses', []),
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:            Resend::client($config['key'] ?? $this->app['config']->get('services.resend.key')),
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:            $config = $this->app['config']->get('services.mailgun', []);
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:                ?? $this->app['config']->get('services.postmark.token')
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:                ?? $this->app['config']->get('services.postmark.key'),
+./vendor/laravel/framework/src/Illuminate/Mail/MailManager.php:                $config['channel'] ?? $this->app['config']->get('mail.log_channel')
+./vendor/laravel/framework/src/Illuminate/Mail/MailServiceProvider.php:                'theme' => $config->get('mail.markdown.theme', 'default'),
+./vendor/laravel/framework/src/Illuminate/Mail/MailServiceProvider.php:                'paths' => $config->get('mail.markdown.paths', []),
+./vendor/laravel/framework/src/Illuminate/Mail/MailServiceProvider.php:                'extensions' => $config->get('mail.markdown.extensions', []),
+./vendor/laravel/framework/src/Illuminate/Mail/Message.php:        if ($header = $this->message->getHeaders()->get('To')) {
+./vendor/laravel/framework/src/Illuminate/Mail/Message.php:        if ($header = $this->message->getHeaders()->get('Cc')) {
+./vendor/laravel/framework/src/Illuminate/Mail/Message.php:        if ($header = $this->message->getHeaders()->get('Bcc')) {
+./vendor/laravel/framework/src/Illuminate/Mail/Transport/ResendTransport.php:                $contentType = $attachmentHeaders->get('Content-Type')->getBody();
+./vendor/laravel/framework/src/Illuminate/Mail/Transport/SesTransport.php:        $messageId = $result->get('MessageId');
+./vendor/laravel/framework/src/Illuminate/Mail/Transport/SesTransport.php:        if ($header = $message->getOriginalMessage()->getHeaders()->get('X-SES-LIST-MANAGEMENT-OPTIONS')) {
+./vendor/laravel/framework/src/Illuminate/Mail/Transport/SesV2Transport.php:        $messageId = $result->get('MessageId');
+./vendor/laravel/framework/src/Illuminate/Mail/Transport/SesV2Transport.php:        if ($header = $message->getOriginalMessage()->getHeaders()->get('X-SES-LIST-MANAGEMENT-OPTIONS')) {
+./vendor/laravel/framework/src/Illuminate/Notifications/Channels/MailChannel.php:        $config = Container::getInstance()->get(ConfigRepository::class);
+./vendor/laravel/framework/src/Illuminate/Notifications/Channels/MailChannel.php:        $theme = $message->theme ?? $config->get('mail.markdown.theme', 'default');
+./vendor/laravel/framework/src/Illuminate/Pagination/AbstractCursorPaginator.php:        return $this->items->get($key);
+./vendor/laravel/framework/src/Illuminate/Pagination/AbstractCursorPaginator.php:        $this->items->put($key, $value);
+./vendor/laravel/framework/src/Illuminate/Pagination/AbstractPaginator.php:        return $this->items->get($key);
+./vendor/laravel/framework/src/Illuminate/Pagination/AbstractPaginator.php:        $this->items->put($key, $value);
+./vendor/laravel/framework/src/Illuminate/Pagination/UrlWindow.php:        return (new static($paginator))->get();
+./vendor/laravel/framework/src/Illuminate/Queue/BeanstalkdQueue.php:        return $this->pheanstalk->put(
+./vendor/laravel/framework/src/Illuminate/Queue/BeanstalkdQueue.php:                return $this->pheanstalk->put(
+./vendor/laravel/framework/src/Illuminate/Queue/BeanstalkdQueue.php:        $this->pheanstalk->delete(new Job(new JobId($id), ''));
+./vendor/laravel/framework/src/Illuminate/Queue/CallQueuedHandler.php:            $job->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/CallQueuedHandler.php:            return $job->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Console/ClearCommand.php:        return $this->option('queue') ?: $this->laravel['config']->get(
+./vendor/laravel/framework/src/Illuminate/Queue/Console/ListenCommand.php:        return $this->input->getOption('queue') ?: $this->laravel['config']->get(
+./vendor/laravel/framework/src/Illuminate/Queue/Console/WorkCommand.php:        $queueTimezone = $this->laravel['config']->get('queue.output_timezone');
+./vendor/laravel/framework/src/Illuminate/Queue/Console/WorkCommand.php:            $queueTimezone !== $this->laravel['config']->get('app.timezone')) {
+./vendor/laravel/framework/src/Illuminate/Queue/Console/WorkCommand.php:        return $this->option('queue') ?: $this->laravel['config']->get(
+./vendor/laravel/framework/src/Illuminate/Queue/DatabaseQueue.php:                $this->database->table($this->table)->where('id', $id)->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/DatabaseQueue.php:                $this->database->table($this->table)->where('id', $job->getJobId())->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/DatabaseQueue.php:            ->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php:        return $this->getTable()->orderBy('id', 'desc')->get()->all();
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php:        return $this->getTable()->where('id', $id)->delete() > 0;
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php:        })->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php:            $deleted = $query->limit(1000)->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseUuidFailedJobProvider.php:        return $this->getTable()->orderBy('id', 'desc')->get()->map(function ($record) {
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseUuidFailedJobProvider.php:        return $this->getTable()->where('uuid', $id)->delete() > 0;
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseUuidFailedJobProvider.php:        })->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Failed/DatabaseUuidFailedJobProvider.php:            $deleted = $query->limit(1000)->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/InteractsWithQueue.php:            return $this->job->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Jobs/BeanstalkdJob.php:        $this->pheanstalk->delete($this->job);
+./vendor/laravel/framework/src/Illuminate/Queue/Jobs/Job.php:            $this->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Middleware/ThrottlesExceptions.php:                return $job->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Middleware/ThrottlesExceptionsWithRedis.php:                return $job->delete();
+./vendor/laravel/framework/src/Illuminate/Queue/Middleware/WithoutOverlapping.php:        if ($lock->get()) {
+./vendor/laravel/framework/src/Illuminate/Queue/QueueManager.php:            ->put("illuminate:queue:paused:{$connection}:{$queue}", true, $ttl);
+./vendor/laravel/framework/src/Illuminate/Queue/QueueManager.php:            ->get("illuminate:queue:paused:{$connection}:{$queue}", false);
+./vendor/laravel/framework/src/Illuminate/Queue/SerializesAndRestoresModelIdentifiers.php:        )->useWritePdo()->get();
+./vendor/laravel/framework/src/Illuminate/Queue/SqsQueue.php:        ])->get('MessageId');
+./vendor/laravel/framework/src/Illuminate/Queue/Worker.php:        if (! $this->cache->get('job-exceptions:'.$uuid)) {
+./vendor/laravel/framework/src/Illuminate/Queue/Worker.php:            $this->cache->put('job-exceptions:'.$uuid, 0, Carbon::now()->addDay());
+./vendor/laravel/framework/src/Illuminate/Queue/Worker.php:            return $this->cache->get('illuminate:queue:restart');
+./vendor/laravel/framework/src/Illuminate/Redis/RedisServiceProvider.php:            $config = $app->make('config')->get('database.redis', []);
+./vendor/laravel/framework/src/Illuminate/Reflection/helpers.php:            : [$closureReflector->get($class), $class, $callback ?: $options];
+./vendor/laravel/framework/src/Illuminate/Routing/AbstractRouteCollection.php:                return ! is_null($this->matchAgainstRoutes($this->get($method), $request, false));
+./vendor/laravel/framework/src/Illuminate/Routing/AbstractRouteCollection.php:            && ! is_null($symfonyRoutes->get($name))
+./vendor/laravel/framework/src/Illuminate/Routing/AbstractRouteCollection.php:        } elseif (! is_null($symfonyRoutes->get($name))) {
+./vendor/laravel/framework/src/Illuminate/Routing/CompiledRouteCollection.php:        $parts = explode('?', $request->server->get('REQUEST_URI'), 2);
+./vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php:            ! is_null($response->headers->get('X-RateLimit-Remaining')) &&
+./vendor/laravel/framework/src/Illuminate/Routing/Middleware/ThrottleRequests.php:            (int) $response->headers->get('X-RateLimit-Remaining') <= (int) $remainingAttempts) {
+./vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:        $status = $parameters->get('status');
+./vendor/laravel/framework/src/Illuminate/Routing/RedirectController.php:        $destination = $parameters->get('destination');
+./vendor/laravel/framework/src/Illuminate/Routing/Redirector.php:        return $this->session->get('url.intended');
+./vendor/laravel/framework/src/Illuminate/Routing/Redirector.php:        $this->session->put('url.intended', $url);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->get($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->get($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->post($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->get($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->get($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->delete($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->get($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->post($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->get($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->get($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/ResourceRegistrar.php:        return $this->router->delete($uri, $action);
+./vendor/laravel/framework/src/Illuminate/Routing/RouteCollection.php:        $routes = $this->get($request->getMethod());
+./vendor/laravel/framework/src/Illuminate/Routing/Router.php:        $this->container->instance(Route::class, $route);
+./vendor/laravel/framework/src/Illuminate/Routing/RoutingServiceProvider.php:                return [$config->get('app.key'), ...($config->get('app.previous_keys') ?? [])];
+./vendor/laravel/framework/src/Illuminate/Routing/UrlGenerator.php:        $referrer = $this->request->headers->get('referer');
+./vendor/laravel/framework/src/Illuminate/Routing/UrlGenerator.php:        $queryString = (new Collection(explode('&', (string) $request->server->get('QUERY_STRING'))))
+./vendor/laravel/framework/src/Illuminate/Session/CacheBasedSessionHandler.php:        return $this->cache->get($sessionId, '');
+./vendor/laravel/framework/src/Illuminate/Session/CacheBasedSessionHandler.php:        return $this->cache->put($sessionId, $data, $this->minutes * 60);
+./vendor/laravel/framework/src/Illuminate/Session/CookieSessionHandler.php:        $value = $this->request->cookies->get($sessionId) ?: '';
+./vendor/laravel/framework/src/Illuminate/Session/DatabaseSessionHandler.php:        $this->getQuery()->where('id', $sessionId)->delete();
+./vendor/laravel/framework/src/Illuminate/Session/DatabaseSessionHandler.php:        return $this->getQuery()->where('last_activity', '<=', $this->currentTime() - $lifetime)->delete();
+./vendor/laravel/framework/src/Illuminate/Session/FileSessionHandler.php:        $this->files->put($this->path.'/'.$sessionId, $data, true);
+./vendor/laravel/framework/src/Illuminate/Session/FileSessionHandler.php:        $this->files->delete($this->path.'/'.$sessionId);
+./vendor/laravel/framework/src/Illuminate/Session/FileSessionHandler.php:            $this->files->delete($file->getRealPath());
+./vendor/laravel/framework/src/Illuminate/Session/Middleware/AuthenticateSession.php:            $passwordHashFromCookie = explode('|', $request->cookies->get($this->guard()->getRecallerName()))[2] ?? null;
+./vendor/laravel/framework/src/Illuminate/Session/Middleware/AuthenticateSession.php:        $sessionPasswordHash = $request->session()->get('password_hash_'.$this->auth->getDefaultDriver());
+./vendor/laravel/framework/src/Illuminate/Session/Middleware/AuthenticateSession.php:        $request->session()->put([
+./vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php:            $session->setId($request->cookies->get($session->getName()));
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->config->get('session.lifetime')
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->config->get('session.lifetime'),
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->config->get('session.expire_on_close')
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        $lifetime = $this->config->get('session.lifetime');
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->container->make('files'), $this->config->get('session.files'), $lifetime
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        $table = $this->config->get('session.table');
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        $lifetime = $this->config->get('session.lifetime');
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        $connection = $this->config->get('session.connection');
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->config->get('session.connection')
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        $store = $this->config->get('session.store') ?: $driver;
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->config->get('session.lifetime')
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        return $this->config->get('session.encrypt')
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:                $this->config->get('session.cookie'),
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:                $this->config->get('session.serialization', 'php')
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->config->get('session.cookie'),
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:            $this->config->get('session.serialization', 'php'),
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        return $this->config->get('session.block', false);
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        return $this->config->get('session.block_store');
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        return $this->config->get('session.block_lock_seconds', 10);
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        return $this->config->get('session.block_wait_seconds', 10);
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        return $this->config->get('session');
+./vendor/laravel/framework/src/Illuminate/Session/SessionManager.php:        return $this->config->get('session.driver');
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        foreach ($this->get('errors') as $key => $value) {
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:            $errorBag->put($key, $messageBag->setFormat($value['format']));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('errors', $errorBag);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->forget($this->get('_flash.old', []));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_flash.old', $this->get('_flash.new', []));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_flash.new', []);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:            return $this->get($key, $placeholder) === $placeholder;
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:            return is_null($this->get($key));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:            return ! is_null($this->get($key));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        return Arr::get($this->get('_old_input', []), $key, $default);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put($attributes);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        if (! is_null($value = $this->get($key))) {
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:            $this->put($key, $value);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $array = $this->get($key, []);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put($key, $array);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put($key, $value = $this->get($key, 0) + $amount);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put($key, $value);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put($key, $value);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->mergeNewFlashes($this->get('_flash.old', []));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_flash.old', []);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $values = array_unique(array_merge($this->get('_flash.new', []), $keys));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_flash.new', $values);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_flash.old', array_diff($this->get('_flash.old', []), $keys));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        return $this->get('_token');
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_token', Str::random(self::SESSION_ID_LENGTH));
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        return $this->get('_previous.url');
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_previous.url', $url);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        return $this->get('_previous.route');
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('_previous.route', $route);
+./vendor/laravel/framework/src/Illuminate/Session/Store.php:        $this->put('auth.password_confirmed_at', Date::now()->unix());
+./vendor/laravel/framework/src/Illuminate/Session/SymfonySessionDecorator.php:        return $this->store->get($name, $default);
+./vendor/laravel/framework/src/Illuminate/Session/SymfonySessionDecorator.php:        $this->store->put($name, $value);
+./vendor/laravel/framework/src/Illuminate/Support/Env.php:        $lines = explode(PHP_EOL, $filesystem->get($pathToFile));
+./vendor/laravel/framework/src/Illuminate/Support/Env.php:        $filesystem->put($pathToFile, implode(PHP_EOL, $lines));
+./vendor/laravel/framework/src/Illuminate/Support/Env.php:        $envContent = $filesystem->get($pathToFile);
+./vendor/laravel/framework/src/Illuminate/Support/Env.php:        $filesystem->put($pathToFile, implode(PHP_EOL, $lines));
+./vendor/laravel/framework/src/Illuminate/Support/Env.php:        return Option::fromValue(static::getRepository()->get($key))
+./vendor/laravel/framework/src/Illuminate/Support/Facades/Facade.php:            'Route' => Route::class,
+./vendor/laravel/framework/src/Illuminate/Support/Facades/Storage.php:        $root = self::getRootPath($disk = enum_value($disk) ?: static::$app['config']->get('filesystems.default'));
+./vendor/laravel/framework/src/Illuminate/Support/Facades/Storage.php:        $disk = enum_value($disk) ?: static::$app['config']->get('filesystems.default');
+./vendor/laravel/framework/src/Illuminate/Support/Fluent.php:            (array) $this->get($key, $default)
+./vendor/laravel/framework/src/Illuminate/Support/Fluent.php:        return $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Support/MessageBag.php:        $messages = is_null($key) ? $this->all($format) : $this->get($key, $format);
+./vendor/laravel/framework/src/Illuminate/Support/MultipleInstanceManager.php:        return $this->instances[$name] = $this->get($name);
+./vendor/laravel/framework/src/Illuminate/Support/ServiceProvider.php:                require $path, $config->get($key, [])
+./vendor/laravel/framework/src/Illuminate/Support/ServiceProvider.php:                require $path, $config->get($key, [])
+./vendor/laravel/framework/src/Illuminate/Support/ServiceProvider.php:        if ($this->app->config->get('database.migrations.update_date_on_publish', false)) {
+./vendor/laravel/framework/src/Illuminate/Support/UriQueryString.php:        return $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/Support/ViewErrorBag.php:        $this->put($key, $value);
+./vendor/laravel/framework/src/Illuminate/Testing/Concerns/TestCaches.php:        self::$originalCachePrefix ??= $this->app['config']->get('cache.prefix', '');
+./vendor/laravel/framework/src/Illuminate/Testing/Concerns/TestViews.php:        self::$originalCompiledViewPath ??= $this->app['config']->get('view.compiled', '');
+./vendor/laravel/framework/src/Illuminate/Testing/Constraints/HasInDatabase.php:        )->select(array_keys($this->data))->limit($this->show)->get();
+./vendor/laravel/framework/src/Illuminate/Testing/Constraints/HasInDatabase.php:            $results = $query->select(array_keys($this->data))->limit($this->show)->get();
+./vendor/laravel/framework/src/Illuminate/Testing/Constraints/NotSoftDeletedInDatabase.php:        $results = $query->limit($this->show)->get();
+./vendor/laravel/framework/src/Illuminate/Testing/Constraints/SoftDeletedInDatabase.php:        $results = $query->limit($this->show)->get();
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            $this->headers->get('Precognition-Success'),
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            Str::contains($this->headers->get('Location'), $uri), 'Redirect location ['.$this->headers->get('Location').'] does not contain ['.$uri.'].'
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $request = Request::create($this->headers->get('Location'));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $actual = $this->headers->get($headerName);
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:                $value, $this->headers->get($headerName),
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $actual = $this->headers->get($headerName, '');
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            app('url')->to($uri), app('url')->to($this->headers->get('Location', ''))
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $contentDisposition = explode(';', $this->headers->get('content-disposition', ''));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            $value->each(fn ($item, $index) => PHPUnit::withResponse($this)->assertTrue($actual->get($index)->is($item), "Failed asserting that the collection at [{$key}.[{$index}]]' matches the given collection."));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        if ($this->baseResponse->headers->get('Content-Type') === 'application/json') {
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        if ($this->session()->get('errors')) {
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            $errors = $this->session()->get('errors')->getBag($errorBag)->getMessages();
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        if ($this->baseResponse->headers->get('Content-Type') === 'application/json') {
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $sessionErrors = $this->session()->get('errors')->getBag($errorBag)->getMessages();
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        if ($this->baseResponse->headers->get('Content-Type') === 'application/json') {
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $sessionErrors = $this->session()->get('errors')
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            PHPUnit::withResponse($this)->assertTrue($value($this->session()->get($key)));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            PHPUnit::withResponse($this)->assertEquals($value, $this->session()->get($key));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:                $actual[$key] = $this->session()->get($key);
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $errors = $this->session()->get('errors')->getBag($errorBag);
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:                PHPUnit::withResponse($this)->assertContains(is_bool($value) ? (string) $value : $value, $errors->get($key, $format));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        if (is_null($this->session()->get('errors'))) {
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:        $errors = $this->session()->get('errors')->getBag($errorBag);
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:                PHPUnit::withResponse($this)->assertNotContains($value, $errors->get($key, $format));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:                $sessionErrors = $this->session()->get('errors');
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            PHPUnit::withResponse($this)->assertFalse($value($this->session()->get($key)));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:            PHPUnit::withResponse($this)->assertNotEquals($value, $this->session()->get($key));
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:                return $this->appendErrorsToException($session->get('errors')->all(), $exception);
+./vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:        if ($this->response->baseResponse->headers->get('Content-Type') === 'application/json') {
+./vendor/laravel/framework/src/Illuminate/Testing/TestView.php:            $value->each(fn ($item, $index) => PHPUnit::assertTrue($actual->get($index)->is($item)));
+./vendor/laravel/framework/src/Illuminate/Translation/FileLoader.php:                    $decoded = json_decode($this->files->get($full), true);
+./vendor/laravel/framework/src/Illuminate/Translation/PotentiallyTranslatedString.php:        $this->translation = $this->translator->get($this->string, $replace, $locale);
+./vendor/laravel/framework/src/Illuminate/Translation/Translator.php:        $line = $this->get($key, [], $locale, $fallback);
+./vendor/laravel/framework/src/Illuminate/Translation/Translator.php:        $line = $this->get(
+./vendor/laravel/framework/src/Illuminate/Validation/Concerns/FormatsMessages.php:        if ($key !== ($value = $this->translator->get($key))) {
+./vendor/laravel/framework/src/Illuminate/Validation/Concerns/FormatsMessages.php:            if (($message = $this->translator->get($key)) !== $key) {
+./vendor/laravel/framework/src/Illuminate/Validation/Concerns/FormatsMessages.php:                (array) $this->translator->get('validation.custom')
+./vendor/laravel/framework/src/Illuminate/Validation/Concerns/FormatsMessages.php:        return $this->translator->get($key);
+./vendor/laravel/framework/src/Illuminate/Validation/Concerns/FormatsMessages.php:        if (! is_array($attributes = $this->translator->get('validation.attributes'))) {
+./vendor/laravel/framework/src/Illuminate/Validation/Concerns/FormatsMessages.php:        if (($line = $this->translator->get($key)) !== $key) {
+./vendor/laravel/framework/src/Illuminate/Validation/NotPwnedVerifier.php:            ])->timeout($this->timeout)->get(
+./vendor/laravel/framework/src/Illuminate/Validation/Rules/AnyOf.php:        $message = $this->validator->getTranslator()->get('validation.any_of');
+./vendor/laravel/framework/src/Illuminate/Validation/Rules/Can.php:        $message = $this->validator->getTranslator()->get('validation.can');
+./vendor/laravel/framework/src/Illuminate/Validation/Rules/Enum.php:        $message = $this->validator->getTranslator()->get('validation.enum');
+./vendor/laravel/framework/src/Illuminate/Validation/ValidationException.php:            return $validator->getTranslator()->get('The given data was invalid.');
+./vendor/laravel/framework/src/Illuminate/View/Compilers/BladeCompiler.php:            $contents = $this->compileString($this->files->get($this->getPath()));
+./vendor/laravel/framework/src/Illuminate/View/Compilers/Concerns/CompilesContexts.php:$value = context()->get($__contextArgs[0]); ?>';
+./vendor/laravel/framework/src/Illuminate/View/Compilers/Concerns/CompilesSessions.php:$value = session()->get($__sessionArgs[0]); ?>';
+./vendor/laravel/framework/src/Illuminate/View/Component.php:            $directory = Container::getInstance()['config']->get('view.compiled')
+./vendor/laravel/framework/src/Illuminate/View/ComponentAttributeBag.php:        return $this->get($key, $default);
+./vendor/laravel/framework/src/Illuminate/View/ComponentAttributeBag.php:        return $this->get($offset);
+./vendor/laravel/framework/src/Illuminate/View/Concerns/ManagesTranslations.php:        return $this->container->make('translator')->get(
+./vendor/laravel/framework/src/Illuminate/View/Engines/FileEngine.php:        return $this->files->get($path);
+./vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php:            'errors', $request->session()->get('errors') ?: new ViewErrorBag
+./vendor/laravel/framework/src/Illuminate/View/View.php:        return $this->engine->get($this->path, $this->gatherData());
+./vendor/laravel/framework/src/Illuminate/View/View.php:        return $this->with('errors', (new ViewErrorBag)->put(
+./vendor/laravel/framework/src/Illuminate/View/ViewServiceProvider.php:                $app['config']->get('view.relative_hash', false) ? $app->basePath() : '',
+./vendor/laravel/framework/src/Illuminate/View/ViewServiceProvider.php:                $app['config']->get('view.cache', true),
+./vendor/laravel/framework/src/Illuminate/View/ViewServiceProvider.php:                $app['config']->get('view.compiled_extension', 'php'),
+./vendor/laravel/framework/src/Illuminate/View/ViewServiceProvider.php:                $app['config']->get('view.check_cache_timestamps', true),
+./vendor/laravel/sanctum/src/Console/Commands/PruneExpired.php:            fn () => $model::where('expires_at', '<', now()->subHours($hours))->delete()
+./vendor/laravel/sanctum/src/Console/Commands/PruneExpired.php:                fn () => $model::where('created_at', '<', now()->subMinutes($expiration + ($hours * 60)))->delete()
+./vendor/laravel/sanctum/src/Http/Middleware/AuthenticateSession.php:                $request->session()->get('password_hash_'.$driver)
+./vendor/laravel/sanctum/src/Http/Middleware/AuthenticateSession.php:        $request->session()->put([
+./vendor/laravel/sanctum/src/Http/Middleware/EnsureFrontendRequestsAreStateful.php:        $domain = $request->headers->get('referer') ?: $request->headers->get('origin');
+./vendor/laravel/sanctum/src/SanctumServiceProvider.php:        Route::group(['prefix' => config('sanctum.prefix', 'sanctum')], function () {
+./vendor/laravel/sanctum/src/SanctumServiceProvider.php:            Route::get(
+./vendor/laravel/tinker/src/Console/TinkerCommand.php:        $config->setTrustProject($appConfig->get('tinker.trust_project'));
+./vendor/laravel/tinker/src/Console/TinkerCommand.php:            $shell, $path, $appConfig->get('tinker.alias', []), $appConfig->get('tinker.dont_alias', [])
+./vendor/laravel/tinker/src/Console/TinkerCommand.php:        foreach ($config->get('tinker.commands', []) as $command) {
+./vendor/laravel/tinker/src/Console/TinkerCommand.php:        return array_merge($casters, (array) $config->get('tinker.casters', []));
+./vendor/league/commonmark/src/Environment/Environment.php:            $normalizer = $this->config->get('slug_normalizer/instance');
+./vendor/league/commonmark/src/Environment/Environment.php:            if ($this->config->get('slug_normalizer/unique') !== UniqueSlugNormalizerInterface::DISABLED && ! $normalizer instanceof UniqueSlugNormalizer) {
+./vendor/league/commonmark/src/Environment/Environment.php:                if ($this->config->get('slug_normalizer/unique') === UniqueSlugNormalizerInterface::PER_DOCUMENT) {
+./vendor/league/commonmark/src/Extension/Attributes/AttributesExtension.php:        $allowList        = $environment->getConfiguration()->get('attributes.allow');
+./vendor/league/commonmark/src/Extension/Attributes/AttributesExtension.php:        $allowUnsafeLinks = $environment->getConfiguration()->get('allow_unsafe_links');
+./vendor/league/commonmark/src/Extension/Attributes/Util/AttributesHelper.php:                $arg = $arg->data->get('attributes');
+./vendor/league/commonmark/src/Extension/Autolink/AutolinkExtension.php:            $environment->getConfiguration()->get('autolink.allowed_protocols'),
+./vendor/league/commonmark/src/Extension/Autolink/AutolinkExtension.php:            $environment->getConfiguration()->get('autolink.default_protocol'),
+./vendor/league/commonmark/src/Extension/CommonMark/CommonMarkCoreExtension.php:        if ($environment->getConfiguration()->get('commonmark/use_asterisk')) {
+./vendor/league/commonmark/src/Extension/CommonMark/CommonMarkCoreExtension.php:        if ($environment->getConfiguration()->get('commonmark/use_underscore')) {
+./vendor/league/commonmark/src/Extension/CommonMark/Delimiter/Processor/EmphasisDelimiterProcessor.php:            if ($this->config->get('commonmark/enable_strong')) {
+./vendor/league/commonmark/src/Extension/CommonMark/Delimiter/Processor/EmphasisDelimiterProcessor.php:        if ($this->config->get('commonmark/enable_em')) {
+./vendor/league/commonmark/src/Extension/CommonMark/Parser/Block/ListBlockStartParser.php:        $markers = $this->config->get('commonmark/unordered_list_markers');
+./vendor/league/commonmark/src/Extension/CommonMark/Parser/Inline/BacktickParser.php:        if ($this->lastCursor === null || $this->lastCursor->get() !== $cursor) {
+./vendor/league/commonmark/src/Extension/CommonMark/Parser/Inline/CloseBracketParser.php:        return $referenceMap->get($referenceLabel);
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Block/BlockQuoteRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Block/HeadingRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Block/HtmlBlockRenderer.php:        $htmlInput = $this->config->get('html_input');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Block/IndentedCodeRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Block/ListBlockRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Block/ListItemRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Block/ThematicBreakRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/CodeRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/EmphasisRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/HtmlInlineRenderer.php:        $htmlInput = $this->config->get('html_input');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/ImageRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/ImageRenderer.php:        $forbidUnsafeLinks = ! $this->config->get('allow_unsafe_links');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/LinkRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/LinkRenderer.php:        $forbidUnsafeLinks = ! $this->config->get('allow_unsafe_links');
+./vendor/league/commonmark/src/Extension/CommonMark/Renderer/Inline/StrongRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/DefaultAttributes/ApplyDefaultAttributesProcessor.php:        $map = $this->config->get('default_attributes');
+./vendor/league/commonmark/src/Extension/DisallowedRawHtml/DisallowedRawHtmlRenderer.php:        $tags = (array) $this->config->get('disallowed_raw_html/disallowed_tags');
+./vendor/league/commonmark/src/Extension/Embed/EmbedExtension.php:        $adapter = $environment->getConfiguration()->get('embed.adapter');
+./vendor/league/commonmark/src/Extension/Embed/EmbedExtension.php:        $allowedDomains = $environment->getConfiguration()->get('embed.allowed_domains');
+./vendor/league/commonmark/src/Extension/Embed/EmbedExtension.php:            ->addEventListener(DocumentParsedEvent::class, new EmbedProcessor($adapter, $environment->getConfiguration()->get('embed.fallback')), 1010)
+./vendor/league/commonmark/src/Extension/ExternalLink/ExternalLinkProcessor.php:        $internalHosts   = $this->config->get('external_link/internal_hosts');
+./vendor/league/commonmark/src/Extension/ExternalLink/ExternalLinkProcessor.php:        $openInNewWindow = $this->config->get('external_link/open_in_new_window');
+./vendor/league/commonmark/src/Extension/ExternalLink/ExternalLinkProcessor.php:        $classes         = $this->config->get('external_link/html_class');
+./vendor/league/commonmark/src/Extension/ExternalLink/ExternalLinkProcessor.php:            'nofollow'   => $this->config->get('external_link/nofollow'),
+./vendor/league/commonmark/src/Extension/ExternalLink/ExternalLinkProcessor.php:            'noopener'   => $this->config->get('external_link/noopener'),
+./vendor/league/commonmark/src/Extension/ExternalLink/ExternalLinkProcessor.php:            'noreferrer' => $this->config->get('external_link/noreferrer'),
+./vendor/league/commonmark/src/Extension/Footnote/Event/AnonymousFootnotesListener.php:                '#' . $this->config->get('footnote/ref_id_prefix') . $existingReference->getLabel(),
+./vendor/league/commonmark/src/Extension/Footnote/Event/GatherFootnotesListener.php:            $ref = $document->getReferenceMap()->get($node->getReference()->getLabel());
+./vendor/league/commonmark/src/Extension/Footnote/Event/GatherFootnotesListener.php:            $key = '#' . $this->config->get('footnote/footnote_id_prefix') . $node->getReference()->getDestination();
+./vendor/league/commonmark/src/Extension/Footnote/Event/GatherFootnotesListener.php:                $this->createBackrefs($node, $document->data->get($key));
+./vendor/league/commonmark/src/Extension/Footnote/Event/GatherFootnotesListener.php:                '#' . $this->config->get('footnote/ref_id_prefix') . $backref->getLabel(),
+./vendor/league/commonmark/src/Extension/Footnote/Parser/AnonymousFootnoteRefParser.php:            '#' . $this->config->get('footnote/footnote_id_prefix') . $refLabel,
+./vendor/league/commonmark/src/Extension/Footnote/Parser/FootnoteRefParser.php:            '#' . $this->config->get('footnote/footnote_id_prefix') . $label,
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteBackrefRenderer.php:        $attrs->append('class', $this->config->get('footnote/backref_class'));
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteBackrefRenderer.php:        $symbol = $this->config->get('footnote/backref_symbol');
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteContainerRenderer.php:        $attrs->append('class', $this->config->get('footnote/container_class'));
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteContainerRenderer.php:        if ($this->config->get('footnote/container_add_hr')) {
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteRefRenderer.php:        $attrs->append('class', $this->config->get('footnote/ref_class'));
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteRefRenderer.php:        $idPrefix = $this->config->get('footnote/ref_id_prefix');
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteRenderer.php:        $attrs->append('class', $this->config->get('footnote/footnote_class'));
+./vendor/league/commonmark/src/Extension/Footnote/Renderer/FootnoteRenderer.php:        $attrs->set('id', $this->config->get('footnote/footnote_id_prefix') . \mb_strtolower($node->getReference()->getLabel(), 'UTF-8'));
+./vendor/league/commonmark/src/Extension/FrontMatter/Listener/FrontMatterPostRenderListener.php:        if ($event->getOutput()->getDocument()->data->get('front_matter', null) === null) {
+./vendor/league/commonmark/src/Extension/FrontMatter/Listener/FrontMatterPostRenderListener.php:        $frontMatter = $event->getOutput()->getDocument()->data->get('front_matter');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkProcessor.php:        $min            = (int) $this->config->get('heading_permalink/min_heading_level');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkProcessor.php:        $max            = (int) $this->config->get('heading_permalink/max_heading_level');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkProcessor.php:        $applyToHeading = (bool) $this->config->get('heading_permalink/apply_id_to_heading');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkProcessor.php:        $idPrefix       = (string) $this->config->get('heading_permalink/id_prefix');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkProcessor.php:        $slugLength     = (int) $this->config->get('slug_normalizer/max_length');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkProcessor.php:        $headingClass   = (string) $this->config->get('heading_permalink/heading_class');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkProcessor.php:        switch ($this->config->get('heading_permalink/insert')) {
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkRenderer.php:        $fragmentPrefix = (string) $this->config->get('heading_permalink/fragment_prefix');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkRenderer.php:        $appendId = ! $this->config->get('heading_permalink/apply_id_to_heading');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkRenderer.php:            $idPrefix = (string) $this->config->get('heading_permalink/id_prefix');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkRenderer.php:        $attrs->append('class', $this->config->get('heading_permalink/html_class'));
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkRenderer.php:        $hidden = $this->config->get('heading_permalink/aria_hidden');
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkRenderer.php:        $attrs->set('title', $this->config->get('heading_permalink/title'));
+./vendor/league/commonmark/src/Extension/HeadingPermalink/HeadingPermalinkRenderer.php:        $symbol = $this->config->get('heading_permalink/symbol');
+./vendor/league/commonmark/src/Extension/Highlight/MarkRenderer.php:        return new HtmlElement('mark', $node->data->get('attributes'), $childRenderer->renderNodes($node->children()));
+./vendor/league/commonmark/src/Extension/InlinesOnly/InlinesOnlyExtension.php:        if ($environment->getConfiguration()->get('commonmark/use_asterisk')) {
+./vendor/league/commonmark/src/Extension/InlinesOnly/InlinesOnlyExtension.php:        if ($environment->getConfiguration()->get('commonmark/use_underscore')) {
+./vendor/league/commonmark/src/Extension/Mention/MentionExtension.php:        $mentions = $environment->getConfiguration()->get('mentions');
+./vendor/league/commonmark/src/Extension/SmartPunct/SmartPunctExtension.php:                $environment->getConfiguration()->get('smartpunct/double_quote_opener'),
+./vendor/league/commonmark/src/Extension/SmartPunct/SmartPunctExtension.php:                $environment->getConfiguration()->get('smartpunct/double_quote_closer')
+./vendor/league/commonmark/src/Extension/SmartPunct/SmartPunctExtension.php:                $environment->getConfiguration()->get('smartpunct/single_quote_opener'),
+./vendor/league/commonmark/src/Extension/SmartPunct/SmartPunctExtension.php:                $environment->getConfiguration()->get('smartpunct/single_quote_closer')
+./vendor/league/commonmark/src/Extension/Strikethrough/StrikethroughRenderer.php:        return new HtmlElement('del', $node->data->get('attributes'), $childRenderer->renderNodes($node->children()));
+./vendor/league/commonmark/src/Extension/Table/TableCellRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/Table/TableExtension.php:        if ($environment->getConfiguration()->get('table/wrap/enabled')) {
+./vendor/league/commonmark/src/Extension/Table/TableExtension.php:            $tableRenderer = new HtmlDecorator($tableRenderer, $environment->getConfiguration()->get('table/wrap/tag'), $environment->getConfiguration()->get('table/wrap/attributes'));
+./vendor/league/commonmark/src/Extension/Table/TableExtension.php:            ->addBlockStartParser(new TableStartParser($environment->getConfiguration()->get('table/max_autocompleted_cells')))
+./vendor/league/commonmark/src/Extension/Table/TableExtension.php:            ->addRenderer(TableCell::class, new TableCellRenderer($environment->getConfiguration()->get('table/alignment_attributes')));
+./vendor/league/commonmark/src/Extension/Table/TableRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/Table/TableRowRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/Table/TableSectionRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsBuilder.php:            (string) $this->config->get('table_of_contents/style'),
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsBuilder.php:            (string) $this->config->get('table_of_contents/normalize'),
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsBuilder.php:            (int) $this->config->get('table_of_contents/min_heading_level'),
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsBuilder.php:            (int) $this->config->get('table_of_contents/max_heading_level'),
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsBuilder.php:            (string) $this->config->get('heading_permalink/fragment_prefix'),
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsBuilder.php:        $class = $this->config->get('table_of_contents/html_class');
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsBuilder.php:        $position = $this->config->get('table_of_contents/position');
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsExtension.php:        if ($environment->getConfiguration()->get('table_of_contents/position') === TableOfContentsBuilder::POSITION_PLACEHOLDER) {
+./vendor/league/commonmark/src/Extension/TableOfContents/TableOfContentsPlaceholderParser.php:                $placeholder = $this->config->get('table_of_contents/placeholder');
+./vendor/league/commonmark/src/Extension/TaskList/TaskListItemMarkerRenderer.php:        $attrs    = $node->data->get('attributes');
+./vendor/league/commonmark/src/Normalizer/SlugNormalizer.php:        $this->defaultMaxLength = $configuration->get('slug_normalizer/max_length');
+./vendor/league/commonmark/src/Parser/InlineParserEngine.php:        $inlineParserContext = new InlineParserContext($cursor, $block, $this->referenceMap, $this->environment->getConfiguration()->get('max_delimiters_per_line'));
+./vendor/league/commonmark/src/Parser/MarkdownParser.php:        $this->maxNestingLevel = $this->environment->getConfiguration()->get('max_nesting_level');
+./vendor/league/commonmark/src/Reference/MemoryLimitedReferenceMap.php:        $reference = $this->decorated->get($label);
+./vendor/league/commonmark/src/Renderer/Block/ParagraphRenderer.php:        $attrs = $node->data->get('attributes');
+./vendor/league/commonmark/src/Renderer/HtmlRenderer.php:        return $this->environment->getConfiguration()->get('renderer/block_separator');
+./vendor/league/commonmark/src/Renderer/HtmlRenderer.php:        return $this->environment->getConfiguration()->get('renderer/inner_separator');
+./vendor/league/commonmark/src/Renderer/Inline/NewlineRenderer.php:        return $this->config->get('renderer/soft_break');
+./vendor/league/commonmark/src/Util/LinkParserHelper.php:        if (self::$lastCursor !== null && self::$lastCursor->get() === $cursor) {
+./vendor/league/config/src/Configuration.php:            return $this->cache[$key] = $this->finalConfig->get($key);
+./vendor/league/config/src/Configuration.php:            $userData = [$topLevelKey => $this->userConfig->get($topLevelKey)];
+./vendor/league/config/src/ReadOnlyConfiguration.php:        return $this->config->get($key);
+./vendor/league/flysystem/src/CalculateChecksumFromStream.php:            $algo = (string) $config->get('checksum_algo', 'md5');
+./vendor/league/flysystem/src/DecoratedAdapter.php:        $this->adapter->delete($path);
+./vendor/league/flysystem/src/Filesystem.php:        $this->pathNormalizer = $pathNormalizer ?? new WhitespacePathNormalizer($this->config->get('allow_relative_path_traversal', true));
+./vendor/league/flysystem/src/Filesystem.php:        $this->adapter->delete($this->pathNormalizer->normalizePath($location));
+./vendor/league/flysystem/src/Filesystem.php:            $resolutionStrategy = $config->get(Config::OPTION_MOVE_IDENTICAL_PATH, ResolveIdenticalPathConflict::TRY);
+./vendor/league/flysystem/src/Filesystem.php:            $resolutionStrategy = $config->get(Config::OPTION_COPY_IDENTICAL_PATH, ResolveIdenticalPathConflict::TRY);
+./vendor/league/flysystem/src/Filesystem.php:        if ($publicUrl = $this->config->get('public_url')) {
+./vendor/league/flysystem/src/Filesystem.php:        $retainVisibility = $this->config->get(Config::OPTION_RETAIN_VISIBILITY, $config[Config::OPTION_RETAIN_VISIBILITY] ?? true);
+./vendor/league/flysystem/src/MountManager.php:            $filesystem->delete($path);
+./vendor/league/flysystem/src/MountManager.php:        $retainVisibility = (bool) $config->get(Config::OPTION_RETAIN_VISIBILITY, true);
+./vendor/league/flysystem/src/MountManager.php:        $visibility = $config->get(Config::OPTION_VISIBILITY);
+./vendor/league/flysystem/src/MountManager.php:            $this->delete($source);
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:            $this->resolveDirectoryVisibility($config->get(Config::OPTION_DIRECTORY_VISIBILITY))
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:        if ($visibility = $config->get(Config::OPTION_VISIBILITY)) {
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:            $this->resolveDirectoryVisibility($config->get(Config::OPTION_DIRECTORY_VISIBILITY))
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:        if ($visibility = $config->get(Config::OPTION_VISIBILITY)) {
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:            $this->resolveDirectoryVisibility($config->get(Config::OPTION_DIRECTORY_VISIBILITY))
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:        $visibility = $config->get(
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:            $config->get(Config::OPTION_RETAIN_VISIBILITY, true)
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:        $visibility = $config->get(Config::OPTION_VISIBILITY, $config->get(Config::OPTION_DIRECTORY_VISIBILITY));
+./vendor/league/flysystem-local/LocalFilesystemAdapter.php:        $algo = $config->get('checksum_algo', 'md5');
+./vendor/nesbot/carbon/src/Carbon/AbstractTranslator.php:            : $this->getCatalogue($locale)->get((string) $id, $domain); // @codeCoverageIgnore
+./vendor/nesbot/carbon/src/Carbon/CarbonInterval.php:        return $this->get($name);
+./vendor/nesbot/carbon/src/Carbon/CarbonPeriod.php:        return $this->get($name);
+./vendor/nesbot/carbon/src/Carbon/Traits/Date.php:        return $this->get($name);
+./vendor/nesbot/carbon/src/Carbon/Traits/Date.php:        return $this->get($name);
+./vendor/nesbot/carbon/src/Carbon/Traits/Localization.php:            : $catalogue->get($id, $domain); // @codeCoverageIgnore
+./vendor/phpoption/phpoption/src/PhpOption/LazyOption.php:        return $this->option()->get();
+./vendor/phpoption/phpoption/src/PhpOption/Option.php:                    return $o->get();
+./vendor/phpoption/phpoption/src/PhpOption/Option.php:     *     (new Some("foo"))->map('strtoupper')->get(); // "FOO"
+./vendor/phpoption/phpoption/src/PhpOption/Option.php:     *         $result += $option->get();
+./vendor/predis/predis/src/Session/Handler.php:        if ($data = $this->client->get($session_id)) {
+./vendor/psy/psysh/src/Command/CopyCommand.php:        $value = $expression === null ? $this->context->get('_') : $this->resolveCode($expression);
+./vendor/psy/psysh/src/Command/DocCommand.php:                    return $manual->get($id);
+./vendor/psy/psysh/src/Command/DocCommand.php:                    if ($doc = $manual->get($id)) {
+./vendor/psy/psysh/src/Command/EditCommand.php:            $fileArgument = $this->context->get(\preg_replace('/^\$/', '', $fileArgument));
+./vendor/psy/psysh/src/Command/HelpCommand.php:                $cmd = $this->getApplication()->get($name);
+./vendor/psy/psysh/src/Command/ReflectingCommand.php:        return $this->context->get($name);
+./vendor/psy/psysh/src/Command/ShowCommand.php:                if ($file !== $this->context->get('__file')) {
+./vendor/psy/psysh/src/Completion/TypeResolver.php:            return $this->context->get($varName);
+./vendor/psy/psysh/src/Completion/TypeResolver.php:            $value = $this->context->get($varName);
+./vendor/psy/psysh/src/ConfigPaths.php:        return $this->env->get($key);
+./vendor/psy/psysh/src/Formatter/ManualFormatter.php:        if ($this->manual !== null && $this->manual->get($cleanItem) !== null) {
+./vendor/psy/psysh/src/Formatter/SignatureFormatter.php:        return self::$manual->get($id) ?? false;
+./vendor/psy/psysh/src/Manual/V3Manual.php:        return $this->data->get($id);
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                            $tput->get('parm_up_cursor')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                            $tput->get('parm_right_cursor')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                            $tput->get('parm_down_cursor')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                            $tput->get('parm_left_cursor')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                Console::getTput()->get('cursor_address')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:        $user7 = $tput->get('user7');
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:        // Read $tput->get('user6').
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:            Console::getTput()->get('save_cursor')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:            Console::getTput()->get('restore_cursor')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                    $output->writeAll($tput->get('clear_screen'));
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                    $output->writeAll($tput->get('clr_eol'));
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                    $output->writeAll($tput->get('clr_eos'));
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                    $output->writeAll($tput->get('clr_bol'));
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                    $output->writeAll("\r".$tput->get('clr_eol'));
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:            Console::getTput()->get('cursor_invisible')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:            Console::getTput()->get('cursor_visible')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:                $tput->get('initialize_color')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleCursor.php:            Console::getTput()->get('bell')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleTput.php:            if ($tput->get($var) === null) {
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleWindow.php:                    $tput->get('parm_index')
+./vendor/psy/psysh/src/Readline/Hoa/ConsoleWindow.php:                    $tput->get('parm_rindex')
+./vendor/psy/psysh/src/Readline/Hoa/FileDirectory.php:            $file->open()->delete();
+./vendor/psy/psysh/src/Readline/Interactive/Actions/HistoryExpansionAction.php:            $cmd = $this->shell->get($commandName);
+./vendor/psy/psysh/src/Readline/Interactive/Readline.php:                $action = $this->bindings->get($key);
+./vendor/psy/psysh/src/Shell.php:        return $this->context->get($name);
+./vendor/psy/psysh/src/Shell.php:        $helpCommand = $this->get('help');
+./vendor/psy/psysh/src/Shell.php:            return $this->get($name);
+./vendor/psy/psysh/src/TabCompletion/Matcher/AbstractContextAwareMatcher.php:        return $this->context->get($var);
+./vendor/ramsey/collection/src/Map/AbstractMap.php:        $previousValue = $this->get($key);
+./vendor/ramsey/collection/src/Map/AbstractMap.php:        $currentValue = $this->get($key);
+./vendor/ramsey/collection/src/Map/AbstractMap.php:        $previousValue = $this->get($key);
+./vendor/ramsey/collection/src/Map/AbstractMap.php:        if ($this->get($key) === $value) {
+./vendor/ramsey/collection/src/Map/AbstractMap.php:        $currentValue = $this->get($key);
+./vendor/ramsey/collection/src/Map/AbstractMap.php:        if ($this->get($key) === $oldValue) {
+./vendor/sentry/sentry/src/OpenTelemetry/Propagation/SentryPropagator.php:        if (!empty($getter->get($carrier, TraceContextPropagator::TRACEPARENT)) && $this->isTraceparentPropagatorEnabled()) {
+./vendor/sentry/sentry/src/OpenTelemetry/Propagation/SentryPropagator.php:        $sentryTrace = $getter->get($carrier, self::SENTRY_TRACE);
+./vendor/sentry/sentry/src/Tracing/Traits/TraceHeaderParserTrait.php:                $result['parentSamplingRate'] = (float) $samplingContext->get('sample_rate');
+./vendor/sentry/sentry/src/Tracing/Traits/TraceHeaderParserTrait.php:                    $result['sampleRand'] = round(mt_rand(0, mt_getrandmax() - 1) / mt_getrandmax() * (float) $samplingContext->get('sample_rate'), 6);
+./vendor/sentry/sentry/src/Tracing/Traits/TraceHeaderParserTrait.php:                    $result['sampleRand'] = round(mt_rand(0, mt_getrandmax() - 1) / mt_getrandmax() * (1 - (float) $samplingContext->get('sample_rate')) + (float) $samplingContext->get('sample_rate'), 6);
+./vendor/sentry/sentry/src/Tracing/Traits/TraceHeaderParserTrait.php:        $sampleRand = $samplingContext->get('sample_rand');
+./vendor/sentry/sentry/src/Tracing/Traits/TraceHeaderParserTrait.php:        $baggageOrgId = $samplingContext->get('org_id');
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/Features/CacheIntegration.php:        $sessionCookieName = $container->make('config')->get('session.cookie');
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/Features/CacheIntegration.php:        $sessionKey = $request->cookies->get($sessionCookieName);
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/Features/ConsoleSchedulingIntegration.php:            return $cache->get($cacheKey);
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/Features/ConsoleSchedulingIntegration.php:            $cache->put($cacheKey, $checkInId, $expiration);
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/ServiceProvider.php:        $logChannels = $config->get('logging.channels', []);
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/ServiceProvider.php:                'level' => $config->get('sentry.logs_channel_level', 'debug'),
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/Tracing/ViewEngineDecorator.php:            return $this->engine->get($path, $data);
+./vendor/sentry/sentry-laravel/src/Sentry/Laravel/Tracing/ViewEngineDecorator.php:        $result = $this->engine->get($path, $data);
+./vendor/symfony/console/Application.php:            $helpCommand = $this->get('help');
+./vendor/symfony/console/Application.php:        return isset($this->commands[$name]) || ($this->commandLoader?->has($name) && $this->addCommand($this->commandLoader->get($name)));
+./vendor/symfony/console/Application.php:            return $this->get($name);
+./vendor/symfony/console/Application.php:                if ($alternatives = array_filter($alternatives, fn ($name) => !$this->get($name)->isHidden())) {
+./vendor/symfony/console/Application.php:                    $commandList[$nameOrAlias] = $this->commandLoader->get($nameOrAlias);
+./vendor/symfony/console/Application.php:                    $commandList[$nameOrAlias] = $this->commandLoader->get($nameOrAlias);
+./vendor/symfony/console/Application.php:        $command = $commands ? $this->get(reset($commands)) : null;
+./vendor/symfony/console/Application.php:                    $commands[$name] = $this->get($name);
+./vendor/symfony/console/Application.php:                    $commands[$name] = $this->get($name);
+./vendor/symfony/console/Command/Command.php:        return $this->helperSet->get($name);
+./vendor/symfony/console/CommandLoader/ContainerCommandLoader.php:        return $this->container->get($this->commandMap[$name]);
+./vendor/symfony/console/Debug/CliRequest.php:            $binary = $this->server->get('SYMFONY_CLI_BINARY_NAME').' console';
+./vendor/symfony/console/Debug/CliRequest.php:            $binary = $this->server->get('argv')[0];
+./vendor/symfony/console/Helper/ProcessHelper.php:        $formatter = $this->getHelperSet()->get('debug_formatter');
+./vendor/symfony/console/Helper/ProcessHelper.php:        $formatter = $this->getHelperSet()->get('debug_formatter');
+./vendor/symfony/console/Helper/QuestionHelper.php:            $message = $this->getHelperSet()->get('formatter')->formatBlock($error->getMessage(), 'error');
+./vendor/symfony/error-handler/ErrorRenderer/HtmlErrorRenderer.php:            $startObLevel = $request->headers->get('X-Php-Ob-Level', -1);
+./vendor/symfony/http-foundation/BinaryFileResponse.php:            $type = $request->headers->get('X-Sendfile-Type');
+./vendor/symfony/http-foundation/BinaryFileResponse.php:                $parts = HeaderUtils::split($request->headers->get('X-Accel-Mapping'), ',=');
+./vendor/symfony/http-foundation/BinaryFileResponse.php:            if (!$request->headers->has('If-Range') || $this->hasValidIfRangeHeader($request->headers->get('If-Range'))) {
+./vendor/symfony/http-foundation/BinaryFileResponse.php:                $range = $request->headers->get('Range');
+./vendor/symfony/http-foundation/HeaderBag.php:        if (null === $value = $this->get($key)) {
+./vendor/symfony/http-foundation/InputBag.php:        return (string) $this->get($key, $default);
+./vendor/symfony/http-foundation/JsonResponse.php:        if (!$this->headers->has('Content-Type') || 'text/javascript' === $this->headers->get('Content-Type')) {
+./vendor/symfony/http-foundation/ParameterBag.php:        $value = $this->get($key, $default);
+./vendor/symfony/http-foundation/ParameterBag.php:        $value = $this->get($key);
+./vendor/symfony/http-foundation/ParameterBag.php:        $value = $this->get($key, $default);
+./vendor/symfony/http-foundation/Request.php:            $dup->attributes->set('_format', $this->attributes->get('_format'));
+./vendor/symfony/http-foundation/Request.php:            \sprintf('%s %s %s', $this->getMethod(), $this->getRequestUri(), $this->server->get('SERVER_PROTOCOL'))."\r\n".
+./vendor/symfony/http-foundation/Request.php:        if ($this !== $result = $this->attributes->get($key, $this)) {
+./vendor/symfony/http-foundation/Request.php:        $ip = $this->server->get('REMOTE_ADDR');
+./vendor/symfony/http-foundation/Request.php:        return $this->server->get('SCRIPT_NAME', $this->server->get('ORIG_SCRIPT_NAME', ''));
+./vendor/symfony/http-foundation/Request.php:        } elseif (!$host = $this->headers->get('HOST')) {
+./vendor/symfony/http-foundation/Request.php:            return $this->server->get('SERVER_PORT');
+./vendor/symfony/http-foundation/Request.php:        return $this->headers->get('PHP_AUTH_USER');
+./vendor/symfony/http-foundation/Request.php:        return $this->headers->get('PHP_AUTH_PW');
+./vendor/symfony/http-foundation/Request.php:        $qs = static::normalizeQueryString($this->server->get('QUERY_STRING'));
+./vendor/symfony/http-foundation/Request.php:        $https = $this->server->get('HTTPS');
+./vendor/symfony/http-foundation/Request.php:            $host = $this->headers->get('HOST') ?: $this->server->get('SERVER_NAME') ?: $this->server->get('SERVER_ADDR', '');
+./vendor/symfony/http-foundation/Request.php:        $this->method = strtoupper($this->server->get('REQUEST_METHOD', 'GET'));
+./vendor/symfony/http-foundation/Request.php:        $method = $this->headers->get('X-HTTP-METHOD-OVERRIDE');
+./vendor/symfony/http-foundation/Request.php:            $method = $this->request->get('_method', $this->query->get('_method', 'POST'));
+./vendor/symfony/http-foundation/Request.php:        return strtoupper($this->server->get('REQUEST_METHOD', 'GET'));
+./vendor/symfony/http-foundation/Request.php:        $this->format ??= $this->attributes->get('_format');
+./vendor/symfony/http-foundation/Request.php:        return $this->getFormat($this->headers->get('CONTENT_TYPE', ''));
+./vendor/symfony/http-foundation/Request.php:            preg_match('~^(HTTP/)?([1-9]\.[0-9])\b~', $this->headers->get('Via') ?? '', $matches);
+./vendor/symfony/http-foundation/Request.php:        return $this->server->get('SERVER_PROTOCOL');
+./vendor/symfony/http-foundation/Request.php:        return preg_split('/\s*,\s*/', $this->headers->get('If-None-Match', ''), -1, \PREG_SPLIT_NO_EMPTY);
+./vendor/symfony/http-foundation/Request.php:        return $this->headers->hasCacheControlDirective('no-cache') || 'no-cache' == $this->headers->get('Pragma');
+./vendor/symfony/http-foundation/Request.php:        $languages = AcceptHeader::fromString($this->headers->get('Accept-Language'))->all();
+./vendor/symfony/http-foundation/Request.php:        return $this->charsets ??= array_map('strval', array_keys(AcceptHeader::fromString($this->headers->get('Accept-Charset'))->all()));
+./vendor/symfony/http-foundation/Request.php:        return $this->encodings ??= array_map('strval', array_keys(AcceptHeader::fromString($this->headers->get('Accept-Encoding'))->all()));
+./vendor/symfony/http-foundation/Request.php:        return $this->acceptableContentTypes ??= array_map('strval', array_keys(AcceptHeader::fromString($this->headers->get('Accept'))->all()));
+./vendor/symfony/http-foundation/Request.php:        return 'XMLHttpRequest' == $this->headers->get('X-Requested-With');
+./vendor/symfony/http-foundation/Request.php:        return $this->isSafeContentPreferred = AcceptHeader::fromString($this->headers->get('Prefer'))->has('safe');
+./vendor/symfony/http-foundation/Request.php:        if ($this->isIisRewrite() && '' != $this->server->get('UNENCODED_URL')) {
+./vendor/symfony/http-foundation/Request.php:            $requestUri = $this->server->get('UNENCODED_URL');
+./vendor/symfony/http-foundation/Request.php:            $requestUri = $this->server->get('REQUEST_URI');
+./vendor/symfony/http-foundation/Request.php:            $requestUri = $this->server->get('ORIG_PATH_INFO');
+./vendor/symfony/http-foundation/Request.php:            if ('' != $this->server->get('QUERY_STRING')) {
+./vendor/symfony/http-foundation/Request.php:                $requestUri .= '?'.$this->server->get('QUERY_STRING');
+./vendor/symfony/http-foundation/Request.php:        $filename = basename($this->server->get('SCRIPT_FILENAME', ''));
+./vendor/symfony/http-foundation/Request.php:        if (basename($this->server->get('SCRIPT_NAME', '')) === $filename) {
+./vendor/symfony/http-foundation/Request.php:            $baseUrl = $this->server->get('SCRIPT_NAME');
+./vendor/symfony/http-foundation/Request.php:        } elseif (basename($this->server->get('PHP_SELF', '')) === $filename) {
+./vendor/symfony/http-foundation/Request.php:            $baseUrl = $this->server->get('PHP_SELF');
+./vendor/symfony/http-foundation/Request.php:        } elseif (basename($this->server->get('ORIG_SCRIPT_NAME', '')) === $filename) {
+./vendor/symfony/http-foundation/Request.php:            $baseUrl = $this->server->get('ORIG_SCRIPT_NAME'); // 1and1 shared hosting compatibility
+./vendor/symfony/http-foundation/Request.php:            $path = $this->server->get('PHP_SELF', '');
+./vendor/symfony/http-foundation/Request.php:            $file = $this->server->get('SCRIPT_FILENAME', '');
+./vendor/symfony/http-foundation/Request.php:        $filename = basename($this->server->get('SCRIPT_FILENAME'));
+./vendor/symfony/http-foundation/Request.php:        return self::$trustedProxies && IpUtils::checkIp($this->server->get('REMOTE_ADDR', ''), self::$trustedProxies);
+./vendor/symfony/http-foundation/Request.php:        $cacheKey = $type."\0".((self::$trustedHeaderSet & $type) ? $this->headers->get(self::TRUSTED_HEADERS[$type]) : '');
+./vendor/symfony/http-foundation/Request.php:        $cacheKey .= "\0".$ip."\0".$this->headers->get(self::TRUSTED_HEADERS[self::HEADER_FORWARDED]);
+./vendor/symfony/http-foundation/Request.php:            foreach (explode(',', $this->headers->get(self::TRUSTED_HEADERS[$type])) as $v) {
+./vendor/symfony/http-foundation/Request.php:            $forwarded = $this->headers->get(self::TRUSTED_HEADERS[self::HEADER_FORWARDED]);
+./vendor/symfony/http-foundation/RequestMatcher/AttributesRequestMatcher.php:            $attribute = $request->attributes->get($key);
+./vendor/symfony/http-foundation/Response.php:            } elseif (0 === stripos($headers->get('Content-Type') ?? '', 'text/') && false === stripos($headers->get('Content-Type') ?? '', 'charset')) {
+./vendor/symfony/http-foundation/Response.php:                $headers->set('Content-Type', $headers->get('Content-Type').'; charset='.$charset);
+./vendor/symfony/http-foundation/Response.php:                $length = $headers->get('Content-Length');
+./vendor/symfony/http-foundation/Response.php:        if ('HTTP/1.0' != $request->server->get('SERVER_PROTOCOL')) {
+./vendor/symfony/http-foundation/Response.php:        if ('1.0' == $this->getProtocolVersion() && str_contains($headers->get('Cache-Control', ''), 'no-cache')) {
+./vendor/symfony/http-foundation/Response.php:        if (null !== $age = $this->headers->get('Age')) {
+./vendor/symfony/http-foundation/Response.php:        return $this->headers->get('ETag');
+./vendor/symfony/http-foundation/Response.php:        return null !== $this->headers->get('Vary');
+./vendor/symfony/http-foundation/Response.php:        $lastModified = $this->headers->get('Last-Modified');
+./vendor/symfony/http-foundation/Response.php:        $modifiedSince = $request->headers->get('If-Modified-Since');
+./vendor/symfony/http-foundation/Response.php:        return \in_array($this->statusCode, [201, 301, 302, 303, 307, 308], true) && (null === $location ?: $location == $this->headers->get('Location'));
+./vendor/symfony/http-foundation/Response.php:        } elseif ('safe' === $this->headers->get('Preference-Applied')) {
+./vendor/symfony/http-foundation/Response.php:        if (false !== stripos($this->headers->get('Content-Disposition') ?? '', 'attachment') && 1 == preg_match('/MSIE (.*?);/i', $request->server->get('HTTP_USER_AGENT') ?? '', $match) && true === $request->isSecure()) {
+./vendor/symfony/http-foundation/Session/Session.php:        return $this->getAttributeBag()->get($name, $default);
+./vendor/symfony/http-foundation/Session/Storage/Handler/MemcachedSessionHandler.php:        return $this->memcached->get($this->prefix.$sessionId) ?: '';
+./vendor/symfony/http-foundation/Session/Storage/Handler/MemcachedSessionHandler.php:        $result = $this->memcached->delete($this->prefix.$sessionId);
+./vendor/symfony/http-foundation/Session/Storage/Handler/MongoDbSessionHandler.php:        $write->delete(
+./vendor/symfony/http-foundation/Session/Storage/Handler/MongoDbSessionHandler.php:        $write->delete(
+./vendor/symfony/http-foundation/Session/Storage/Handler/RedisSessionHandler.php:        return $this->redis->get($this->prefix.$sessionId) ?: '';
+./vendor/symfony/http-foundation/StreamedJsonResponse.php:        if (!$this->headers->get('Content-Type')) {
+./vendor/symfony/http-foundation/Test/Constraint/RequestAttributeValueSame.php:        return $this->value === $request->attributes->get($this->name);
+./vendor/symfony/http-foundation/Test/Constraint/ResponseFormatSame.php:        return $this->format === $this->request->getFormat($response->headers->get('Content-Type'));
+./vendor/symfony/http-foundation/Test/Constraint/ResponseHeaderLocationSame.php:        $location = $other->headers->get('Location');
+./vendor/symfony/http-foundation/Test/Constraint/ResponseHeaderSame.php:        return $this->expectedValue === $response->headers->get($this->headerName, null);
+./vendor/symfony/http-foundation/UriSigner.php:            $qs = ($qs = $uri->server->get('QUERY_STRING')) ? '?'.$qs : '';
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/BackedEnumValueResolver.php:        $value = $request->attributes->get($argument->getName());
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/DateTimeValueResolver.php:        $value = $request->attributes->get($argument->getName());
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/NotTaggedControllerValueResolver.php:        $controller = $request->attributes->get('_controller');
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/RequestAttributeValueResolver.php:        return !$argument->isVariadic() && $request->attributes->has($argument->getName()) ? [$request->attributes->get($argument->getName())] : [];
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/RequestPayloadValueResolver.php:        if ($files = $request->files->get($attribute->name ?? $argument->getName())) {
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/ServiceValueResolver.php:        $controller = $request->attributes->get('_controller');
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/ServiceValueResolver.php:        if (!$this->container->has($controller) || !$this->container->get($controller)->has($argument->getName())) {
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/ServiceValueResolver.php:            return [$this->container->get($controller)->get($argument->getName())];
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/UidValueResolver.php:            || !\is_string($value = $request->attributes->get($argument->getName()))
+./vendor/symfony/http-kernel/Controller/ArgumentResolver/VariadicValueResolver.php:        $values = $request->attributes->get($argument->getName());
+./vendor/symfony/http-kernel/Controller/ArgumentResolver.php:                        $this->namedResolvers->get($resolverName),
+./vendor/symfony/http-kernel/Controller/ContainerControllerResolver.php:            return $this->container->get($class);
+./vendor/symfony/http-kernel/Controller/ControllerResolver.php:        if (!$controller = $request->attributes->get('_controller')) {
+./vendor/symfony/http-kernel/Controller/ControllerResolver.php:        if (!$request->attributes->get('_check_controller_is_allowed', false)) {
+./vendor/symfony/http-kernel/DataCollector/ConfigDataCollector.php:            'token' => $response->headers->get('X-Debug-Token'),
+./vendor/symfony/http-kernel/DataCollector/DumpDataCollector.php:            || ($response->headers->has('Content-Type') && !str_contains($response->headers->get('Content-Type') ?? '', 'html'))
+./vendor/symfony/http-kernel/DataCollector/DumpDataCollector.php:            if ($response->headers->has('Content-Type') && str_contains($response->headers->get('Content-Type') ?? '', 'html')) {
+./vendor/symfony/http-kernel/DataCollector/RequestDataCollector.php:            'content_type' => $response->headers->get('Content-Type', 'text/html'),
+./vendor/symfony/http-kernel/DataCollector/RequestDataCollector.php:            'stateless_check' => $this->requestStack?->getMainRequest()?->attributes->get('_stateless') ?? false,
+./vendor/symfony/http-kernel/DataCollector/RequestDataCollector.php:        if ($request->attributes->has('_redirected') && $redirectCookie = $request->cookies->get('sf_redirect')) {
+./vendor/symfony/http-kernel/DataCollector/RequestDataCollector.php:                    'token' => $response->headers->get('x-debug-token'),
+./vendor/symfony/http-kernel/DataCollector/RequestDataCollector.php:                    'route' => $request->attributes->get('_route', 'n/a'),
+./vendor/symfony/http-kernel/DataCollector/RequestDataCollector.php:                    'controller' => $this->parseController($request->attributes->get('_controller')),
+./vendor/symfony/http-kernel/DataCollector/RequestDataCollector.php:            $this->data['forward_token'] = $response->headers->get('x-previous-debug-token');
+./vendor/symfony/http-kernel/DataCollector/TimeDataCollector.php:            $startTime = $request->server->get('REQUEST_TIME_FLOAT');
+./vendor/symfony/http-kernel/DataCollector/TimeDataCollector.php:            'token' => $request->attributes->get('_stopwatch_token'),
+./vendor/symfony/http-kernel/Debug/TraceableEventDispatcher.php:                $sectionId = $event->getRequest()->attributes->get('_stopwatch_token');
+./vendor/symfony/http-kernel/Debug/TraceableEventDispatcher.php:                $sectionId = $event->getRequest()->attributes->get('_stopwatch_token');
+./vendor/symfony/http-kernel/Debug/TraceableEventDispatcher.php:                $sectionId = $event->getRequest()->attributes->get('_stopwatch_token');
+./vendor/symfony/http-kernel/DependencyInjection/LazyLoadingFragmentHandler.php:            $this->addRenderer($this->container->get($renderer));
+./vendor/symfony/http-kernel/EventListener/AbstractSessionListener.php:                        $sessionId = $sess->getId() ?: $request->cookies->get($sess->getName(), '');
+./vendor/symfony/http-kernel/EventListener/AbstractSessionListener.php:                $requestSessionCookieId = $request->cookies->get($sessionName);
+./vendor/symfony/http-kernel/EventListener/AbstractSessionListener.php:        if (!$event->getRequest()->attributes->get('_stateless', false)) {
+./vendor/symfony/http-kernel/EventListener/AbstractSessionListener.php:            $this->container->get('logger')->warning('Session was used while the request was declared stateless.');
+./vendor/symfony/http-kernel/EventListener/AbstractSessionListener.php:            $this->container->get('session_collector')();
+./vendor/symfony/http-kernel/EventListener/AbstractSessionListener.php:        if (!$requestStack = $this->container?->has('request_stack') ? $this->container->get('request_stack') : null) {
+./vendor/symfony/http-kernel/EventListener/AbstractSessionListener.php:            $stateless = $request->attributes->get('_stateless');
+./vendor/symfony/http-kernel/EventListener/CacheAttributeListener.php:        if (!$attributes = $request->attributes->get('_cache') ?? $event->getAttributes(Cache::class)) {
+./vendor/symfony/http-kernel/EventListener/CacheAttributeListener.php:        if (!\is_array($attributes = $request->attributes->get('_cache'))) {
+./vendor/symfony/http-kernel/EventListener/CacheAttributeListener.php:        $hasVary = ['Accept-Language'] === $response->getVary() ? !$request->attributes->get('_vary_by_language') : $response->hasVary();
+./vendor/symfony/http-kernel/EventListener/ErrorListener.php:        if ($this->debug && $event->getRequest()->attributes->get('_remove_csp_headers', false)) {
+./vendor/symfony/http-kernel/EventListener/ErrorListener.php:        $e = $event->getRequest()->attributes->get('exception');
+./vendor/symfony/http-kernel/EventListener/FragmentListener.php:        parse_str($request->query->get('_path', ''), $attributes);
+./vendor/symfony/http-kernel/EventListener/FragmentListener.php:        $request->attributes->set('_route_params', array_replace($request->attributes->get('_route_params', []), $attributes));
+./vendor/symfony/http-kernel/EventListener/LocaleListener.php:        if ($locale = $request->attributes->get('_locale')) {
+./vendor/symfony/http-kernel/EventListener/ProfilerListener.php:        if (null !== $this->collectParameter && null !== $collectParameterValue = $request->attributes->get($this->collectParameter) ?? $request->query->get($this->collectParameter) ?? $request->request->get($this->collectParameter)) {
+./vendor/symfony/http-kernel/EventListener/ResponseListener.php:        if ($event->getRequest()->attributes->get('_vary_by_language')) {
+./vendor/symfony/http-kernel/EventListener/RouterListener.php:            if ($referer = $request->headers->get('referer')) {
+./vendor/symfony/http-kernel/EventListener/SessionListener.php:            return $this->container->get('session_factory')->createSession();
+./vendor/symfony/http-kernel/Fragment/InlineFragmentRenderer.php:            $subRequest->headers->set('Surrogate-Capability', $request->headers->get('Surrogate-Capability'));
+./vendor/symfony/http-kernel/Fragment/InlineFragmentRenderer.php:            $subRequest->attributes->set('_format', $request->attributes->get('_format'));
+./vendor/symfony/http-kernel/Fragment/InlineFragmentRenderer.php:            $subRequest->attributes->set('_stateless', $request->attributes->get('_stateless'));
+./vendor/symfony/http-kernel/Fragment/InlineFragmentRenderer.php:            $subRequest->attributes->set('_check_controller_is_allowed', $request->attributes->get('_check_controller_is_allowed'));
+./vendor/symfony/http-kernel/HttpCache/AbstractSurrogate.php:        if (null === $value = $request->headers->get('Surrogate-Capability')) {
+./vendor/symfony/http-kernel/HttpCache/AbstractSurrogate.php:        $current = $request->headers->get('Surrogate-Capability');
+./vendor/symfony/http-kernel/HttpCache/AbstractSurrogate.php:        if (!$control = $response->headers->get('Surrogate-Control')) {
+./vendor/symfony/http-kernel/HttpCache/AbstractSurrogate.php:        $value = $response->headers->get('Surrogate-Control');
+./vendor/symfony/http-kernel/HttpCache/Esi.php:        $type = $response->headers->get('Content-Type');
+./vendor/symfony/http-kernel/HttpCache/HttpCache.php:                    if ($uri = $response->headers->get($header)) {
+./vendor/symfony/http-kernel/HttpCache/HttpCache.php:            $subRequest->headers->set('If-Modified-Since', $entry->headers->get('Last-Modified'));
+./vendor/symfony/http-kernel/HttpCache/HttpCache.php:                    $entry->headers->set($name, $response->headers->get($name));
+./vendor/symfony/http-kernel/HttpCache/HttpCache.php:                $response->setContent(file_get_contents($response->headers->get('X-Body-File')));
+./vendor/symfony/http-kernel/HttpCache/Ssi.php:        $type = $response->headers->get('Content-Type');
+./vendor/symfony/http-kernel/HttpCache/Store.php:            $digest = $response->headers->get('X-Content-Digest');
+./vendor/symfony/http-kernel/HttpCache/Store.php:            if ($this->getPath($digest) !== $response->headers->get('X-Body-File')) {
+./vendor/symfony/http-kernel/HttpCache/SubRequestHandler.php:        $remoteAddr = $request->server->get('REMOTE_ADDR');
+./vendor/symfony/http-kernel/HttpClientKernel.php:        ] + $request->attributes->get('http_client_options', []));
+./vendor/symfony/http-kernel/Kernel.php:                    $this->container->get('services_resetter')->reset();
+./vendor/symfony/http-kernel/Kernel.php:                return $this->container->get('http_cache')->handle($request, $type, $catch);
+./vendor/symfony/http-kernel/Kernel.php:        return $this->container->get('http_kernel');
+./vendor/symfony/http-kernel/Kernel.php:            $cacheWarmer = $this->container->get('cache_warmer');
+./vendor/symfony/http-kernel/Profiler/Profiler.php:        if (!$token = $response->headers->get('X-Debug-Token')) {
+./vendor/symfony/http-kernel/Profiler/Profiler.php:            $profile->setVirtualType($request->attributes->get('_virtual_type'));
+./vendor/symfony/http-kernel/Profiler/Profiler.php:        if ($prevToken = $response->headers->get('X-Debug-Token')) {
+./vendor/symfony/http-kernel/Profiler/ProfilerStateChecker.php:        return $this->container->get('profiler')?->isEnabled() ?? $this->defaultEnabled;
+./vendor/symfony/mailer/DelayedEnvelope.php:        if ($sender = $headers->get('Sender')) {
+./vendor/symfony/mailer/DelayedEnvelope.php:        if ($return = $headers->get('Return-Path')) {
+./vendor/symfony/mailer/DelayedEnvelope.php:        if ($from = $headers->get('From')) {
+./vendor/symfony/mailer/EventListener/MessageListener.php:                    $h = $headers->get($name);
+./vendor/symfony/mailer/EventListener/MessengerTransportListener.php:        $names = $message->getHeaders()->get('X-Bus-Transport')->getBody();
+./vendor/symfony/mailer/SentMessage.php:            $this->messageId = $headers->get('Message-ID')->getId();
+./vendor/symfony/mailer/Transport/Transports.php:        $transport = $headers->get('X-Transport')->getBody();
+./vendor/symfony/mime/Email.php:        if (!$header = $this->getHeaders()->get($name)) {
+./vendor/symfony/mime/Email.php:        if ($header = $headers->get($name)) {
+./vendor/symfony/mime/Header/Headers.php:        return $this->has($name) ? $this->get($name)->getBody() : null;
+./vendor/symfony/mime/Header/Headers.php:            $this->get($name)->setBody($body);
+./vendor/symfony/mime/Header/Headers.php:        $header = $this->get($name);
+./vendor/symfony/mime/Header/Headers.php:        $header = $this->get($name);
+./vendor/symfony/mime/Message.php:            $headers->addMailboxListHeader('From', [$headers->get('Sender')->getAddress()]);
+./vendor/symfony/mime/Message.php:        if (!$headers->has('Sender') && \count($froms = $headers->get('From')->getAddresses()) > 1) {
+./vendor/symfony/mime/Message.php:        if (!$this->headers->get('To')?->getBody() && !$this->headers->get('Cc')?->getBody() && !$this->headers->get('Bcc')?->getBody()) {
+./vendor/symfony/mime/Message.php:        if (!$this->headers->get('From')?->getBody() && !$this->headers->get('Sender')?->getBody()) {
+./vendor/symfony/mime/Message.php:            $sender = $this->headers->get('Sender')->getAddress();
+./vendor/symfony/mime/Message.php:            if (!$froms = $this->headers->get('From')->getAddresses()) {
+./vendor/symfony/mime/Test/Constraint/EmailAddressContains.php:        $header = $message->getHeaders()->get($this->headerName);
+./vendor/symfony/mime/Test/Constraint/EmailAddressContains.php:        return \sprintf('the Email %s (value is %s)', $this->toString(), $message->getHeaders()->get($this->headerName)->getBodyAsString());
+./vendor/symfony/mime/Test/Constraint/EmailHeaderSame.php:        if (null === $header = $message->getHeaders()->get($this->headerName)) {
+./vendor/symfony/psr-http-message-bridge/Factory/PsrHttpFactory.php:        $uri = $symfonyRequest->server->get('QUERY_STRING', '');
+./vendor/symfony/routing/Annotation/Route.php:class_exists(\Symfony\Component\Routing\Attribute\Route::class);
+./vendor/symfony/routing/Attribute/Route.php:if (!class_exists(\Symfony\Component\Routing\Annotation\Route::class, false)) {
+./vendor/symfony/routing/Attribute/Route.php:    class_alias(Route::class, \Symfony\Component\Routing\Annotation\Route::class);
+./vendor/symfony/routing/Generator/Dumper/CompiledUrlGeneratorDumper.php:            if (null === $target = $routes->get($currentId)) {
+./vendor/symfony/routing/Generator/UrlGenerator.php:                $route = $this->routes->get($name.'.'.$locale);
+./vendor/symfony/routing/Generator/UrlGenerator.php:        if (null === $route ??= $this->routes->get($name)) {
+./vendor/symfony/routing/Loader/Configurator/RouteConfigurator.php:            if (!$this->route->get($name)) {
+./vendor/symfony/routing/Loader/ContainerLoader.php:        return $this->container->get($id);
+./vendor/symfony/routing/Matcher/ExpressionLanguageProvider.php:                static fn (...$args) => \sprintf('($context->getParameter(\'_functions\')->get(%s)(%s))', var_export($function, true), implode(', ', $args)),
+./vendor/symfony/routing/Matcher/ExpressionLanguageProvider.php:                static fn ($values, ...$args) => $values['context']->getParameter('_functions')->get($function)(...$args)
+./vendor/symfony/routing/Matcher/ExpressionLanguageProvider.php:        return $this->functions->get($function);
+./vendor/symfony/routing/RequestContext.php:        $this->setQueryString($request->server->get('QUERY_STRING', ''));
+./vendor/symfony/service-contracts/ServiceMethodsSubscriberTrait.php: * of subscriber methods can be just `return $this->container->get(__METHOD__);`.
+./vendor/symfony/service-contracts/ServiceSubscriberTrait.php: * of subscriber methods can be just `return $this->container->get(__METHOD__);`.
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:        $this->assertSame('bar', $locator->get('foo'));
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:        $this->assertSame('baz', $locator->get('bar'));
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:        $this->assertSame('bar', $locator->get('foo'));
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:        $this->assertSame('bar', $locator->get('foo'));
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:            'foo' => static function () use (&$locator) { return $locator->get('bar'); },
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:        $locator->get('foo');
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:            'foo' => static function () use (&$locator) { return $locator->get('bar'); },
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:            'bar' => static function () use (&$locator) { return $locator->get('baz'); },
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:            'baz' => static function () use (&$locator) { return $locator->get('bar'); },
+./vendor/symfony/service-contracts/Test/ServiceLocatorTestCase.php:        $locator->get('foo');
+./vendor/symfony/translation/Command/TranslationPullCommand.php:            $provider = $this->providerCollection->get($input->getArgument('provider'));
+./vendor/symfony/translation/Command/TranslationPullCommand.php:        $provider = $this->providerCollection->get($input->getArgument('provider'));
+./vendor/symfony/translation/Command/TranslationPushCommand.php:            $provider = $this->providers->get($input->getArgument('provider'));
+./vendor/symfony/translation/Command/TranslationPushCommand.php:        $provider = $this->providers->get($input->getArgument('provider'));
+./vendor/symfony/translation/Command/TranslationPushCommand.php:            $provider->delete($providerTranslations->diff($localTranslations));
+./vendor/symfony/translation/MessageCatalogue.php:            return $this->fallbackCatalogue->get($id, $domain);
+./vendor/symfony/translation/Provider/FilteringProvider.php:        $this->provider->delete($translatorBag);
+./vendor/symfony/translation/Translator.php:            return $this->formatter->formatIntl($catalogue->get($id, $domain), $locale, $parameters);
+./vendor/symfony/translation/Translator.php:        return $this->formatter->format($catalogue->get($id, $domain), $locale, $parameters);
+./vendor/symfony/var-dumper/Caster/ImagineCaster.php:        $imgData = $c->get('png');
+./vendor/symfony/var-dumper/Caster/SplCaster.php:        $a[Caster::PREFIX_VIRTUAL.'object'] = $c->get();
+./vendor/symfony/var-dumper/Dumper/ContextProvider/RequestContextProvider.php:        $controller = $request->attributes->get('_controller');
+./vendor/vlucas/phpdotenv/src/Loader/Loader.php:                $inner = $value->get();
+./vendor/vlucas/phpdotenv/src/Loader/Resolver.php:                return Option::fromValue($repository->get($matches[1]))->getOrElse($matches[0]);
+./vendor/vlucas/phpdotenv/src/Parser/Parser.php:        })->success()->get();
+./vendor/vlucas/phpdotenv/src/Repository/Adapter/GuardedWriter.php:        return $this->writer->delete($name);
+./vendor/vlucas/phpdotenv/src/Repository/Adapter/ImmutableWriter.php:        if (!$this->writer->delete($name)) {
+./vendor/vlucas/phpdotenv/src/Repository/Adapter/MultiWriter.php:            if (!$writers->delete($name)) {
+./vendor/vlucas/phpdotenv/src/Repository/Adapter/ReplacingWriter.php:            return $this->writer->delete($name);
+./vendor/vlucas/phpdotenv/src/Repository/AdapterRepository.php:        return $this->writer->delete($name);
+./vendor/vlucas/phpdotenv/src/Repository/RepositoryBuilder.php:                yield $instance->get();
+./vendor/vlucas/phpdotenv/src/Store/File/Reader.php:                $output[$filePath] = $content->get();
+./vendor/vlucas/phpdotenv/src/Validator.php:            if ($callback($this->repository->get($variable)) === false) {

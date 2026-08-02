@@ -1,0 +1,16 @@
+app/Models/Agence.php
+app/Models/AuditLog.php
+app/Models/AuditOperation.php
+app/Models/Caisse.php
+app/Models/Client.php
+app/Models/Commission.php
+app/Models/Compensation.php
+app/Models/Compte.php
+app/Models/Engagement.php
+app/Models/FraisConfiguration.php
+app/Models/FraisHistorique.php
+app/Models/Ledger.php
+app/Models/MouvementCaisse.php
+app/Models/Parametre.php
+app/Models/Transfert.php
+app/Models/User.php

@@ -1,0 +1,16 @@
+<?php
+use IlluminateSupportFacadesDB;
+namespace App\Services;
+use App\Models\Transfert;
+use App\Models\Client;
+use App\Models\Agence;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+class TransfertService
+{
+    protected $ledger;
+    public function __construct(LedgerService $ledger){$this->ledger=$ledger;}
+    public function creer($data,$user){return DB::transaction(function()use($data,$user){$agenceSource=Agence::where("id",$data["agence_envoi_id"])->lockForUpdate()->first();if(!$agenceSource)throw new \Exception("Agence source non trouvee");$frais=round($data["montant"]*0.05);$total=$data["montant"]+$frais;if($agenceSource->solde_cache<$total)throw new \Exception("Solde insuffisant");$expediteur=Client::firstOrCreate(["telephone"=>$data["telephone_expediteur"]],["nom"=>$data["nom_expediteur"]]);$beneficiaire=Client::firstOrCreate(["telephone"=>$data["telephone_beneficiaire"]],["nom"=>$data["nom_beneficiaire"]]);$transfert=Transfert::create(["code"=>Transfert::generateCode(),"idempotency_key"=>$data["idempotency_key"]??null,"expediteur_id"=>$expediteur->id,"beneficiaire_id"=>$beneficiaire->id,"agence_envoi_id"=>$data["agence_envoi_id"],"agence_retrait_id"=>$data["agence_destinataire_id"],"utilisateur_envoi_id"=>$user->id,"montant"=>$data["montant"],"frais"=>$frais,"statut"=>"ENVOYE","date_envoi"=>now(),]);$this->ledger->debit($data["agence_envoi_id"],$total,"TRANSFERT_EMIS",$transfert->id,$user->id,$transfert->code);$this->ledger->credit($data["agence_destinataire_id"],$data["montant"],"TRANSFERT_RECU",$transfert->id,$user->id,$transfert->code);$compteFrais=Agence::where("code","FRAIS")->lockForUpdate()->first();if($compteFrais&&$frais>0){$this->ledger->credit($compteFrais->id,$frais,"FRAIS_PERCU",$transfert->id,$user->id,$transfert->code);}return $transfert;});}
+    public function retirer($code,$user){return DB::transaction(function()use($code,$user){$transfert=Transfert::where("code",$code)->lockForUpdate()->first();if(!$transfert)throw new \Exception("Transfert non trouve");if($transfert->statut!=="ENVOYE")throw new \Exception("Statut invalide");$transfert->statut="RETIRE";$transfert->date_retrait=now();$transfert->utilisateur_retrait_id=$user->id;$transfert->save();return $transfert;});}
+    public function annuler($code,$user){return DB::transaction(function()use($code,$user){$transfert=Transfert::where("code",$code)->lockForUpdate()->first();if(!$transfert)throw new \Exception("Transfert non trouve");if($transfert->statut!=="ENVOYE")throw new \Exception("Statut invalide");$total=$transfert->montant+$transfert->frais;$this->ledger->credit($transfert->agence_envoi_id,$total,"ANNULATION",$transfert->id,$user->id,$transfert->code);$this->ledger->debit($transfert->agence_retrait_id,$transfert->montant,"ANNULATION_RECU",$transfert->id,$user->id,$transfert->code);$compteFrais=Agence::where("code","FRAIS")->lockForUpdate()->first();if($compteFrais&&$transfert->frais>0){$this->ledger->debit($compteFrais->id,$transfert->frais,"ANNULATION_FRAIS",$transfert->id,$user->id,$transfert->code);}$transfert->statut="ANNULE";$transfert->date_annulation=now();$transfert->utilisateur_annulation_id=$user->id;$transfert->save();return $transfert;});}
+}

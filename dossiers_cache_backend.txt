@@ -1,0 +1,5 @@
+./.git/logs
+./bootstrap/cache
+./storage/framework/cache
+./storage/logs
+./vendor

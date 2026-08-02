@@ -21,10 +21,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('transferts/{transfert}/valider', [TransfertController::class, 'valider']);
 
 });
-
-use App\Http\Controllers\TransactionController;
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/transactions', [TransactionController::class, 'store']);
-    Route::get('/transactions/{id}/receipt', [TransactionController::class, 'receipt']);
-});

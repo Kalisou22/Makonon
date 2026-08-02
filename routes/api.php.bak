@@ -1,0 +1,26 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AgenceController;
+use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\TransfertController;
+
+// Auth
+Route::post('/login', [AuthController::class, 'login']);
+
+// Routes protégées
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Agences
+    Route::apiResource('agences', AgenceController::class);
+
+    // Clients
+    Route::apiResource('clients', ClientController::class);
+
+    // Transferts
+    Route::apiResource('transferts', TransfertController::class);
+    Route::post('transferts/{id}/annuler', [TransfertController::class, 'annuler']);
+    Route::post('transferts/{id}/valider', [TransfertController::class, 'valider']);
+
+});

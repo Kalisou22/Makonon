@@ -1,0 +1,16 @@
+total 109
+drwxr-xr-x 1 DELL 197121    0 Jul 30 00:26 ./
+drwxr-xr-x 1 DELL 197121    0 Jul 31 21:38 ../
+-rw-r--r-- 1 DELL 197121 4272 Mar 14 16:54 app.php
+-rw-r--r-- 1 DELL 197121 4040 Mar 14 16:54 auth.php
+-rw-r--r-- 1 DELL 197121 2063 Jun 30 08:07 backup.php
+-rw-r--r-- 1 DELL 197121 3683 Mar 14 16:54 cache.php
+-rw-r--r-- 1 DELL 197121  285 Jul 30 00:26 cors.php
+-rw-r--r-- 1 DELL 197121 6982 Mar 14 16:54 database.php
+-rw-r--r-- 1 DELL 197121 2532 Mar 14 16:54 filesystems.php
+-rw-r--r-- 1 DELL 197121  871 Jun 30 08:02 logging.php
+-rw-r--r-- 1 DELL 197121 3631 Mar 14 16:54 mail.php
+-rw-r--r-- 1 DELL 197121 4199 Mar 14 16:54 queue.php
+-rw-r--r-- 1 DELL 197121  486 Jun 30 23:35 sanctum.php
+-rw-r--r-- 1 DELL 197121 1039 Mar 14 16:54 services.php
+-rw-r--r-- 1 DELL 197121 7848 Mar 14 16:54 session.php

@@ -2,342 +2,253 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\Transfert;
 use App\Models\Client;
 use App\Models\Agence;
-use App\Models\User;
-use App\Models\Engagement;
-use App\Exceptions\FondsInsuffisantsException;
-use App\Exceptions\TransfertException;
-use Illuminate\Support\Facades\DB;
+use App\Models\Transaction;
+use Exception;
 use Illuminate\Support\Facades\Log;
 
 class TransfertService
 {
-    private const MAX_MONTANT = 999999999.99;
-    protected LedgerService $ledger;
-    protected EngagementService $engagement;
-    protected AuditService $audit;
-    protected FraisService $fraisService;
-    protected MouvementService $mouvementService;
-
-    public function __construct(
-        LedgerService $ledger,
-        EngagementService $engagement,
-        AuditService $audit,
-        FraisService $fraisService,
-        MouvementService $mouvementService
-    ) {
-        $this->ledger = $ledger;
-        $this->engagement = $engagement;
-        $this->audit = $audit;
-        $this->fraisService = $fraisService;
-        $this->mouvementService = $mouvementService;
-    }
-
-    public function creer(array $data, User $user): Transfert
+    /**
+     * Créer un nouveau transfert
+     */
+    public function createTransfert(array $data): Transfert
     {
-        if (empty($data['idempotency_key'])) {
-            throw new TransfertException('Clé idempotence requise', 422);
-        }
+        DB::beginTransaction();
 
-        return DB::transaction(function () use ($data, $user) {
-            $existing = Transfert::where('idempotency_key', $data['idempotency_key'])
-                ->lockForUpdate()
-                ->first();
+        try {
+            // Vérifier le client
+            $client = Client::findOrFail($data['client_id']);
 
-            if ($existing) {
-                return $existing;
-            }
+            // Vérifier l'agence source
+            $agenceSource = Agence::findOrFail($data['agence_source_id']);
 
-            $agenceEmettrice = Agence::where('id', $data['agence_envoi_id'])->lockForUpdate()->first();
-            $agenceDestinataire = Agence::where('id', $data['agence_destinataire_id'])->lockForUpdate()->first();
+            // Vérifier l'agence destination
+            $agenceDest = Agence::findOrFail($data['agence_destination_id']);
 
-            if (!$agenceEmettrice || !$agenceDestinataire) {
-                throw new TransfertException('Agence non trouvée', 404);
-            }
+            // Calculer les frais
+            $frais = $this->calculerFrais($data['montant']);
 
-            if ($user->role !== 'SUPERADMIN' && $user->agence_id !== $agenceEmettrice->id) {
-                throw new TransfertException('Accès interdit', 403);
-            }
-
-            // Vérifier solde disponible (cash - dette)
-            $soldeDisponible = $this->mouvementService->getSoldeDisponible($agenceEmettrice->id);
-            
-            $fraisData = $this->fraisService->calculerFrais($data['montant']);
-            $frais = $fraisData['montant'];
-            $total = $data['montant'] + $frais;
-
-            if ($soldeDisponible < $total) {
-                throw new FondsInsuffisantsException($soldeDisponible, $total);
-            }
-
-            $expediteur = Client::firstOrCreate(
-                ['telephone' => $data['telephone_expediteur']],
-                ['nom' => $data['nom_expediteur']]
-            );
-            $beneficiaire = Client::firstOrCreate(
-                ['telephone' => $data['telephone_beneficiaire']],
-                ['nom' => $data['nom_beneficiaire']]
-            );
-
-            $code = 'TRF' . date('Ymd') . strtoupper(substr(uniqid(), -6));
-
+            // Créer le transfert
             $transfert = Transfert::create([
-                'code' => strtoupper($code),
-                'expediteur_id' => $expediteur->id,
-                'beneficiaire_id' => $beneficiaire->id,
-                'agence_envoi_id' => $agenceEmettrice->id,
-                'agence_retrait_id' => $agenceDestinataire->id,
-                'utilisateur_envoi_id' => $user->id,
+                'client_id' => $data['client_id'],
+                'agence_source_id' => $data['agence_source_id'],
+                'agence_destination_id' => $data['agence_destination_id'],
                 'montant' => $data['montant'],
                 'frais' => $frais,
-                'commission' => $frais * 0.75,
-                'statut' => 'ENVOYE',
-                'date_envoi' => now(),
-                'idempotency_key' => $data['idempotency_key'],
+                'montant_total' => $data['montant'] + $frais,
+                'statut' => 'PENDING',
+                'reference' => $this->genererReference(),
             ]);
 
-            $this->engagement->engager($transfert, $agenceEmettrice->id, $total);
-            $this->fraisService->enregistrerHistorique($transfert, $data['montant'], $fraisData);
-
-            // ✅ MOUVEMENTS: CASH (entrée du total encaissé)
-            $this->mouvementService->create([
-                'agence_id' => $agenceEmettrice->id,
-                'type' => 'CASH',
-                'sens' => 'ENTREE',
-                'montant' => $total,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Dépôt transfert #' . $transfert->code
+            // Créer la transaction associée
+            Transaction::create([
+                'transfert_id' => $transfert->id,
+                'type' => 'DEBIT',
+                'montant' => $data['montant'] + $frais,
+                'description' => 'Transfert vers ' . $agenceDest->nom,
+                'statut' => 'PENDING',
             ]);
 
-            // ✅ MOUVEMENTS: DETTE (créance vers destination)
-            $this->mouvementService->create([
-                'agence_id' => $agenceEmettrice->id,
-                'type' => 'DETTE',
-                'sens' => 'ENTREE',
-                'montant' => $data['montant'],
-                'transaction_id' => $transfert->id,
-                'motif' => 'Dette vers agence destinataire #' . $transfert->code
-            ]);
+            DB::commit();
 
-            // ✅ MOUVEMENTS: FRAIS (revenu)
-            $this->mouvementService->create([
-                'agence_id' => $agenceEmettrice->id,
-                'type' => 'FRAIS',
-                'sens' => 'ENTREE',
-                'montant' => $frais,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Frais transfert #' . $transfert->code
-            ]);
-
-            $caisseService = app(\App\Services\CaisseService::class);
-            $caisseService->entree(
-                $caisseService->getCaisseIdByAgence($agenceEmettrice->id),
-                $total,
-                'DEPOT_TRANSFERT',
-                $user->id,
-                $code,
-                $transfert->id
-            );
-
-            $this->audit->logTransfertCreation($transfert);
+            Log::info('Transfert créé avec succès', ['transfert_id' => $transfert->id]);
 
             return $transfert;
-        });
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de la création du transfert', [
+                'error' => $e->getMessage(),
+                'data' => $data
+            ]);
+            throw new Exception('Erreur lors de la création du transfert: ' . $e->getMessage());
+        }
     }
 
-    public function retirer(string $code, User $user): Transfert
+    /**
+     * Valider un transfert
+     */
+    public function validerTransfert(int $id, array $data): Transfert
     {
-        return DB::transaction(function () use ($code, $user) {
-            $code = strtoupper(trim($code));
+        DB::beginTransaction();
 
-            $transfert = Transfert::where('code', $code)
-                ->lockForUpdate()
-                ->first();
+        try {
+            $transfert = Transfert::findOrFail($id);
 
-            if (!$transfert) {
-                throw new TransfertException('Transfert introuvable', 404);
+            if ($transfert->statut !== 'PENDING') {
+                throw new Exception('Ce transfert ne peut pas être validé.');
             }
-
-            $retraitKey = 'ret_' . $code . '_' . date('Ymd_His');
-            $existing = Transfert::where('retrait_key', $retraitKey)->first();
-            if ($existing) {
-                return $existing;
-            }
-
-            if ($transfert->statut !== 'ENVOYE') {
-                throw new TransfertException('Transfert non disponible', 422);
-            }
-
-            if ($user->role !== 'SUPERADMIN' && $user->agence_id !== $transfert->agence_retrait_id) {
-                throw new TransfertException('Accès interdit', 403);
-            }
-
-            $agenceRetrait = Agence::where('id', $transfert->agence_retrait_id)->lockForUpdate()->first();
-
-            // ✅ Vérifier solde disponible (cash - dette)
-            $soldeDisponible = $this->mouvementService->getSoldeDisponible($agenceRetrait->id);
-            if ($soldeDisponible < $transfert->montant) {
-                throw new FondsInsuffisantsException($soldeDisponible, $transfert->montant);
-            }
-
-            $caisse = \App\Models\Caisse::where('agence_id', $agenceRetrait->id)->lockForUpdate()->first();
-            if (!$caisse) {
-                throw new TransfertException('Caisse non trouvée', 404);
-            }
-
-            if ($caisse->solde_physique < $transfert->montant) {
-                throw new FondsInsuffisantsException($caisse->solde_physique, $transfert->montant);
-            }
-
-            $ancienStatut = $transfert->statut;
-
-            // ✅ MOUVEMENTS: CASH (sortie du retrait)
-            $this->mouvementService->create([
-                'agence_id' => $agenceRetrait->id,
-                'type' => 'CASH',
-                'sens' => 'SORTIE',
-                'montant' => $transfert->montant,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Retrait client #' . $transfert->code
-            ]);
-
-            // ✅ MOUVEMENTS: DETTE (soldée)
-            $this->mouvementService->create([
-                'agence_id' => $agenceRetrait->id,
-                'type' => 'DETTE',
-                'sens' => 'SORTIE',
-                'montant' => $transfert->montant,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Dette soldée #' . $transfert->code
-            ]);
-
-            // ✅ Aussi chez l'émetteur (dette diminuée)
-            $this->mouvementService->create([
-                'agence_id' => $transfert->agence_envoi_id,
-                'type' => 'DETTE',
-                'sens' => 'SORTIE',
-                'montant' => $transfert->montant,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Dette soldée côté émetteur #' . $transfert->code
-            ]);
-
-            $this->ledger->debit(
-                $transfert->agenceEnvoi,
-                $transfert->montant,
-                'TRANSFERT_DEBIT',
-                $transfert->id,
-                $user->id,
-                $code,
-                'Dette agence émettrice'
-            );
-
-            $this->ledger->credit(
-                $agenceRetrait,
-                $transfert->montant,
-                'TRANSFERT_CREDIT',
-                $transfert->id,
-                $user->id,
-                $code,
-                'Créance agence destinataire'
-            );
-
-            $caisseService = app(\App\Services\CaisseService::class);
-            $caisseService->sortie(
-                $caisse->id,
-                $transfert->montant,
-                'RETRAIT_TRANSFERT',
-                $user->id,
-                $code,
-                $transfert->id
-            );
-
-            $this->engagement->desengager($transfert, 'RETIRE');
 
             $transfert->update([
-                'statut' => 'RETIRE',
-                'date_retrait' => now(),
-                'utilisateur_retrait_id' => $user->id,
-                'retrait_key' => $retraitKey
+                'statut' => 'COMPLETED',
+                'date_validation' => now(),
+                'valide_par' => $data['valide_par'] ?? null,
             ]);
 
-            $this->ledger->mettreAJourSoldeCache($transfert->agence_envoi_id);
-            $this->ledger->mettreAJourSoldeCache($transfert->agence_retrait_id);
+            // Mettre à jour la transaction
+            Transaction::where('transfert_id', $transfert->id)
+                ->update(['statut' => 'COMPLETED']);
 
-            $this->audit->logTransfertRetrait($transfert);
+            DB::commit();
+
+            Log::info('Transfert validé', ['transfert_id' => $transfert->id]);
 
             return $transfert;
-        });
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de la validation du transfert', [
+                'error' => $e->getMessage(),
+                'transfert_id' => $id
+            ]);
+            throw new Exception('Erreur lors de la validation du transfert: ' . $e->getMessage());
+        }
     }
 
-    public function annuler(string $code, User $user, ?string $motif = null): Transfert
+    /**
+     * Annuler un transfert
+     */
+    public function annulerTransfert(int $id, string $motif): Transfert
     {
-        return DB::transaction(function () use ($code, $user, $motif) {
-            $code = strtoupper(trim($code));
+        DB::beginTransaction();
 
-            $transfert = Transfert::where('code', $code)
-                ->lockForUpdate()
-                ->first();
+        try {
+            $transfert = Transfert::findOrFail($id);
 
-            if (!$transfert) {
-                throw new TransfertException('Transfert introuvable', 404);
+            if ($transfert->statut === 'COMPLETED') {
+                throw new Exception('Un transfert déjà validé ne peut pas être annulé.');
             }
-
-            if ($transfert->statut === 'RETIRE') {
-                throw new TransfertException('Impossible d\'annuler un transfert déjà retiré', 422);
-            }
-
-            if ($transfert->statut === 'ANNULE') {
-                throw new TransfertException('Transfert déjà annulé', 422);
-            }
-
-            if ($user->role !== 'SUPERADMIN' && $user->agence_id !== $transfert->agence_envoi_id) {
-                throw new TransfertException('Accès interdit', 403);
-            }
-
-            $ancienStatut = $transfert->statut;
-
-            // ✅ Annulation: inverser les mouvements
-            $this->mouvementService->create([
-                'agence_id' => $transfert->agence_envoi_id,
-                'type' => 'CASH',
-                'sens' => 'SORTIE',
-                'montant' => $transfert->montant + $transfert->frais,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Annulation transfert #' . $transfert->code
-            ]);
-
-            $this->mouvementService->create([
-                'agence_id' => $transfert->agence_envoi_id,
-                'type' => 'DETTE',
-                'sens' => 'SORTIE',
-                'montant' => $transfert->montant,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Annulation dette #' . $transfert->code
-            ]);
-
-            $this->mouvementService->create([
-                'agence_id' => $transfert->agence_envoi_id,
-                'type' => 'FRAIS',
-                'sens' => 'SORTIE',
-                'montant' => $transfert->frais,
-                'transaction_id' => $transfert->id,
-                'motif' => 'Annulation frais #' . $transfert->code
-            ]);
-
-            $this->engagement->desengager($transfert, 'ANNULE');
 
             $transfert->update([
-                'statut' => 'ANNULE',
+                'statut' => 'CANCELLED',
+                'motif_annulation' => $motif,
                 'date_annulation' => now(),
-                'utilisateur_annulation_id' => $user->id,
-                'motif_annulation' => $motif ?? 'Annulation par utilisateur',
             ]);
 
-            $this->audit->logTransfertAnnulation($transfert, $motif ?? 'Annulation');
+            // Mettre à jour la transaction
+            Transaction::where('transfert_id', $transfert->id)
+                ->update(['statut' => 'CANCELLED']);
+
+            DB::commit();
+
+            Log::info('Transfert annulé', ['transfert_id' => $transfert->id]);
 
             return $transfert;
-        });
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de l\'annulation du transfert', [
+                'error' => $e->getMessage(),
+                'transfert_id' => $id
+            ]);
+            throw new Exception('Erreur lors de l\'annulation du transfert: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Calculer les frais de transfert
+     */
+    private function calculerFrais(float $montant): float
+    {
+        if ($montant <= 10000) {
+            return 500;
+        } elseif ($montant <= 50000) {
+            return 1000;
+        } elseif ($montant <= 100000) {
+            return 2000;
+        } elseif ($montant <= 500000) {
+            return 5000;
+        } else {
+            return $montant * 0.02;
+        }
+    }
+
+    /**
+     * Générer une référence unique
+     */
+    private function genererReference(): string
+    {
+        return 'TRF-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+    }
+
+    /**
+     * Récupérer tous les transferts
+     */
+    public function getAllTransferts(array $filters = [])
+    {
+        $query = Transfert::with(['client', 'agenceSource', 'agenceDestination']);
+
+        if (isset($filters['statut'])) {
+            $query->where('statut', $filters['statut']);
+        }
+
+        if (isset($filters['client_id'])) {
+            $query->where('client_id', $filters['client_id']);
+        }
+
+        if (isset($filters['agence_id'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('agence_source_id', $filters['agence_id'])
+                  ->orWhere('agence_destination_id', $filters['agence_id']);
+            });
+        }
+
+        if (isset($filters['date_debut']) && isset($filters['date_fin'])) {
+            $query->whereBetween('created_at', [$filters['date_debut'], $filters['date_fin']]);
+        }
+
+        return $query->orderBy('created_at', 'desc')->paginate(15);
+    }
+
+    /**
+     * Récupérer un transfert par son ID
+     */
+    public function getTransfertById(int $id): Transfert
+    {
+        return Transfert::with(['client', 'agenceSource', 'agenceDestination', 'transactions'])
+            ->findOrFail($id);
+    }
+
+    /**
+     * Mettre à jour un transfert
+     */
+    public function updateTransfert(int $id, array $data): Transfert
+    {
+        $transfert = Transfert::findOrFail($id);
+
+        if ($transfert->statut !== 'PENDING') {
+            throw new Exception('Seuls les transferts en attente peuvent être modifiés.');
+        }
+
+        $transfert->update($data);
+
+        Log::info('Transfert mis à jour', ['transfert_id' => $transfert->id]);
+
+        return $transfert;
+    }
+
+    /**
+     * Supprimer un transfert
+     */
+    public function deleteTransfert(int $id): bool
+    {
+        $transfert = Transfert::findOrFail($id);
+
+        if ($transfert->statut === 'COMPLETED') {
+            throw new Exception('Un transfert validé ne peut pas être supprimé.');
+        }
+
+        // Supprimer les transactions associées
+        Transaction::where('transfert_id', $id)->delete();
+
+        $deleted = $transfert->delete();
+
+        Log::info('Transfert supprimé', ['transfert_id' => $id]);
+
+        return $deleted;
     }
 }
