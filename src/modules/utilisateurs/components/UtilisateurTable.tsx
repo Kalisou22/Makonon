@@ -1,106 +1,92 @@
-import React from 'react'
-import { Table } from '../../../components/ui/Table'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
-import { Button } from '../../../components/ui/Button'
-import type { Utilisateur } from '../types'
+import React from 'react';
+import StatusBadge from '../../../components/ui/StatusBadge';
+import Button from '../../../components/ui/Button';
+
+interface Utilisateur {
+  id: number;
+  nom: string;
+  email: string;
+  role: string;
+  actif: boolean;
+  telephone?: string;
+  agence?: {
+    id: number;
+    nom: string;
+  };
+}
 
 interface UtilisateurTableProps {
-  data: Utilisateur[]
-  isLoading: boolean
-  onEdit: (utilisateur: Utilisateur) => void
-  onDelete: (id: number) => void
+  data: Utilisateur[];
+  onEdit?: (user: Utilisateur) => void;
+  onDelete?: (id: number) => void;
+  isLoading?: boolean;
 }
 
-export const UtilisateurTable: React.FC<UtilisateurTableProps> = ({ data, isLoading, onEdit, onDelete }) => {
-  const getRoleLabel = (role: string) => {
-    const roles: Record<string, string> = {
-      SUPERADMIN: 'Super Admin',
-      ADMIN: 'Admin',
-      RESPONSABLE: 'Responsable',
-      AGENT: 'Agent',
-    }
-    return roles[role] || role
+export const UtilisateurTable: React.FC<UtilisateurTableProps> = ({
+  data,
+  onEdit,
+  onDelete,
+  isLoading,
+}) => {
+  if (isLoading) {
+    return <div className="flex justify-center py-8">Chargement...</div>;
   }
 
-  const getRoleColor = (role: string) => {
-    const colors: Record<string, string> = {
-      SUPERADMIN: 'bg-purple-100 text-purple-700',
-      ADMIN: 'bg-blue-100 text-blue-700',
-      RESPONSABLE: 'bg-orange-100 text-orange-700',
-      AGENT: 'bg-green-100 text-green-700',
-    }
-    return colors[role] || 'bg-gray-100 text-gray-700'
+  if (data.length === 0) {
+    return <div className="text-center py-8 text-gray-500">Aucun utilisateur trouvé</div>;
   }
-
-  const columns = [
-    {
-      key: 'nom',
-      header: 'Nom',
-      render: (item: Utilisateur) => <span className="font-medium text-gray-900">{item.nom}</span>,
-    },
-    {
-      key: 'email',
-      header: 'Email',
-      render: (item: Utilisateur) => <span className="text-gray-700">{item.email}</span>,
-    },
-    {
-      key: 'telephone',
-      header: 'Téléphone',
-      render: (item: Utilisateur) => <span className="text-gray-700">{item.telephone || '-'}</span>,
-    },
-    {
-      key: 'role',
-      header: 'Rôle',
-      render: (item: Utilisateur) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getRoleColor(item.role)}`}>
-          {getRoleLabel(item.role)}
-        </span>
-      ),
-      align: 'center' as const,
-    },
-    {
-      key: 'agence',
-      header: 'Agence',
-      render: (item: Utilisateur) => <span className="text-gray-700">{item.agence?.nom || '-'}</span>,
-    },
-    {
-      key: 'actif',
-      header: 'Statut',
-      render: (item: Utilisateur) => (
-        <StatusBadge status={item.actif ? 'Actif' : 'Inactif'} variant={item.actif ? 'success' : 'danger'} />
-      ),
-      align: 'center' as const,
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (item: Utilisateur) => (
-        <div className="flex gap-2 justify-center">
-          <Button variant="primary" size="sm" onClick={() => onEdit(item)}>
-            Modifier
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => onDelete(item.id)}
-            disabled={item.role === 'SUPERADMIN'}
-          >
-            Supprimer
-          </Button>
-        </div>
-      ),
-      align: 'center' as const,
-    },
-  ]
 
   return (
-    <Table
-      columns={columns}
-      data={data}
-      isLoading={isLoading}
-      emptyMessage="Aucun utilisateur trouvé"
-    />
-  )
-}
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-4 py-2 text-left">Nom</th>
+            <th className="px-4 py-2 text-left">Email</th>
+            <th className="px-4 py-2 text-left">Téléphone</th>
+            <th className="px-4 py-2 text-left">Rôle</th>
+            <th className="px-4 py-2 text-left">Agence</th>
+            <th className="px-4 py-2 text-center">Statut</th>
+            <th className="px-4 py-2 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((user) => (
+            <tr key={user.id} className="border-t hover:bg-gray-50">
+              <td className="px-4 py-2">{user.nom}</td>
+              <td className="px-4 py-2">{user.email}</td>
+              <td className="px-4 py-2">{user.telephone || '-'}</td>
+              <td className="px-4 py-2">
+                <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  {user.role}
+                </span>
+              </td>
+              <td className="px-4 py-2">{user.agence?.nom || '-'}</td>
+              <td className="px-4 py-2 text-center">
+                <StatusBadge variant={user.actif ? 'success' : 'danger'}>
+                  {user.actif ? 'Actif' : 'Inactif'}
+                </StatusBadge>
+              </td>
+              <td className="px-4 py-2 text-center">
+                <div className="flex justify-center gap-2">
+                  {onEdit && (
+                    <Button size="sm" variant="outline" onClick={() => onEdit(user)}>
+                      Modifier
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button size="sm" variant="danger" onClick={() => onDelete(user.id)}>
+                      Supprimer
+                    </Button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
-export default UtilisateurTable
+export default UtilisateurTable;

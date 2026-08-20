@@ -40,15 +40,26 @@ export const TransactionsPage: React.FC = () => {
     }
   };
 
-  const getStatutBadge = (statut: string) => {
-    const variants: Record<string, string> = {
+  const getStatusVariant = (status: string): 'success' | 'danger' | 'warning' | 'info' | 'default' => {
+    const variants: Record<string, 'success' | 'danger' | 'warning' | 'info' | 'default'> = {
       ENVOYE: 'warning',
       RETIRE: 'success',
       ANNULE: 'danger',
       EN_ATTENTE: 'info',
       EXPIRE: 'danger',
     };
-    return <StatusBadge variant={variants[statut] || 'default'}>{statut}</StatusBadge>;
+    return variants[status] || 'default';
+  };
+
+  const getStatusLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      ENVOYE: 'En attente',
+      RETIRE: 'Retiré',
+      ANNULE: 'Annulé',
+      EN_ATTENTE: 'En attente',
+      EXPIRE: 'Expiré',
+    };
+    return labels[status] || status;
   };
 
   return (
@@ -106,7 +117,11 @@ export const TransactionsPage: React.FC = () => {
                     <td className="px-4 py-2 text-right font-medium">
                       {new Intl.NumberFormat('fr-FR').format(Number(t.montant))} GNF
                     </td>
-                    <td className="px-4 py-2 text-center">{getStatutBadge(t.statut)}</td>
+                    <td className="px-4 py-2 text-center">
+                      <StatusBadge variant={getStatusVariant(t.statut)}>
+                        {getStatusLabel(t.statut)}
+                      </StatusBadge>
+                    </td>
                     <td className="px-4 py-2 text-center">
                       <div className="flex justify-center gap-2">
                         {t.statut === 'ENVOYE' && (

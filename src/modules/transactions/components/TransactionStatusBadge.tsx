@@ -1,21 +1,49 @@
-import React from 'react'
-import { StatusBadge } from '../../../components/ui/StatusBadge'
+import React from 'react';
+import StatusBadge from '../../../components/ui/StatusBadge';
 
 interface TransactionStatusBadgeProps {
-  status: 'EN_ATTENTE' | 'ENVOYE' | 'RETIRE' | 'ANNULE' | 'EXPIRE'
+  status: string;
 }
 
 export const TransactionStatusBadge: React.FC<TransactionStatusBadgeProps> = ({ status }) => {
-  const statusMap: Record<string, { label: string; variant: 'warning' | 'success' | 'danger' | 'info' | 'default' }> = {
-    EN_ATTENTE: { label: 'En attente', variant: 'warning' },
-    ENVOYE: { label: 'Envoyé', variant: 'info' },
-    RETIRE: { label: 'Retiré', variant: 'success' },
-    ANNULE: { label: 'Annulé', variant: 'danger' },
-    EXPIRE: { label: 'Expiré', variant: 'default' },
-  }
+  const getVariant = (status: string) => {
+    switch (status) {
+      case 'ENVOYE':
+        return 'warning';
+      case 'RETIRE':
+        return 'success';
+      case 'ANNULE':
+        return 'danger';
+      case 'EN_ATTENTE':
+        return 'info';
+      case 'EXPIRE':
+        return 'danger';
+      default:
+        return 'default';
+    }
+  };
 
-  const { label, variant } = statusMap[status] || { label: status, variant: 'default' }
-  return <StatusBadge status={label} variant={variant} />
-}
+  const getLabel = (status: string) => {
+    switch (status) {
+      case 'ENVOYE':
+        return 'En attente';
+      case 'RETIRE':
+        return 'Retiré';
+      case 'ANNULE':
+        return 'Annulé';
+      case 'EN_ATTENTE':
+        return 'En attente';
+      case 'EXPIRE':
+        return 'Expiré';
+      default:
+        return status;
+    }
+  };
 
-export default TransactionStatusBadge
+  const variant = getVariant(status);
+  const label = getLabel(status);
+
+  return <StatusBadge variant={variant}>{label}</StatusBadge>;
+};
+
+export default TransactionStatusBadge;
