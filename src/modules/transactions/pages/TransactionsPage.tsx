@@ -20,7 +20,7 @@ export const TransactionsPage: React.FC = () => {
   const lastPage = data?.last_page || 1;
 
   const handleValider = async (id: number) => {
-    if (!window.confirm('Confirmer le retrait de ce transfert ?')) return;
+    if (!window.confirm('⚠️ Confirmer le retrait de ce transfert ?\n\nCette opération est irréversible.')) return;
     try {
       await validerMutation.mutateAsync(id);
       refetch();
@@ -30,7 +30,7 @@ export const TransactionsPage: React.FC = () => {
   };
 
   const handleAnnuler = async (id: number) => {
-    if (!window.confirm('Confirmer l\'annulation de ce transfert ?')) return;
+    if (!window.confirm('⚠️ Confirmer l\'annulation de ce transfert ?\n\nLe client sera remboursé montant + frais.')) return;
     const motif = window.prompt('Motif de l\'annulation :');
     try {
       await annulerMutation.mutateAsync({ id, motif: motif || undefined });
@@ -53,7 +53,7 @@ export const TransactionsPage: React.FC = () => {
 
   const getStatusLabel = (status: string): string => {
     const labels: Record<string, string> = {
-      ENVOYE: 'En attente',
+      ENVOYE: 'En attente de retrait',
       RETIRE: 'Retiré',
       ANNULE: 'Annulé',
       EN_ATTENTE: 'En attente',
@@ -69,13 +69,13 @@ export const TransactionsPage: React.FC = () => {
         <Button onClick={() => setIsModalOpen(true)}>Nouveau transfert</Button>
       </div>
 
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-4 mb-4 flex-wrap">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher un transfert..."
-          className="flex-1 px-3 py-2 border rounded-lg"
+          className="flex-1 min-w-[200px] px-3 py-2 border rounded-lg"
         />
         <select
           value={statut}
@@ -88,42 +88,49 @@ export const TransactionsPage: React.FC = () => {
           <option value="ANNULE">Annulé</option>
           <option value="EN_ATTENTE">En attente</option>
         </select>
+        <Button variant="outline" onClick={() => { setSearch(''); setStatut(''); }}>Réinitialiser</Button>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-8">Chargement...</div>
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
       ) : transactions.length === 0 ? (
         <div className="text-center py-8 text-gray-500">Aucun transfert trouvé</div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto bg-white rounded-lg shadow">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left">Code</th>
-                  <th className="px-4 py-2 text-left">Expéditeur</th>
-                  <th className="px-4 py-2 text-left">Bénéficiaire</th>
-                  <th className="px-4 py-2 text-right">Montant</th>
-                  <th className="px-4 py-2 text-center">Statut</th>
-                  <th className="px-4 py-2 text-center">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Expéditeur</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bénéficiaire</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Frais</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Statut</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200">
                 {transactions.map((t: any) => (
-                  <tr key={t.id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-2 font-mono">{t.code}</td>
-                    <td className="px-4 py-2">{t.expediteur?.nom || '-'}</td>
-                    <td className="px-4 py-2">{t.beneficiaire?.nom || '-'}</td>
-                    <td className="px-4 py-2 text-right font-medium">
+                  <tr key={t.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-mono text-sm">{t.code}</td>
+                    <td className="px-4 py-3">{t.expediteur?.nom || '-'}</td>
+                    <td className="px-4 py-3">{t.beneficiaire?.nom || '-'}</td>
+                    <td className="px-4 py-3 text-right font-medium">
                       {new Intl.NumberFormat('fr-FR').format(Number(t.montant))} GNF
                     </td>
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-4 py-3 text-right text-gray-600">
+                      {new Intl.NumberFormat('fr-FR').format(Number(t.frais || 0))} GNF
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <StatusBadge variant={getStatusVariant(t.statut)}>
                         {getStatusLabel(t.statut)}
                       </StatusBadge>
                     </td>
-                    <td className="px-4 py-2 text-center">
-                      <div className="flex justify-center gap-2">
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center gap-2 flex-wrap">
                         {t.statut === 'ENVOYE' && (
                           <>
                             <Button
@@ -144,6 +151,12 @@ export const TransactionsPage: React.FC = () => {
                             </Button>
                           </>
                         )}
+                        {t.statut === 'RETIRE' && (
+                          <span className="text-sm text-green-600">✓ Retiré</span>
+                        )}
+                        {t.statut === 'ANNULE' && (
+                          <span className="text-sm text-red-600">✗ Annulé</span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -152,13 +165,15 @@ export const TransactionsPage: React.FC = () => {
             </table>
           </div>
 
-          <Pagination
-            currentPage={page}
-            totalPages={lastPage}
-            onPageChange={setPage}
-            total={total}
-            perPage={20}
-          />
+          <div className="mt-4">
+            <Pagination
+              currentPage={page}
+              totalPages={lastPage}
+              onPageChange={setPage}
+              total={total}
+              perPage={20}
+            />
+          </div>
         </>
       )}
 
@@ -169,3 +184,5 @@ export const TransactionsPage: React.FC = () => {
     </div>
   );
 };
+
+export default TransactionsPage;
