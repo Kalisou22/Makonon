@@ -1,63 +1,94 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { utilisateurService } from '../services/utilisateurService'
-import { toast } from 'react-hot-toast'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { utilisateurService } from '../services/utilisateurService';
+import { UtilisateurFormData } from '../types';
+import toast from 'react-hot-toast';
 
-export const useUtilisateurs = (params?: any) => {
+export const useUtilisateurs = (params?: {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  role?: string;
+  agence_id?: number;
+  actif?: boolean;
+}) => {
   return useQuery({
     queryKey: ['utilisateurs', params],
-    queryFn: () => utilisateurService.getAll(params),
-    staleTime: 1000 * 60 * 5,
-  })
-}
+    queryFn: () => utilisateurService.getUtilisateurs(params),
+    staleTime: 30000,
+  });
+};
 
 export const useUtilisateur = (id: number) => {
   return useQuery({
-    queryKey: ['utilisateurs', id],
-    queryFn: () => utilisateurService.getById(id),
+    queryKey: ['utilisateur', id],
+    queryFn: () => utilisateurService.getUtilisateur(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 5,
-  })
-}
+  });
+};
 
 export const useCreateUtilisateur = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (data: any) => utilisateurService.create(data),
+    mutationFn: (data: UtilisateurFormData) => utilisateurService.createUtilisateur(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
-      toast.success('Utilisateur créé')
+      toast.success('Utilisateur créé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['utilisateurs'] });
     },
     onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors de la création')
+      const message = error.response?.data?.message || 'Erreur lors de la création';
+      toast.error(message);
     },
-  })
-}
+  });
+};
 
 export const useUpdateUtilisateur = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) =>
-      utilisateurService.update(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<UtilisateurFormData> }) =>
+      utilisateurService.updateUtilisateur(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
-      toast.success('Utilisateur mis à jour')
+      toast.success('Utilisateur mis à jour');
+      queryClient.invalidateQueries({ queryKey: ['utilisateurs'] });
     },
     onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors de la mise à jour')
+      const message = error.response?.data?.message || 'Erreur lors de la mise à jour';
+      toast.error(message);
     },
-  })
-}
+  });
+};
 
 export const useDeleteUtilisateur = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (id: number) => utilisateurService.delete(id),
+    mutationFn: (id: number) => utilisateurService.deleteUtilisateur(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
-      toast.success('Utilisateur supprimé')
+      toast.success('Utilisateur supprimé');
+      queryClient.invalidateQueries({ queryKey: ['utilisateurs'] });
     },
     onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors de la suppression')
+      const message = error.response?.data?.message || 'Erreur lors de la suppression';
+      toast.error(message);
     },
-  })
-}
+  });
+};
+
+export const useToggleActif = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => utilisateurService.toggleActif(id),
+    onSuccess: (response) => {
+      toast.success(response.message || 'Statut modifié');
+      queryClient.invalidateQueries({ queryKey: ['utilisateurs'] });
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la modification';
+      toast.error(message);
+    },
+  });
+};
+
+export default useUtilisateurs;

@@ -5,9 +5,14 @@ import { useAuthStore } from '../../store/authStore';
 interface RoleGuardProps {
   children: React.ReactNode;
   allowedRoles?: string[];
+  fallbackPath?: string;
 }
 
-export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) => {
+export const RoleGuard: React.FC<RoleGuardProps> = ({
+  children,
+  allowedRoles,
+  fallbackPath = '/dashboard',
+}) => {
   const { user, isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {
@@ -15,7 +20,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) 
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={fallbackPath} replace />;
   }
 
   return <>{children}</>;

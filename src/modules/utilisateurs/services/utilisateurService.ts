@@ -1,26 +1,43 @@
-import axiosInstance from '../../../core/api/axiosInstance'
+import api from '../../../core/api/axiosInstance';
+import { Utilisateur, UtilisateurFormData } from '../types';
 
 export const utilisateurService = {
-  getAll: async (params?: any) => {
-    const response = await axiosInstance.get('/utilisateurs', { params })
-    return response.data
+  getUtilisateurs: async (params?: {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    role?: string;
+    agence_id?: number;
+    actif?: boolean;
+  }) => {
+    const response = await api.get('/utilisateurs', { params });
+    return response.data;
   },
-  getById: async (id: number) => {
-    const response = await axiosInstance.get(`/utilisateurs/${id}`)
-    return response.data
-  },
-  create: async (data: any) => {
-    const response = await axiosInstance.post('/utilisateurs', data)
-    return response.data
-  },
-  update: async (id: number, data: any) => {
-    const response = await axiosInstance.put(`/utilisateurs/${id}`, data)
-    return response.data
-  },
-  delete: async (id: number) => {
-    const response = await axiosInstance.delete(`/utilisateurs/${id}`)
-    return response.data
-  }
-}
 
-export default utilisateurService
+  getUtilisateur: async (id: number) => {
+    const response = await api.get(`/utilisateurs/${id}`);
+    return response.data;
+  },
+
+  createUtilisateur: async (data: UtilisateurFormData) => {
+    const response = await api.post('/utilisateurs', data);
+    return response.data;
+  },
+
+  updateUtilisateur: async (id: number, data: Partial<UtilisateurFormData>) => {
+    const response = await api.put(`/utilisateurs/${id}`, data);
+    return response.data;
+  },
+
+  deleteUtilisateur: async (id: number) => {
+    const response = await api.delete(`/utilisateurs/${id}`);
+    return response.data;
+  },
+
+  toggleActif: async (id: number) => {
+    const response = await api.post(`/utilisateurs/${id}/toggle-actif`);
+    return response.data;
+  }
+};
+
+export default utilisateurService;
