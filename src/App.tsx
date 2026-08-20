@@ -13,6 +13,8 @@ import { UtilisateursPage } from './modules/utilisateurs/pages/UtilisateursPage'
 import { MouvementsPage } from './modules/mouvements/pages/MouvementsPage';
 import { FraisPage } from './modules/frais/pages/FraisPage';
 import ReportsPage from './modules/reports/pages/ReportsPage';
+import { TransferReportPage } from './modules/reports/pages/TransferReportPage';
+import { FeesReportPage } from './modules/reports/pages/FeesReportPage';
 import { AuditPage } from './modules/audit/pages/AuditPage';
 import { useAuth } from './modules/auth/hooks/useAuth';
 
@@ -51,6 +53,8 @@ function App() {
             <Route path="mouvements" element={<MouvementsPage />} />
             <Route path="frais" element={<FraisPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="reports/transfers" element={<TransferReportPage />} />
+            <Route path="reports/fees" element={<FeesReportPage />} />
             <Route path="audit" element={<AuditPage />} />
           </Route>
         </Routes>
