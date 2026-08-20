@@ -1,5 +1,5 @@
 import api from '../../../core/api/axiosInstance';
-import { Transaction, TransactionFormData } from '../types';
+import type { Transaction, TransactionFormData } from '../types';
 
 export const transactionService = {
   getTransactions: async (params?: {
