@@ -1,110 +1,119 @@
-import React from 'react'
-import { Button } from './Button'
+import React from 'react';
+import Button from './Button';
 
-interface PaginationProps {
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
-  className?: string
+export interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  total?: number;
+  perPage?: number;
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  className = '',
+  total,
+  perPage,
 }) => {
-  if (totalPages <= 1) return null
-
-  const getPages = () => {
-    const pages: (number | string)[] = []
-    const delta = 2
-
-    for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= delta) {
-        pages.push(i)
-      } else if (pages[pages.length - 1] !== '...') {
-        pages.push('...')
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
       }
+    } else {
+      pages.push(1);
+      
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+      
+      if (start > 2) pages.push('...');
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      if (end < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
     }
+    
+    return pages;
+  };
 
-    return pages
-  }
+  if (totalPages <= 1) return null;
 
   return (
-    <div className={`flex items-center justify-between border-t border-border px-4 py-3 sm:px-6 ${className}`}>
-      <div className="flex flex-1 justify-between sm:hidden">
+    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+      <div className="flex-1 flex justify-between sm:hidden">
         <Button
-          variant="secondary"
+          variant="outline"
           size="sm"
-          disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
         >
           Précédent
         </Button>
         <Button
-          variant="secondary"
+          variant="outline"
           size="sm"
-          disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
         >
           Suivant
         </Button>
       </div>
-
-      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-text-secondary">
-            Page <span className="font-medium text-primary">{currentPage}</span> sur{' '}
-            <span className="font-medium text-gray-900">{totalPages}</span>
-          </p>
+          {total && perPage && (
+            <p className="text-sm text-gray-700">
+              Affichage de <span className="font-medium">{(currentPage - 1) * perPage + 1}</span> à{' '}
+              <span className="font-medium">
+                {Math.min(currentPage * perPage, total)}
+              </span>{' '}
+              sur <span className="font-medium">{total}</span> résultats
+            </p>
+          )}
         </div>
         <div>
-          <nav className="isolate inline-flex -space-x-px rounded-lg shadow-sm" aria-label="Pagination">
-            <button
+          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center rounded-l-lg px-3 py-2 text-text-secondary ring-1 ring-inset ring-border hover:bg-filter-bg focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-l-md"
             >
-              <span className="sr-only">Précédent</span>
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-              </svg>
-            </button>
-
-            {getPages().map((page, index) => (
-              <button
+              Précédent
+            </Button>
+            {getPageNumbers().map((page, index) => (
+              <Button
                 key={index}
+                variant={page === currentPage ? 'primary' : 'outline'}
+                size="sm"
                 onClick={() => typeof page === 'number' && onPageChange(page)}
-                className={`
-                  relative inline-flex items-center px-4 py-2 text-sm font-semibold transition-colors
-                  ${page === currentPage
-                    ? 'z-10 bg-primary text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
-                    : 'text-gray-900 ring-1 ring-inset ring-border hover:bg-filter-bg focus:z-20 focus:outline-offset-0'
-                  }
-                  ${page === '...' ? 'cursor-default' : ''}
-                `}
-                disabled={page === '...'}
+                disabled={page === '...' || page === currentPage}
+                className={page === '...' ? 'cursor-default' : ''}
               >
                 {page}
-              </button>
+              </Button>
             ))}
-
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center rounded-r-lg px-3 py-2 text-text-secondary ring-1 ring-inset ring-border hover:bg-filter-bg focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-r-md"
             >
-              <span className="sr-only">Suivant</span>
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-              </svg>
-            </button>
+              Suivant
+            </Button>
           </nav>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Pagination
+export default Pagination;

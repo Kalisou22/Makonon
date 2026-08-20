@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
 import { useTransactions, useValiderTransaction, useAnnulerTransaction } from '../hooks/useTransactions';
 import Button from '../../../components/ui/Button';
-import SearchBar from '../../../components/ui/SearchBar';
 import Pagination from '../../../components/ui/Pagination';
 import StatusBadge from '../../../components/ui/StatusBadge';
 import { CreateTransactionModal } from '../components/CreateTransactionModal';
-import toast from 'react-hot-toast';
 
 export const TransactionsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statut, setStatut] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
   const { data, isLoading, refetch } = useTransactions({ page, per_page: 20, search, statut });
   const validerMutation = useValiderTransaction();
@@ -23,7 +20,7 @@ export const TransactionsPage: React.FC = () => {
   const lastPage = data?.last_page || 1;
 
   const handleValider = async (id: number) => {
-    if (!confirm('Confirmer le retrait de ce transfert ?')) return;
+    if (!window.confirm('Confirmer le retrait de ce transfert ?')) return;
     try {
       await validerMutation.mutateAsync(id);
       refetch();
@@ -33,8 +30,8 @@ export const TransactionsPage: React.FC = () => {
   };
 
   const handleAnnuler = async (id: number) => {
-    if (!confirm('Confirmer l\'annulation de ce transfert ?')) return;
-    const motif = prompt('Motif de l\'annulation :');
+    if (!window.confirm('Confirmer l\'annulation de ce transfert ?')) return;
+    const motif = window.prompt('Motif de l\'annulation :');
     try {
       await annulerMutation.mutateAsync({ id, motif: motif || undefined });
       refetch();
@@ -51,7 +48,7 @@ export const TransactionsPage: React.FC = () => {
       EN_ATTENTE: 'info',
       EXPIRE: 'danger',
     };
-    return <StatusBadge status={variants[statut] || 'default'}>{statut}</StatusBadge>;
+    return <StatusBadge variant={variants[statut] || 'default'}>{statut}</StatusBadge>;
   };
 
   return (
@@ -62,11 +59,12 @@ export const TransactionsPage: React.FC = () => {
       </div>
 
       <div className="flex gap-4 mb-4">
-        <SearchBar
+        <input
+          type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Rechercher un transfert..."
-          className="flex-1"
+          className="flex-1 px-3 py-2 border rounded-lg"
         />
         <select
           value={statut}
@@ -141,7 +139,7 @@ export const TransactionsPage: React.FC = () => {
 
           <Pagination
             currentPage={page}
-            lastPage={lastPage}
+            totalPages={lastPage}
             onPageChange={setPage}
             total={total}
             perPage={20}
