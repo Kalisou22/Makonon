@@ -20,15 +20,8 @@ import { useAuth } from './modules/auth/hooks/useAuth';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Chargement...</div>;
-  }
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
+  if (isLoading) return <div className="flex justify-center items-center h-screen">Chargement...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
@@ -39,11 +32,7 @@ function App() {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }>
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="transferts" element={<TransactionsPage />} />
