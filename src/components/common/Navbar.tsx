@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../modules/auth/hooks/useAuth';
+import { useAuth } from '../../modules/auth/hooks/useAuth';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -20,9 +20,10 @@ export const Navbar: React.FC = () => {
         <span className="text-sm text-gray-600">{user?.nom || 'Utilisateur'}</span>
         <button
           onClick={handleLogout}
-          className="text-sm text-red-600 hover:text-red-800"
+          disabled={isLoggingOut}
+          className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
         >
-          Déconnexion
+          {isLoggingOut ? 'Déconnexion...' : 'Déconnexion'}
         </button>
       </div>
     </nav>

@@ -1,119 +1,74 @@
-import { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-hot-toast'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import Button from '../../../components/ui/Button';
+import Input from '../../../components/ui/Input';
 
-export default function LoginPage() {
-  const navigate = useNavigate()
-  const { login, isLoading } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+export const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { login, isLoggingIn } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsSubmitting(true)
-
-    if (!email || !password) {
-      setError('Veuillez remplir tous les champs')
-      setIsSubmitting(false)
-      return
-    }
+    e.preventDefault();
+    setError('');
 
     try {
-      console.log('🔐 Soumission login:', email)
-      const result = await login(email, password)
-      console.log('🔐 Login réussi:', result)
-      toast.success('Connexion réussie')
-      navigate('/dashboard')
-    } catch (error: any) {
-      console.error('❌ Erreur login:', error)
-      const message = error?.response?.data?.message || error?.message || 'Email ou mot de passe incorrect'
-      setError(message)
-    } finally {
-      setIsSubmitting(false)
+      await login({ email, password });
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Erreur de connexion');
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl w-96">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl text-white font-bold">M</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">MAKONON</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Transfert d'argent</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold text-center mb-6">MAKONON TRANSFERT</h1>
+        <h2 className="text-lg text-center text-gray-600 mb-6">Connexion</h2>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-center gap-2">
-            <span>❌</span>
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email
-            </label>
-            <input
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <Input
+              label="Email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               placeholder="admin@makonon.com"
-              disabled={isSubmitting || isLoading}
               required
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Mot de passe
-            </label>
-            <input
+          <div className="mb-6">
+            <Input
+              label="Mot de passe"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               placeholder="••••••••"
-              disabled={isSubmitting || isLoading}
               required
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={isSubmitting || isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full"
+            isLoading={isLoggingIn}
           >
-            {(isSubmitting || isLoading) ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Connexion...
-              </>
-            ) : (
-              'Se connecter'
-            )}
-          </button>
+            Se connecter
+          </Button>
         </form>
-
-        <div className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-4">
-          <p>Comptes de test:</p>
-          <p className="mt-1">
-            <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">admin@makonon.com</span>
-            <span className="mx-2">/</span>
-            <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">password</span>
-          </p>
-        </div>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default LoginPage;

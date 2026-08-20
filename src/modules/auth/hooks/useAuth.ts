@@ -9,17 +9,18 @@ export const useAuth = () => {
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: () => authService.getMe(),
+    queryFn: () => authService.me(),
     enabled: !!token,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
   const loginMutation = useMutation({
-    mutationFn: (credentials: { email: string; password: string }) =>
-      authService.login(credentials),
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      authService.login(email, password),
     onSuccess: (response) => {
-      const { token, user } = response.data;
-      setAuth(token, user);
+      const { user, token } = response.data;
+      setAuth(user, token);
       toast.success('Connexion réussie');
     },
     onError: (error: any) => {
