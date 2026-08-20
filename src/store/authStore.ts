@@ -8,9 +8,10 @@ export interface User {
   email: string;
   role: string;
   agence_id?: number | null;
-  agence?: { id: number; nom: string } | null;
+  agence?: { id: number; nom: string; code?: string } | null;
   telephone?: string;
   actif?: boolean;
+  daily_limit?: number | null;
 }
 
 interface AuthState {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -16,14 +15,7 @@ import ReportsPage from './modules/reports/pages/ReportsPage';
 import { TransferReportPage } from './modules/reports/pages/TransferReportPage';
 import { FeesReportPage } from './modules/reports/pages/FeesReportPage';
 import { AuditPage } from './modules/audit/pages/AuditPage';
-import { useAuth } from './modules/auth/hooks/useAuth';
-
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return <div className="flex justify-center items-center h-screen">Chargement...</div>;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-};
+import { ProtectedRoute } from './core/guards/ProtectedRoute';
 
 function App() {
   return (
@@ -32,7 +24,11 @@ function App() {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="transferts" element={<TransactionsPage />} />

@@ -42,6 +42,33 @@ export const useAuth = () => {
     },
   });
 
+  const logoutAllMutation = useMutation({
+    mutationFn: () => authService.logoutAll(),
+    onSuccess: () => {
+      clearAuth();
+      queryClient.clear();
+      toast.success('Déconnecté de tous les appareils');
+    },
+    onError: () => {
+      clearAuth();
+      queryClient.clear();
+    },
+  });
+
+  const refreshMutation = useMutation({
+    mutationFn: () => authService.refresh(),
+    onSuccess: (response) => {
+      const { token } = response.data;
+      // Mettre à jour le token dans le store
+      useAuthStore.setState({ token });
+      localStorage.setItem('token', token);
+    },
+    onError: () => {
+      clearAuth();
+      queryClient.clear();
+    },
+  });
+
   return {
     user: userData?.data || user,
     token,
@@ -49,7 +76,11 @@ export const useAuth = () => {
     isAuthenticated: !!token && !!userData,
     login: loginMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
+    logoutAll: logoutAllMutation.mutateAsync,
+    refresh: refreshMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     isLoggingOut: logoutMutation.isPending,
   };
 };
+
+export default useAuth;

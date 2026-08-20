@@ -50,6 +50,7 @@ export const AuditPage: React.FC = () => {
     const variants: Record<string, 'success' | 'danger' | 'warning' | 'info' | 'default'> = {
       login: 'info',
       logout: 'info',
+      logout_all: 'info',
       transfert_cree: 'success',
       transfert_retire: 'success',
       transfert_annule: 'danger',
@@ -59,10 +60,17 @@ export const AuditPage: React.FC = () => {
       utilisateur_cree: 'success',
       utilisateur_modifie: 'warning',
       utilisateur_supprime: 'danger',
+      utilisateur_active: 'success',
+      utilisateur_desactive: 'danger',
       approvisionnement_caisse: 'success',
       approvisionnement_annule: 'danger',
       caisse_entree: 'success',
       caisse_sortie: 'danger',
+      frais_configuration_cree: 'success',
+      frais_configuration_modifie: 'warning',
+      frais_configuration_supprime: 'danger',
+      frais_configuration_active: 'success',
+      frais_configuration_desactive: 'danger',
     };
     return variants[action] || 'default';
   };
@@ -71,6 +79,7 @@ export const AuditPage: React.FC = () => {
     const labels: Record<string, string> = {
       login: '🔐 Connexion',
       logout: '🔐 Déconnexion',
+      logout_all: '🔐 Déconnexion globale',
       transfert_cree: '📤 Transfert créé',
       transfert_retire: '📥 Transfert retiré',
       transfert_annule: '❌ Transfert annulé',
@@ -80,10 +89,17 @@ export const AuditPage: React.FC = () => {
       utilisateur_cree: '👤 Utilisateur créé',
       utilisateur_modifie: '👤 Utilisateur modifié',
       utilisateur_supprime: '👤 Utilisateur supprimé',
+      utilisateur_active: '✅ Utilisateur activé',
+      utilisateur_desactive: '⛔ Utilisateur désactivé',
       approvisionnement_caisse: '💰 Approvisionnement',
       approvisionnement_annule: '💰 Approvisionnement annulé',
       caisse_entree: '💳 Entrée caisse',
       caisse_sortie: '💳 Sortie caisse',
+      frais_configuration_cree: '📋 Configuration frais créée',
+      frais_configuration_modifie: '📋 Configuration frais modifiée',
+      frais_configuration_supprime: '📋 Configuration frais supprimée',
+      frais_configuration_active: '📋 Configuration frais activée',
+      frais_configuration_desactive: '📋 Configuration frais désactivée',
     };
     return labels[action] || action;
   };

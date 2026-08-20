@@ -11,6 +11,11 @@ export const authService = {
     return response.data;
   },
 
+  logoutAll: async () => {
+    const response = await api.post('/logout-all');
+    return response.data;
+  },
+
   me: async () => {
     const response = await api.get('/me');
     return response.data;
