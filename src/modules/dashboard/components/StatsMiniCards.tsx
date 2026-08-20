@@ -1,5 +1,5 @@
 import React from 'react';
-import { DashboardStats } from '../services/dashboardService';
+import type { DashboardStats } from '../services/dashboardService';
 
 interface StatsMiniCardsProps {
   stats: DashboardStats;
