@@ -23,7 +23,7 @@ export const useReports = (options: {
       case 'clients':
         return () => reportService.getClients(params);
       case 'agencies':
-        return () => reportService.getAgencies(params);
+        return () => reportService.getAgencies();
       default:
         return () => reportService.getTransfers(params);
     }
