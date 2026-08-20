@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAudit, useAuditActions } from '../hooks/useAudit';
-import { useAuthStore } from '../../../store/authStore';
 import Button from '../../../components/ui/Button';
 import Pagination from '../../../components/ui/Pagination';
 import StatusBadge from '../../../components/ui/StatusBadge';
@@ -14,9 +13,6 @@ export const AuditPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-
-  const { user } = useAuthStore();
-  const isSuperAdmin = user?.role === 'SUPERADMIN';
 
   const { data, isLoading, refetch } = useAudit({
     page,
@@ -50,8 +46,8 @@ export const AuditPage: React.FC = () => {
     setIsDetailOpen(true);
   };
 
-  const getActionBadge = (action: string) => {
-    const variants: Record<string, string> = {
+  const getActionVariant = (action: string): 'success' | 'danger' | 'warning' | 'info' | 'default' => {
+    const variants: Record<string, 'success' | 'danger' | 'warning' | 'info' | 'default'> = {
       login: 'info',
       logout: 'info',
       transfert_cree: 'success',
@@ -68,6 +64,10 @@ export const AuditPage: React.FC = () => {
       caisse_entree: 'success',
       caisse_sortie: 'danger',
     };
+    return variants[action] || 'default';
+  };
+
+  const getActionLabel = (action: string): string => {
     const labels: Record<string, string> = {
       login: '🔐 Connexion',
       logout: '🔐 Déconnexion',
@@ -85,11 +85,7 @@ export const AuditPage: React.FC = () => {
       caisse_entree: '💳 Entrée caisse',
       caisse_sortie: '💳 Sortie caisse',
     };
-    return (
-      <StatusBadge variant={variants[action] || 'default'}>
-        {labels[action] || action}
-      </StatusBadge>
-    );
+    return labels[action] || action;
   };
 
   return (
@@ -190,7 +186,11 @@ export const AuditPage: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3">{getActionBadge(log.action)}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge variant={getActionVariant(log.action)}>
+                        {getActionLabel(log.action)}
+                      </StatusBadge>
+                    </td>
                     <td className="px-4 py-3">
                       <span className="text-sm">{log.entite || '-'}</span>
                       {log.entite_id && (
