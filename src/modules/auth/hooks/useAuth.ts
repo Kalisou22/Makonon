@@ -1,118 +1,81 @@
-import React, { useEffect } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
 import { useAuthStore } from '../../../store/authStore'
-import { useAgencyStore } from '../../../store/agencyStore'
 import { authService } from '../services/authService'
+import { toast } from 'react-hot-toast'
+import { useState } from 'react'
 
-export const useAuth = () => {
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const { setAuth, logout: storeLogout, setLoading, user, isAuthenticated } = useAuthStore()
-  const { setAgency, clearAgency } = useAgencyStore()
+export function useAuth() {
+  const { user, token, setAuth, logout, setLoading } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Récupérer l'utilisateur courant si token présent
-  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: authService.getCurrentUser,
-    enabled: !!localStorage.getItem('token') && !isAuthenticated,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  })
+  const isAuthenticated = () => {
+    const isAuth = !!token && !!user
+    console.log('🔐 isAuthenticated:', isAuth, 'token:', !!token, 'user:', !!user)
+    return isAuth
+  }
 
-  // Mettre à jour le store si l'utilisateur est récupéré
-  useEffect(() => {
-    if (currentUser) {
-      setAuth(currentUser, localStorage.getItem('token') || '')
-      if (currentUser.agence) {
-        setAgency(currentUser.agence.id, currentUser.agence.nom)
-      } else if (currentUser.agence_id) {
-        setAgency(currentUser.agence_id, 'Agence')
-      }
-    }
-  }, [currentUser, setAuth, setAgency])
+  const login = async (email: string, password: string) => {
+    console.log('🔐 Tentative de login:', email)
+    setIsLoading(true)
+    try {
+      const response = await authService.login(email, password)
+      console.log('🔐 Réponse login:', response)
 
-  const loginMutation = useMutation({
-    mutationFn: authService.login,
-    onMutate: () => setLoading(true),
-    onSuccess: (data) => {
-      console.log('✅ Login réussi:', data.user)
+      // ✅ Vérifier la structure de la réponse
+      if (response && response.data) {
+        const userData = response.data.user || response.data
+        const tokenData = response.data.token
 
-      // Stocker le token
-      localStorage.setItem('token', data.token)
+        console.log('🔐 User data:', userData)
+        console.log('🔐 Token:', tokenData)
 
-      // Mettre à jour authStore
-      setAuth(data.user, data.token)
+        if (userData && tokenData) {
+          // ✅ Sauvegarder dans le store
+          setAuth(userData, tokenData)
 
-      // Mettre à jour agencyStore
-      if (data.user.agence) {
-        setAgency(data.user.agence.id, data.user.agence.nom)
-      } else if (data.user.agence_id) {
-        setAgency(data.user.agence_id, 'Agence')
+          // ✅ Sauvegarder dans localStorage
+          localStorage.setItem('token', tokenData)
+          localStorage.setItem('user', JSON.stringify(userData))
+
+          toast.success('Connexion réussie')
+          return response.data
+        } else {
+          console.error('❌ Données manquantes:', { userData, tokenData })
+          throw new Error('Données utilisateur ou token manquantes')
+        }
       } else {
-        clearAgency()
+        console.error('❌ Réponse invalide:', response)
+        throw new Error('Réponse invalide du serveur')
       }
-
-      toast.success(data.message || 'Connexion réussie')
-      navigate('/dashboard')
-    },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Erreur de connexion'
+    } catch (error: any) {
+      console.error('❌ Erreur login:', error)
+      const message = error?.response?.data?.message || error?.message || 'Erreur de connexion'
       toast.error(message)
-      setLoading(false)
-    },
-    onSettled: () => setLoading(false),
-  })
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      try {
-        await authService.logout()
-      } catch (e) {
-        // Ignorer l'erreur de logout (le token est probablement invalide)
-        console.warn('Logout error (ignorée):', e)
-      }
-    },
-    onSuccess: () => {
-      storeLogout()
-      clearAgency()
+  const handleLogout = async () => {
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.error('Erreur logout:', error)
+    } finally {
       localStorage.removeItem('token')
-      queryClient.clear()
+      localStorage.removeItem('user')
+      logout()
       toast.success('Déconnexion réussie')
-      navigate('/login')
-    },
-    onError: () => {
-      storeLogout()
-      clearAgency()
-      localStorage.removeItem('token')
-      queryClient.clear()
-      navigate('/login')
-    },
-  })
-
-  // Fonction de déconnexion simplifiée
-  const handleLogout = () => {
-    // Nettoyer localement même si l'API échoue
-    storeLogout()
-    clearAgency()
-    localStorage.removeItem('token')
-    queryClient.clear()
-    toast.success('Déconnexion réussie')
-    navigate('/login')
-    
-    // Essayer de déconnecter l'API en arrière-plan
-    authService.logout().catch(() => {})
+    }
   }
 
   return {
     user,
-    currentUser,
-    isAuthenticated: !!localStorage.getItem('token') || isAuthenticated,
-    isLoading: loginMutation.isPending || isLoadingUser,
-    login: loginMutation.mutate,
+    token,
+    isAuthenticated,
+    login,
     logout: handleLogout,
+    isLoading,
+    setLoading
   }
 }
-
-export default useAuth

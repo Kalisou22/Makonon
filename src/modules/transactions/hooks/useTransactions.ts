@@ -1,58 +1,67 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
 import { transactionService } from '../services/transactionService'
-import type { CreateTransactionData, TransactionFilters } from '../types'
+import { toast } from 'react-hot-toast'
 
-export const useTransactions = (filters?: TransactionFilters) => {
-  const cleanFilters: Record<string, any> = {}
-  if (filters) {
-    if (filters.page) cleanFilters.page = filters.page
-    if (filters.per_page) cleanFilters.per_page = filters.per_page
-    if (filters.statut) cleanFilters.statut = filters.statut
-  }
-
+export const useTransactions = (params?: any) => {
   return useQuery({
-    queryKey: ['transactions', cleanFilters],
+    queryKey: ['transactions', params],
+    queryFn: () => transactionService.getAll(params),
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000, // Rafraîchir toutes les 30s
+  })
+}
+
+export const useTransaction = (id: number) => {
+  return useQuery({
+    queryKey: ['transactions', id],
+    queryFn: () => transactionService.getById(id),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export const useSoldeAgence = () => {
+  return useQuery({
+    queryKey: ['solde', 'agence'],
     queryFn: async () => {
-      const response = await transactionService.getTransactions(cleanFilters)
-      console.log('📥 Transactions response:', response.data)
-      return response.data
+      const response = await transactionService.getSoldeAgence()
+      return response.data || { solde: 0 }
     },
-    staleTime: 60000,
-    keepPreviousData: true,
+    staleTime: 1000 * 30,
+    refetchInterval: 30 * 1000,
   })
 }
 
 export const useCreateTransaction = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: CreateTransactionData) => transactionService.createTransaction(data),
+    mutationFn: (data: any) => transactionService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['solde-agence'] })
+      queryClient.invalidateQueries({ queryKey: ['solde'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Transfert créé avec succès')
     },
     onError: (error: any) => {
-      console.error('❌ Erreur création transfert:', error.response?.data)
-      const message = error.response?.data?.message || 'Erreur lors de la création'
-      toast.error(message)
+      toast.error(error?.response?.data?.message || 'Erreur lors de la création')
     },
   })
 }
 
-export const useWithdrawTransaction = () => {
+export const useValidateTransaction = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (code: string) => transactionService.withdrawTransaction(code),
+    mutationFn: (id: number) => transactionService.valider(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['solde-agence'] })
+      queryClient.invalidateQueries({ queryKey: ['solde'] })
+      queryClient.invalidateQueries({ queryKey: ['mouvements'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Retrait effectué avec succès')
     },
     onError: (error: any) => {
-      console.error('❌ Erreur retrait:', error.response?.data)
-      const message = error.response?.data?.message || 'Erreur lors du retrait'
-      toast.error(message)
+      toast.error(error?.response?.data?.message || 'Erreur lors du retrait')
     },
   })
 }
@@ -60,42 +69,29 @@ export const useWithdrawTransaction = () => {
 export const useCancelTransaction = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ code, motif }: { code: string; motif?: string }) =>
-      transactionService.cancelTransaction(code, motif),
+    mutationFn: ({ id, motif }: { id: number; motif?: string }) =>
+      transactionService.annuler(id, motif),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['solde'] })
+      queryClient.invalidateQueries({ queryKey: ['mouvements'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Transfert annulé avec succès')
     },
     onError: (error: any) => {
-      console.error('❌ Erreur annulation:', error.response?.data)
-      const message = error.response?.data?.message || "Erreur lors de l'annulation"
-      toast.error(message)
+      toast.error(error?.response?.data?.message || 'Erreur lors de l\'annulation')
     },
   })
 }
 
-export const useVerifyTransaction = (code: string) => {
-  return useQuery({
-    queryKey: ['transaction-verify', code],
-    queryFn: async () => {
-      const response = await transactionService.verifyTransaction(code)
-      return response.data.data
+export const useVerifierCode = () => {
+  return useMutation({
+    mutationFn: (code: string) => transactionService.verifier(code),
+    onSuccess: (data) => {
+      toast.success(`Transfert trouvé: ${data.data?.code}`)
     },
-    enabled: !!code && code.length > 0,
-    staleTime: 0,
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Code invalide')
+    },
   })
 }
-
-export const useSoldeAgence = () => {
-  return useQuery({
-    queryKey: ['solde-agence'],
-    queryFn: async () => {
-      const response = await transactionService.getSoldeAgence()
-      console.log('📥 Solde agence:', response.data)
-      return response.data
-    },
-    staleTime: 30000,
-  })
-}
-
-export default { useTransactions, useCreateTransaction, useWithdrawTransaction, useCancelTransaction, useVerifyTransaction, useSoldeAgence }

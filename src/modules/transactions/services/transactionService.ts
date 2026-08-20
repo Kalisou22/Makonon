@@ -1,50 +1,46 @@
-import { axiosInstance } from '../../../core/api/axiosInstance'
-import type {
-  Transaction,
-  CreateTransactionData,
-  TransactionFilters,
-  SoldeAgenceResponse,
-} from '../types'
+import axiosInstance from '../../../core/api/axiosInstance'
+import type { Transfert, PaginatedResponse, ApiResponse } from '../../../types'
 
 export const transactionService = {
-  // Liste des transactions (paginée)
-  getTransactions: (params?: TransactionFilters) =>
-    axiosInstance.get<{
-      data: Transaction[]
-      current_page: number
-      last_page: number
-      per_page: number
-      total: number
-    }>('/transferts', { params }),
+  getAll: async (params?: any): Promise<ApiResponse<PaginatedResponse<Transfert>>> => {
+    const response = await axiosInstance.get('/transferts', { params })
+    return response.data
+  },
 
-  // Créer un transfert
-  createTransaction: (data: CreateTransactionData) =>
-    axiosInstance.post<{ message: string; data: Transaction }>('/transferts', {
-      nom_expediteur: data.nom_expediteur,
-      telephone_expediteur: data.telephone_expediteur,
-      nom_beneficiaire: data.nom_beneficiaire,
-      telephone_beneficiaire: data.telephone_beneficiaire,
-      montant: data.montant,
-      agence_envoi_id: data.agence_envoi_id,
-      agence_destinataire_id: data.agence_destinataire_id,
-      idempotency_key: data.idempotency_key,
-    }),
+  getById: async (id: number): Promise<ApiResponse<Transfert>> => {
+    const response = await axiosInstance.get(`/transferts/${id}`)
+    return response.data
+  },
 
-  // Retirer un transfert
-  withdrawTransaction: (code: string) =>
-    axiosInstance.put<{ message: string; data: Transaction }>(`/transferts/retirer/${code}`),
+  create: async (data: any): Promise<ApiResponse<Transfert>> => {
+    const response = await axiosInstance.post('/transferts', data)
+    return response.data
+  },
 
-  // Annuler un transfert
-  cancelTransaction: (code: string, motif?: string) =>
-    axiosInstance.put<{ message: string; data: Transaction }>(`/transferts/annuler/${code}`, { motif }),
+  verifier: async (code: string): Promise<ApiResponse<Transfert>> => {
+    const response = await axiosInstance.get(`/transferts/verifier/${code}`)
+    return response.data
+  },
 
-  // Vérifier un transfert
-  verifyTransaction: (code: string) =>
-    axiosInstance.get<{ data: Transaction }>(`/transferts/verifier/${code}`),
+  valider: async (id: number): Promise<ApiResponse<Transfert>> => {
+    const response = await axiosInstance.post(`/transferts/${id}/valider`)
+    return response.data
+  },
 
-  // Récupérer le solde de l'agence
-  getSoldeAgence: () =>
-    axiosInstance.get<SoldeAgenceResponse>('/transferts/solde-agence'),
+  annuler: async (id: number, motif?: string): Promise<ApiResponse<Transfert>> => {
+    const response = await axiosInstance.post(`/transferts/${id}/annuler`, { motif })
+    return response.data
+  },
+
+  receipt: async (id: number): Promise<ApiResponse<Transfert>> => {
+    const response = await axiosInstance.get(`/transferts/${id}/receipt`)
+    return response.data
+  },
+
+  getSoldeAgence: async (): Promise<ApiResponse<{ solde: number }>> => {
+    const response = await axiosInstance.get('/caisses/solde')
+    return response.data
+  }
 }
 
 export default transactionService

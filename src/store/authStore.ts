@@ -9,6 +9,8 @@ export interface User {
   role: string
   agence_id?: number | null
   agence?: { id: number; nom: string } | null
+  telephone?: string
+  actif?: boolean
 }
 
 interface AuthState {
@@ -29,36 +31,57 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+
       setAuth: (user, token) => {
+        console.log('🔐 setAuth:', { user, token })
+        
+        // ✅ Sauvegarder dans localStorage
         localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(user))
 
-        // ✅ Synchronisation automatique avec agencyStore
-        if (user.agence?.id) {
+        // ✅ Synchronisation avec agencyStore
+        if (user?.agence?.id) {
           useAgencyStore.getState().setAgency(user.agence.id, user.agence.nom)
-        } else if (user.agence_id) {
+        } else if (user?.agence_id) {
           useAgencyStore.getState().setAgency(user.agence_id, 'Agence')
         } else {
           useAgencyStore.getState().clearAgency()
         }
 
-        set({ user, token, isAuthenticated: true })
+        set({ 
+          user, 
+          token, 
+          isAuthenticated: true,
+          isLoading: false
+        })
       },
+
       setUser: (user) => {
-        // ✅ Synchronisation automatique avec agencyStore
-        if (user.agence?.id) {
+        console.log('🔐 setUser:', user)
+        if (user?.agence?.id) {
           useAgencyStore.getState().setAgency(user.agence.id, user.agence.nom)
-        } else if (user.agence_id) {
+        } else if (user?.agence_id) {
           useAgencyStore.getState().setAgency(user.agence_id, 'Agence')
         } else {
           useAgencyStore.getState().clearAgency()
         }
+        localStorage.setItem('user', JSON.stringify(user))
         set({ user })
       },
+
       logout: () => {
+        console.log('🔐 logout')
         localStorage.removeItem('token')
+        localStorage.removeItem('user')
         useAgencyStore.getState().clearAgency()
-        set({ user: null, token: null, isAuthenticated: false })
+        set({ 
+          user: null, 
+          token: null, 
+          isAuthenticated: false,
+          isLoading: false
+        })
       },
+
       setLoading: (loading) => set({ isLoading: loading }),
     }),
     {

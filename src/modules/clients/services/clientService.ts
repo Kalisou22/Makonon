@@ -1,38 +1,30 @@
-import { axiosInstance } from '../../../core/api/axiosInstance'
-import type { Client, CreateClientData } from '../types'
+import axiosInstance from '../../../core/api/axiosInstance'
 
 export const clientService = {
-  getClients: () =>
-    axiosInstance.get<Client[]>('/clients'),
-
-  getClientById: (id: number) =>
-    axiosInstance.get<{ data: Client }>(`/clients/${id}`),
-
-  getClientByTelephone: (telephone: string) =>
-    axiosInstance.get<{ data: Client }>(`/clients/telephone/${telephone}`),
-
-  createClient: (data: CreateClientData) =>
-    axiosInstance.post<{ message: string; data: Client }>('/clients', {
-      nom: data.nom,
-      telephone: data.telephone,
-      email: data.email || null,
-      piece_identite: data.piece_identite || null,
-      numero_piece: data.numero_piece || null,
-    }),
-
-  updateClient: (id: number, data: Partial<CreateClientData>) =>
-    axiosInstance.put<{ message: string; data: Client }>(`/clients/${id}`, {
-      nom: data.nom,
-      telephone: data.telephone,
-      email: data.email || null,
-      piece_identite: data.piece_identite || null,
-      numero_piece: data.numero_piece || null,
-    }),
-
-  deleteClient: (id: number) => {
-    console.log('📤 Suppression client ID:', id)
-    return axiosInstance.delete<{ message: string }>(`/clients/${id}`)
+  getAll: async (params?: any) => {
+    const response = await axiosInstance.get('/clients', { params })
+    return response.data
   },
+  getById: async (id: number) => {
+    const response = await axiosInstance.get(`/clients/${id}`)
+    return response.data
+  },
+  create: async (data: any) => {
+    const response = await axiosInstance.post('/clients', data)
+    return response.data
+  },
+  update: async (id: number, data: any) => {
+    const response = await axiosInstance.put(`/clients/${id}`, data)
+    return response.data
+  },
+  delete: async (id: number) => {
+    const response = await axiosInstance.delete(`/clients/${id}`)
+    return response.data
+  },
+  byTelephone: async (telephone: string) => {
+    const response = await axiosInstance.get(`/clients/by-telephone/${telephone}`)
+    return response.data
+  }
 }
 
 export default clientService

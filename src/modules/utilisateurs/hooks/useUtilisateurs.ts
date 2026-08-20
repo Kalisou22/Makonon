@@ -1,56 +1,34 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
 import { utilisateurService } from '../services/utilisateurService'
-import type { Utilisateur, CreateUtilisateurData, UtilisateurFilters } from '../types'
+import { toast } from 'react-hot-toast'
 
-export const useUtilisateurs = (filters?: UtilisateurFilters) => {
+export const useUtilisateurs = (params?: any) => {
   return useQuery({
-    queryKey: ['utilisateurs', filters],
-    queryFn: async () => {
-      const response = await utilisateurService.getUtilisateurs(filters)
-      console.log('📥 useUtilisateurs response:', response.data)
-      return response.data
-    },
-    staleTime: 60000,
-    keepPreviousData: true,
+    queryKey: ['utilisateurs', params],
+    queryFn: () => utilisateurService.getAll(params),
+    staleTime: 1000 * 60 * 5,
   })
 }
 
 export const useUtilisateur = (id: number) => {
   return useQuery({
-    queryKey: ['utilisateur', id],
-    queryFn: async () => {
-      const response = await utilisateurService.getUtilisateurById(id)
-      return response.data.data
-    },
+    queryKey: ['utilisateurs', id],
+    queryFn: () => utilisateurService.getById(id),
     enabled: !!id,
-    staleTime: 60000,
+    staleTime: 1000 * 60 * 5,
   })
 }
 
 export const useCreateUtilisateur = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: CreateUtilisateurData) => {
-      console.log('🔵 Mutation création utilisateur:', data)
-      return utilisateurService.createUtilisateur(data)
-    },
-    onSuccess: (response) => {
-      console.log('✅ Utilisateur créé:', response.data)
+    mutationFn: (data: any) => utilisateurService.create(data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
-      toast.success('Utilisateur créé avec succès')
+      toast.success('Utilisateur créé')
     },
     onError: (error: any) => {
-      console.error('❌ Erreur création utilisateur:', error.response?.data)
-      const message = error.response?.data?.message || 'Erreur lors de la création'
-      // Afficher les détails de validation si disponibles
-      const errors = error.response?.data?.errors
-      if (errors) {
-        const errorMessages = Object.values(errors).flat().join('\n')
-        toast.error(`Erreur de validation:\n${errorMessages}`)
-      } else {
-        toast.error(message)
-      }
+      toast.error(error?.message || 'Erreur lors de la création')
     },
   })
 }
@@ -58,19 +36,14 @@ export const useCreateUtilisateur = () => {
 export const useUpdateUtilisateur = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<CreateUtilisateurData> }) => {
-      console.log('🔵 Mutation modification utilisateur:', { id, data })
-      return utilisateurService.updateUtilisateur(id, data)
-    },
-    onSuccess: (_, variables) => {
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
+      utilisateurService.update(id, data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
-      queryClient.invalidateQueries({ queryKey: ['utilisateur', variables.id] })
-      toast.success('Utilisateur mis à jour avec succès')
+      toast.success('Utilisateur mis à jour')
     },
     onError: (error: any) => {
-      console.error('❌ Erreur modification utilisateur:', error.response?.data)
-      const message = error.response?.data?.message || 'Erreur lors de la mise à jour'
-      toast.error(message)
+      toast.error(error?.message || 'Erreur lors de la mise à jour')
     },
   })
 }
@@ -78,20 +51,13 @@ export const useUpdateUtilisateur = () => {
 export const useDeleteUtilisateur = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => {
-      console.log('🔵 Mutation suppression utilisateur:', id)
-      return utilisateurService.deleteUtilisateur(id)
-    },
+    mutationFn: (id: number) => utilisateurService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['utilisateurs'] })
-      toast.success('Utilisateur supprimé avec succès')
+      toast.success('Utilisateur supprimé')
     },
     onError: (error: any) => {
-      console.error('❌ Erreur suppression utilisateur:', error.response?.data)
-      const message = error.response?.data?.message || 'Erreur lors de la suppression'
-      toast.error(message)
+      toast.error(error?.message || 'Erreur lors de la suppression')
     },
   })
 }
-
-export default { useUtilisateurs, useUtilisateur, useCreateUtilisateur, useUpdateUtilisateur, useDeleteUtilisateur }

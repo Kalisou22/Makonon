@@ -1,110 +1,119 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
+import type { ReactNode } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../modules/auth/hooks/useAuth'
+import { useAuthStore } from '../store/authStore'
 
-interface LayoutProps {
-  children: React.ReactNode
-}
-
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { user } = useAuthStore()
-  const { logout } = useAuth()
+export default function Layout({ children }: { children: ReactNode }) {
+  const navigate = useNavigate()
   const location = useLocation()
+  const { logout } = useAuth()
+  const { user } = useAuthStore()
 
-  const isActive = (path: string) => location.pathname === path
-
-  const navLinks = [
-    { path: '/dashboard', label: 'TABLEAU DE BORD', icon: '📊', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
-    { path: '/transactions', label: 'TRANSACTIONS', icon: '💰', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
-    { path: '/mouvements', label: 'MOUVEMENTS', icon: '💳', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE'] },
-    { path: '/clients', label: 'CLIENTS', icon: '👤', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE', 'AGENT'] },
-    { path: '/agences', label: 'AGENCES', icon: '🏢', roles: ['SUPERADMIN', 'ADMIN'] },
-    { path: '/utilisateurs', label: 'UTILISATEURS', icon: '👥', roles: ['SUPERADMIN', 'ADMIN'] },
-    { path: '/audit', label: 'JOURNAL', icon: '📋', roles: ['SUPERADMIN', 'ADMIN', 'RESPONSABLE'] },
+  const menu = [
+    { path: '/dashboard', label: 'Tableau de bord', icon: '📊', section: 'PRINCIPAL' },
+    { path: '/transactions', label: 'Transactions', icon: '💰', section: 'PRINCIPAL' },
+    { path: '/clients', label: 'Clients', icon: '👤', section: 'GESTION' },
+    { path: '/agences', label: 'Agences', icon: '🏢', section: 'GESTION' },
+    { path: '/utilisateurs', label: 'Utilisateurs', icon: '👥', section: 'GESTION' },
+    { path: '/mouvements', label: 'Mouvements', icon: '💳', section: 'GESTION' },
+    { path: '/frais', label: 'Frais', icon: '📈', section: 'FINANCES' },
+    { path: '/audit', label: 'Audit', icon: '📋', section: 'CONTRÔLE' },
+    { path: '/reports', label: 'Rapports', icon: '📊', section: 'CONTRÔLE' },
   ]
 
-  const visibleLinks = navLinks.filter(link => link.roles.includes(user?.role || ''))
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  const getRoleLabel = (role: string) => {
+    const roles: Record<string, string> = {
+      'SUPERADMIN': 'Super Administrateur',
+      'ADMIN': 'Administrateur',
+      'RESPONSABLE': 'Responsable',
+      'AGENT': 'Agent'
+    }
+    return roles[role] || role
+  }
+
+  const getAgencyLabel = () => {
+    if (user?.role === 'SUPERADMIN') {
+      return 'Toutes les agences'
+    }
+    if (user?.agence) {
+      return user.agence.nom || `Agence ${user.agence_id}`
+    }
+    return 'Aucune agence'
+  }
+
+  const isActive = (path: string) => {
+    if (path === '/dashboard' && location.pathname === '/') return true
+    return location.pathname === path || location.pathname.startsWith(path + '/')
+  }
+
+  const sections = [
+    { key: 'PRINCIPAL', label: 'PRINCIPAL' },
+    { key: 'GESTION', label: 'GESTION' },
+    { key: 'FINANCES', label: 'FINANCES' },
+    { key: 'CONTRÔLE', label: 'CONTRÔLE' },
+  ]
 
   return (
-    <div className="min-h-screen bg-bg flex">
-      {/* ===== SIDEBAR ===== */}
-      <aside className="w-64 min-h-screen bg-[#222D32] flex-shrink-0 flex flex-col">
-        <div className="py-6 text-center border-b border-[#3A4A52]">
-          <h1 className="text-[#0078C8] text-xl font-black tracking-wider">
-            MAKONON
-          </h1>
-          <p className="text-[#8A9BA5] text-xs font-medium tracking-widest">
-            TRANSFERT
-          </p>
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <aside className="w-64 bg-white dark:bg-gray-800 shadow-md p-4 min-h-screen border-r dark:border-gray-700 flex flex-col fixed h-full">
+        <div className="mb-6">
+          <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">MAKONON</h1>
+          <p className="text-xs text-text-secondary">Transfert d'argent</p>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-1">
-          {visibleLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`
-                flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition-all duration-200
-                ${isActive(link.path)
-                  ? 'bg-[#0078C8] text-white shadow-lg'
-                  : 'text-[#C8D6DD] hover:bg-[#3A4A52] hover:text-white'
-                }
-              `}
-            >
-              <span className="text-lg">{link.icon}</span>
-              {link.label}
-            </Link>
-          ))}
+        <div className="mb-4 px-3 py-3 bg-blue-50 dark:bg-gray-700 rounded-lg border border-blue-100 dark:border-gray-600">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{user?.nom || 'Utilisateur'}</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">{getRoleLabel(user?.role || '')}</p>
+          <p className="text-xs text-text-secondary mt-1">{getAgencyLabel()}</p>
+        </div>
+
+        <nav className="flex-1 space-y-3 overflow-y-auto">
+          {sections.map((section) => {
+            const items = menu.filter(item => item.section === section.key)
+            if (items.length === 0) return null
+            return (
+              <div key={section.key}>
+                <p className="text-xs text-text-secondary uppercase tracking-wider px-3 py-1 font-semibold">
+                  {section.label}
+                </p>
+                {items.map(item => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition ${
+                      isActive(item.path)
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    <span>{item.icon}</span>
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )
+          })}
         </nav>
 
-        <div className="p-4 border-t border-[#3A4A52]">
-          <div className="text-xs text-[#8A9BA5] text-center">
-            v2.0.0 © 2026
-          </div>
+        <div className="border-t dark:border-gray-700 pt-4">
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-3 py-2 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 text-sm transition flex items-center gap-2"
+          >
+            <span>🚪</span>
+            Déconnexion
+          </button>
+          <p className="text-xs text-text-secondary px-3 pt-2">v2.0.0 © 2026</p>
         </div>
       </aside>
-
-      {/* ===== MAIN CONTENT ===== */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        <header className="bg-gradient-to-r from-primary to-primary-light text-white shadow-lg">
-          <div className="flex justify-between items-center px-6 py-3">
-            <div className="flex items-center gap-4">
-              {/* ✅ SUPERADMIN = Siège, sinon Agence #X */}
-              <span className="text-sm font-medium opacity-75">
-                {user?.role === 'SUPERADMIN' 
-                  ? 'Siège' 
-                  : user?.agence_id 
-                    ? `Agence #${user.agence_id}` 
-                    : 'Siège'
-                }
-              </span>
-              {user?.agence && user?.role !== 'SUPERADMIN' && (
-                <span className="text-xs opacity-60">
-                  {user.agence.nom}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">
-                {user?.nom} ({user?.role})
-              </span>
-              <button
-                onClick={logout}
-                className="bg-[#D33333] hover:bg-[#B42828] px-4 py-1.5 rounded-full text-sm font-bold transition-colors"
-              >
-                Déconnexion
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 p-6 ml-64">
+        {children}
+      </main>
     </div>
   )
 }
-
-export default Layout

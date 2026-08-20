@@ -1,26 +1,27 @@
-import { useQuery } from '@tanstack/react-query';
-import { auditService, type AuditLog, type AuditFilters } from '../services/auditService';
+import { useQuery } from '@tanstack/react-query'
+import { auditService } from '../services/auditService'
 
-export const useAuditLogs = (filters?: AuditFilters) => {
+export const useAuditLogs = (params?: any) => {
   return useQuery({
-    queryKey: ['audit-logs', filters],
-    queryFn: async () => {
-      const response = await auditService.getAuditLogs(filters);
-      return response.data;
-    },
-    staleTime: 60000,
-    keepPreviousData: true,
-  });
-};
+    queryKey: ['audit', params],
+    queryFn: () => auditService.getAll(params),
+    staleTime: 1000 * 60 * 2,
+  })
+}
 
 export const useAuditLog = (id: number) => {
   return useQuery({
-    queryKey: ['audit-log', id],
-    queryFn: async () => {
-      const response = await auditService.getAuditLogById(id);
-      return response.data.data;
-    },
+    queryKey: ['audit', id],
+    queryFn: () => auditService.getById(id),
     enabled: !!id,
-    staleTime: 60000,
-  });
-};
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export const useAuditActions = () => {
+  return useQuery({
+    queryKey: ['audit', 'actions'],
+    queryFn: () => auditService.getActions(),
+    staleTime: 1000 * 60 * 60,
+  })
+}
