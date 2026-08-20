@@ -1,7 +1,7 @@
 import React from 'react';
 import StatusBadge from '../../../components/ui/StatusBadge';
 import Button from '../../../components/ui/Button';
-import { Utilisateur } from '../types';
+import type { Utilisateur } from '../types';
 
 interface UtilisateurTableProps {
   data: Utilisateur[];

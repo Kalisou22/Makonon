@@ -1,5 +1,5 @@
 import api from '../../../core/api/axiosInstance';
-import { Utilisateur, UtilisateurFormData } from '../types';
+import type { UtilisateurFormData } from '../types';
 
 export const utilisateurService = {
   getUtilisateurs: async (params?: {

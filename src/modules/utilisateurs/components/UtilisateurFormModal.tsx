@@ -6,7 +6,7 @@ import Button from '../../../components/ui/Button';
 import { useCreateUtilisateur, useUpdateUtilisateur } from '../hooks/useUtilisateurs';
 import { useAgences } from '../../agences/hooks/useAgences';
 import toast from 'react-hot-toast';
-import { Utilisateur } from '../types';
+import type { Utilisateur } from '../types';
 
 interface UtilisateurFormModalProps {
   isOpen: boolean;
