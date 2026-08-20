@@ -1,97 +1,87 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { transactionService } from '../services/transactionService'
-import { toast } from 'react-hot-toast'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { transactionService } from '../services/transactionService';
+import toast from 'react-hot-toast';
+import { TransactionFormData } from '../types';
 
-export const useTransactions = (params?: any) => {
+export const useTransactions = (params?: {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  statut?: string;
+}) => {
   return useQuery({
     queryKey: ['transactions', params],
-    queryFn: () => transactionService.getAll(params),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000, // Rafraîchir toutes les 30s
-  })
-}
+    queryFn: () => transactionService.getTransactions(params),
+    staleTime: 30000,
+  });
+};
 
 export const useTransaction = (id: number) => {
   return useQuery({
-    queryKey: ['transactions', id],
-    queryFn: () => transactionService.getById(id),
+    queryKey: ['transaction', id],
+    queryFn: () => transactionService.getTransaction(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 5,
-  })
-}
-
-export const useSoldeAgence = () => {
-  return useQuery({
-    queryKey: ['solde', 'agence'],
-    queryFn: async () => {
-      const response = await transactionService.getSoldeAgence()
-      return response.data || { solde: 0 }
-    },
-    staleTime: 1000 * 30,
-    refetchInterval: 30 * 1000,
-  })
-}
+  });
+};
 
 export const useCreateTransaction = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (data: any) => transactionService.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['solde'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      toast.success('Transfert créé avec succès')
+    mutationFn: (data: TransactionFormData) => transactionService.createTransaction(data),
+    onSuccess: (response) => {
+      toast.success(response.message || 'Transfert créé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la création')
+      const message = error.response?.data?.message || 'Erreur lors de la création du transfert';
+      toast.error(message);
     },
-  })
-}
+  });
+};
 
-export const useValidateTransaction = () => {
-  const queryClient = useQueryClient()
+export const useValiderTransaction = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (id: number) => transactionService.valider(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['solde'] })
-      queryClient.invalidateQueries({ queryKey: ['mouvements'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      toast.success('Retrait effectué avec succès')
+    mutationFn: (id: number) => transactionService.validerTransaction(id),
+    onSuccess: (response) => {
+      toast.success(response.message || 'Transfert retiré avec succès');
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors du retrait')
+      const message = error.response?.data?.message || 'Erreur lors du retrait';
+      toast.error(message);
     },
-  })
-}
+  });
+};
 
-export const useCancelTransaction = () => {
-  const queryClient = useQueryClient()
+export const useAnnulerTransaction = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ id, motif }: { id: number; motif?: string }) =>
-      transactionService.annuler(id, motif),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['solde'] })
-      queryClient.invalidateQueries({ queryKey: ['mouvements'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-      toast.success('Transfert annulé avec succès')
+      transactionService.annulerTransaction(id, motif),
+    onSuccess: (response) => {
+      toast.success(response.message || 'Transfert annulé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de l\'annulation')
+      const message = error.response?.data?.message || 'Erreur lors de l\'annulation';
+      toast.error(message);
     },
-  })
-}
+  });
+};
 
 export const useVerifierCode = () => {
   return useMutation({
-    mutationFn: (code: string) => transactionService.verifier(code),
-    onSuccess: (data) => {
-      toast.success(`Transfert trouvé: ${data.data?.code}`)
-    },
+    mutationFn: (code: string) => transactionService.verifierCode(code),
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Code invalide')
+      const message = error.response?.data?.message || 'Code de retrait invalide';
+      toast.error(message);
     },
-  })
-}
+  });
+};

@@ -1,46 +1,44 @@
-import axiosInstance from '../../../core/api/axiosInstance'
-import type { Transfert, PaginatedResponse, ApiResponse } from '../../../types'
+import api from '../../../core/api/axiosInstance';
+import { Transaction, TransactionFormData } from '../types';
 
 export const transactionService = {
-  getAll: async (params?: any): Promise<ApiResponse<PaginatedResponse<Transfert>>> => {
-    const response = await axiosInstance.get('/transferts', { params })
-    return response.data
+  getTransactions: async (params?: {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    statut?: string;
+  }) => {
+    const response = await api.get('/transferts', { params });
+    return response.data;
   },
 
-  getById: async (id: number): Promise<ApiResponse<Transfert>> => {
-    const response = await axiosInstance.get(`/transferts/${id}`)
-    return response.data
+  getTransaction: async (id: number) => {
+    const response = await api.get(`/transferts/${id}`);
+    return response.data;
   },
 
-  create: async (data: any): Promise<ApiResponse<Transfert>> => {
-    const response = await axiosInstance.post('/transferts', data)
-    return response.data
+  createTransaction: async (data: TransactionFormData) => {
+    const response = await api.post('/transferts', data);
+    return response.data;
   },
 
-  verifier: async (code: string): Promise<ApiResponse<Transfert>> => {
-    const response = await axiosInstance.get(`/transferts/verifier/${code}`)
-    return response.data
+  validerTransaction: async (id: number) => {
+    const response = await api.post(`/transferts/${id}/valider`);
+    return response.data;
   },
 
-  valider: async (id: number): Promise<ApiResponse<Transfert>> => {
-    const response = await axiosInstance.post(`/transferts/${id}/valider`)
-    return response.data
+  annulerTransaction: async (id: number, motif?: string) => {
+    const response = await api.post(`/transferts/${id}/annuler`, { motif });
+    return response.data;
   },
 
-  annuler: async (id: number, motif?: string): Promise<ApiResponse<Transfert>> => {
-    const response = await axiosInstance.post(`/transferts/${id}/annuler`, { motif })
-    return response.data
+  verifierCode: async (code: string) => {
+    const response = await api.get(`/transferts/verifier/${code}`);
+    return response.data;
   },
 
-  receipt: async (id: number): Promise<ApiResponse<Transfert>> => {
-    const response = await axiosInstance.get(`/transferts/${id}/receipt`)
-    return response.data
-  },
-
-  getSoldeAgence: async (): Promise<ApiResponse<{ solde: number }>> => {
-    const response = await axiosInstance.get('/caisses/solde')
-    return response.data
+  getReceipt: async (id: number) => {
+    const response = await api.get(`/transferts/${id}/receipt`);
+    return response.data;
   }
-}
-
-export default transactionService
+};
