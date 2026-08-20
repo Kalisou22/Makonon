@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useMouvements } from '../hooks/useMouvements';
-import { useAuthStore } from '../../../store/authStore';
 
 export const MouvementsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [type, setType] = useState('');
   const [motif, setMotif] = useState('');
-  const { user } = useAuthStore();
 
   const { data, isLoading, refetch } = useMouvements({
     page,
