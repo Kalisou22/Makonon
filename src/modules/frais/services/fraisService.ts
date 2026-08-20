@@ -1,38 +1,51 @@
-import axiosInstance from '../../../core/api/axiosInstance'
+import api from '../../../core/api/axiosInstance';
 
 export const fraisService = {
-  getAll: async () => {
-    const response = await axiosInstance.get('/frais')
-    return response.data
+  getFrais: async () => {
+    const response = await api.get('/frais');
+    return response.data;
   },
-  create: async (data: any) => {
-    const response = await axiosInstance.post('/frais/configurations', data)
-    return response.data
-  },
-  update: async (id: number, data: any) => {
-    const response = await axiosInstance.put(`/frais/configurations/${id}`, data)
-    return response.data
-  },
-  delete: async (id: number) => {
-    const response = await axiosInstance.delete(`/frais/configurations/${id}`)
-    return response.data
-  },
-  desactiver: async (id: number) => {
-    const response = await axiosInstance.put(`/frais/configurations/${id}/desactiver`)
-    return response.data
-  },
-  getConfigurationActuelle: async () => {
-    const response = await axiosInstance.get('/frais/configuration-actuelle')
-    return response.data
-  },
-  getHistorique: async () => {
-    const response = await axiosInstance.get('/frais/historique')
-    return response.data
-  },
-  calculer: async (montant: number) => {
-    const response = await axiosInstance.post('/frais/calculer', { montant })
-    return response.data
-  },
-}
 
-export default fraisService
+  getFraisConfiguration: async (id: number) => {
+    const response = await api.get(`/frais/configurations/${id}`);
+    return response.data;
+  },
+
+  getConfigurationActuelle: async () => {
+    const response = await api.get('/frais/configuration-actuelle');
+    return response.data;
+  },
+
+  calculerFrais: async (montant: number) => {
+    const response = await api.post('/frais/calculer', { montant });
+    return response.data;
+  },
+
+  createFrais: async (data: any) => {
+    const response = await api.post('/frais/configurations', data);
+    return response.data;
+  },
+
+  updateFrais: async (id: number, data: any) => {
+    const response = await api.put(`/frais/configurations/${id}`, data);
+    return response.data;
+  },
+
+  deleteFrais: async (id: number) => {
+    const response = await api.delete(`/frais/configurations/${id}`);
+    return response.data;
+  },
+
+  toggleFrais: async (id: number, actif: boolean) => {
+    const endpoint = actif ? 'activer' : 'desactiver';
+    const response = await api.put(`/frais/configurations/${id}/${endpoint}`);
+    return response.data;
+  },
+
+  getHistorique: async () => {
+    const response = await api.get('/frais/historique');
+    return response.data;
+  }
+};
+
+export default fraisService;

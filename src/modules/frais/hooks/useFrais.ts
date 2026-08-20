@@ -1,97 +1,105 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fraisService } from '../services/fraisService'
-import { toast } from 'react-hot-toast'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fraisService } from '../services/fraisService';
+import toast from 'react-hot-toast';
 
 export const useFrais = () => {
   return useQuery({
     queryKey: ['frais'],
-    queryFn: () => fraisService.getAll(),
-    staleTime: 1000 * 60 * 5,
-  })
-}
+    queryFn: () => fraisService.getFrais(),
+    staleTime: 60000,
+  });
+};
 
-export const useFraisConfiguration = () => {
+export const useFraisConfiguration = (id: number) => {
   return useQuery({
-    queryKey: ['frais', 'configuration'],
+    queryKey: ['frais', id],
+    queryFn: () => fraisService.getFraisConfiguration(id),
+    enabled: !!id,
+  });
+};
+
+export const useConfigurationActuelle = () => {
+  return useQuery({
+    queryKey: ['frais', 'actuelle'],
     queryFn: () => fraisService.getConfigurationActuelle(),
-    staleTime: 1000 * 60 * 5,
-  })
-}
-
-export const useFraisHistorique = () => {
-  return useQuery({
-    queryKey: ['frais', 'historique'],
-    queryFn: () => fraisService.getHistorique(),
-    staleTime: 1000 * 60 * 5,
-  })
-}
-
-export const useCreateFrais = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (data: any) => fraisService.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['frais'] })
-      queryClient.invalidateQueries({ queryKey: ['frais', 'configuration'] })
-      toast.success('Configuration créée avec succès')
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors de la création')
-    },
-  })
-}
-
-export const useUpdateFrais = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) =>
-      fraisService.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['frais'] })
-      queryClient.invalidateQueries({ queryKey: ['frais', 'configuration'] })
-      toast.success('Configuration mise à jour')
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors de la mise à jour')
-    },
-  })
-}
-
-export const useDeleteFrais = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => fraisService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['frais'] })
-      queryClient.invalidateQueries({ queryKey: ['frais', 'configuration'] })
-      toast.success('Configuration supprimée')
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors de la suppression')
-    },
-  })
-}
-
-export const useDesactiverFrais = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => fraisService.desactiver(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['frais'] })
-      queryClient.invalidateQueries({ queryKey: ['frais', 'configuration'] })
-      toast.success('Configuration désactivée')
-    },
-    onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors de la désactivation')
-    },
-  })
-}
+    staleTime: 30000,
+  });
+};
 
 export const useCalculerFrais = () => {
   return useMutation({
-    mutationFn: (montant: number) => fraisService.calculer(montant),
+    mutationFn: (montant: number) => fraisService.calculerFrais(montant),
     onError: (error: any) => {
-      toast.error(error?.message || 'Erreur lors du calcul')
+      const message = error.response?.data?.message || 'Erreur lors du calcul';
+      toast.error(message);
     },
-  })
-}
+  });
+};
+
+export const useCreateFrais = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: any) => fraisService.createFrais(data),
+    onSuccess: () => {
+      toast.success('Configuration créée avec succès');
+      queryClient.invalidateQueries({ queryKey: ['frais'] });
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la création';
+      toast.error(message);
+    },
+  });
+};
+
+export const useUpdateFrais = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
+      fraisService.updateFrais(id, data),
+    onSuccess: () => {
+      toast.success('Configuration mise à jour');
+      queryClient.invalidateQueries({ queryKey: ['frais'] });
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la mise à jour';
+      toast.error(message);
+    },
+  });
+};
+
+export const useDeleteFrais = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => fraisService.deleteFrais(id),
+    onSuccess: () => {
+      toast.success('Configuration supprimée');
+      queryClient.invalidateQueries({ queryKey: ['frais'] });
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la suppression';
+      toast.error(message);
+    },
+  });
+};
+
+export const useToggleFrais = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, actif }: { id: number; actif: boolean }) =>
+      fraisService.toggleFrais(id, actif),
+    onSuccess: (response) => {
+      toast.success(response.message || 'Statut modifié');
+      queryClient.invalidateQueries({ queryKey: ['frais'] });
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Erreur lors de la modification';
+      toast.error(message);
+    },
+  });
+};
+
+export default useFrais;
