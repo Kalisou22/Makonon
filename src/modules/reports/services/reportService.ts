@@ -1,34 +1,40 @@
-import axiosInstance from '../../../core/api/axiosInstance'
+import api from '../../../core/api/axiosInstance';
 
 export const reportService = {
-  getTransfers: async (filters?: any) => {
-    const response = await axiosInstance.get('/reports/transfers', { params: filters })
-    return response.data
+  getTransfers: async (params?: Record<string, any>) => {
+    const response = await api.get('/reports/transfers', { params });
+    return response.data;
   },
-  getFees: async (filters?: any) => {
-    const response = await axiosInstance.get('/reports/fees', { params: filters })
-    return response.data
-  },
-  getCash: async (filters?: any) => {
-    const response = await axiosInstance.get('/reports/cash', { params: filters })
-    return response.data
-  },
-  getLedger: async (filters?: any) => {
-    const response = await axiosInstance.get('/reports/ledger', { params: filters })
-    return response.data
-  },
-  getAudit: async (filters?: any) => {
-    const response = await axiosInstance.get('/reports/audit', { params: filters })
-    return response.data
-  },
-  getClients: async (filters?: any) => {
-    const response = await axiosInstance.get('/reports/clients', { params: filters })
-    return response.data
-  },
-  getAgencies: async (filters?: any) => {
-    const response = await axiosInstance.get('/reports/agencies', { params: filters })
-    return response.data
-  }
-}
 
-export default reportService
+  getFees: async (params?: Record<string, any>) => {
+    const response = await api.get('/reports/fees', { params });
+    return response.data;
+  },
+
+  getCash: async (params?: Record<string, any>) => {
+    const response = await api.get('/reports/cash', { params });
+    return response.data;
+  },
+
+  getLedger: async (params?: Record<string, any>) => {
+    const response = await api.get('/reports/ledger', { params });
+    return response.data;
+  },
+
+  getAudit: async (params?: Record<string, any>) => {
+    const response = await api.get('/reports/audit', { params });
+    return response.data;
+  },
+
+  getClients: async (params?: Record<string, any>) => {
+    const response = await api.get('/reports/clients', { params });
+    return response.data;
+  },
+
+  getAgencies: async (params?: Record<string, any>) => {
+    const response = await api.get('/reports/agencies', { params });
+    return response.data;
+  }
+};
+
+export default reportService;
