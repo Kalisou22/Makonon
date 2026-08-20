@@ -1,23 +1,37 @@
-import axiosInstance from '../../../core/api/axiosInstance'
+import api from '../../../core/api/axiosInstance';
 
 export const mouvementService = {
-  getAll: async (params?: any) => {
-    const response = await axiosInstance.get('/mouvements-caisse', { params })
-    return response.data
+  getMouvements: async (params?: {
+    page?: number;
+    per_page?: number;
+    type?: string;
+    motif?: string;
+    search?: string;
+  }) => {
+    const response = await api.get('/mouvements-caisse', { params });
+    return response.data;
   },
-  create: async (data: any) => {
-    const response = await axiosInstance.post('/mouvements-caisse', data)
-    return response.data
-  },
-  delete: async (id: number) => {
-    const response = await axiosInstance.delete(`/mouvements-caisse/${id}`)
-    return response.data
-  },
-  getSolde: async (agenceId?: number) => {
-    const params = agenceId ? { agence_id: agenceId } : {}
-    const response = await axiosInstance.get('/caisses/solde', { params })
-    return response.data
-  }
-}
 
-export default mouvementService
+  getMouvement: async (id: number) => {
+    const response = await api.get(`/mouvements-caisse/${id}`);
+    return response.data;
+  },
+
+  createMouvement: async (data: {
+    type: 'ENTREE' | 'SORTIE';
+    motif: string;
+    montant: number;
+    agence_id: number;
+    reference?: string;
+  }) => {
+    const response = await api.post('/mouvements-caisse', data);
+    return response.data;
+  },
+
+  getByAgence: async (agenceId: number, params?: any) => {
+    const response = await api.get(`/agences/${agenceId}/mouvements-caisse`, { params });
+    return response.data;
+  }
+};
+
+export default mouvementService;
