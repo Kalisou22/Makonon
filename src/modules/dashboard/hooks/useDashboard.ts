@@ -5,7 +5,8 @@ export const useDashboard = () => {
   return useQuery({
     queryKey: ['dashboard'],
     queryFn: () => dashboardService.getDashboard(),
-    staleTime: 60000,
+    staleTime: 30000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -13,6 +14,7 @@ export const useDashboardStats = () => {
   return useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => dashboardService.getStats(),
-    staleTime: 60000,
+    staleTime: 30000,
+    refetchOnWindowFocus: true,
   });
 };

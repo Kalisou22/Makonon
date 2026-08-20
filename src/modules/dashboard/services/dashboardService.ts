@@ -5,7 +5,8 @@ export interface DashboardStats {
   agence_id?: number;
   agence_nom?: string;
   solde?: number;
-  solde_caisse?: number;
+  solde_physique?: number;
+  solde_comptable?: number;
   total_transferts: number;
   total_clients?: number;
   total_agences?: number;
@@ -14,6 +15,11 @@ export interface DashboardStats {
   volume_journalier: number;
   transferts_attente: number;
   montant_attente: number;
+  transferts_retires?: number;
+  transferts_annules?: number;
+  frais_total?: number;
+  montant_total?: number;
+  montant_jour?: number;
   recent_activites: Array<{
     id: number;
     type: string;
@@ -23,6 +29,8 @@ export interface DashboardStats {
     date: string;
     statut: string;
     montant?: number;
+    agence_envoi?: string;
+    agence_retrait?: string;
   }>;
 }
 
